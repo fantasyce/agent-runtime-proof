@@ -37,6 +37,18 @@ type decisionRegistry struct {
 func validateDecisionSemantics(proof map[string]any, registry decisionRegistry) error {
 	verdict, _ := proof["verdict"].(string)
 	proofLevel, _ := proof["proof_level"].(string)
+	observation, _ := proof["observation"].(map[string]any)
+	if verdict == "MATCHED" || verdict == "STALE" || verdict == "LEAKED" {
+		if proof["expectation"] == nil {
+			return fmt.Errorf("verdict %s requires an expectation", verdict)
+		}
+		if observation["process"] == nil || observation["executable"] == nil {
+			return fmt.Errorf("verdict %s requires process and executable observations", verdict)
+		}
+	}
+	if verdict == "NOT_RUNNING" && (observation["process"] != nil || observation["executable"] != nil || observation["artifact"] != nil) {
+		return fmt.Errorf("NOT_RUNNING cannot contain a process, executable, or artifact observation")
+	}
 	proofOrder := map[string]int{}
 	for _, level := range registry.ProofLevels {
 		proofOrder[level.Name] = level.Order

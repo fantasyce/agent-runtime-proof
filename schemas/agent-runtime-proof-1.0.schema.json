@@ -12,9 +12,9 @@
     "tool": {"$ref": "#/$defs/tool"},
     "platform": {"$ref": "#/$defs/platform"},
     "subject": {"$ref": "#/$defs/subject"},
-    "expectation": {"$ref": "#/$defs/expectationProjection"},
+    "expectation": {"oneOf": [{"$ref": "#/$defs/expectationProjection"}, {"type": "null"}]},
     "observation": {"$ref": "#/$defs/observation"},
-    "host_attribution": {"$ref": "#/$defs/hostAttribution"},
+    "host_attribution": {"oneOf": [{"$ref": "#/$defs/hostAttribution"}, {"type": "null"}]},
     "verdict": {"$ref": "#/$defs/verdict"},
     "proof_level": {"$ref": "#/$defs/proofLevel"},
     "reason_codes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/reasonCode"}},
@@ -86,17 +86,8 @@
       "additionalProperties": false,
       "required": ["process", "executable", "artifact", "inaccessible_fields"],
       "properties": {
-        "process": {"$ref": "#/$defs/processIdentity"},
-        "executable": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["basename", "path_hash"],
-          "properties": {
-            "basename": {"type": "string", "minLength": 1, "maxLength": 255},
-            "path_hash": {"$ref": "#/$defs/prefixedSha256"},
-            "file_id_hash": {"$ref": "#/$defs/prefixedSha256"}
-          }
-        },
+        "process": {"oneOf": [{"$ref": "#/$defs/processIdentity"}, {"type": "null"}]},
+        "executable": {"oneOf": [{"$ref": "#/$defs/executableObservation"}, {"type": "null"}]},
         "artifact": {
           "type": ["object", "null"],
           "additionalProperties": false,
@@ -109,6 +100,16 @@
           }
         },
         "inaccessible_fields": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,127}$"}}
+      }
+    },
+    "executableObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["basename", "path_hash"],
+      "properties": {
+        "basename": {"type": "string", "minLength": 1, "maxLength": 255},
+        "path_hash": {"$ref": "#/$defs/prefixedSha256"},
+        "file_id_hash": {"$ref": "#/$defs/prefixedSha256"}
       }
     },
     "hostAttribution": {

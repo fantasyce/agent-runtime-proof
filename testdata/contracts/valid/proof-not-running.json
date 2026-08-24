@@ -1,0 +1,23 @@
+{
+  "schema_version": "agent-runtime-proof/1.0",
+  "proof_id": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "observed_at": "2026-08-24T12:35:56Z",
+  "tool": {"name": "agent-runtime-proof", "version": "0.1.0", "commit": "abcdef0", "toolchain": "go1.27.0"},
+  "platform": {"os": "darwin", "arch": "arm64"},
+  "subject": {"id": "example", "display_name": "Example", "version": "1.0.0"},
+  "expectation": {
+    "source_kind": "user-file",
+    "source_locator_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+    "trust": "declared",
+    "expected_version": "1.0.0",
+    "expected_artifact_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+  },
+  "observation": {"process": null, "executable": null, "artifact": null, "inaccessible_fields": []},
+  "host_attribution": null,
+  "verdict": "NOT_RUNNING",
+  "proof_level": "PROCESS_OBSERVED",
+  "reason_codes": ["PROCESS_NOT_FOUND"],
+  "evidence": [],
+  "privacy": {"redaction_mode": "safe-default", "home_redacted": true, "omitted_fields": []},
+  "limitations": []
+}

@@ -43,14 +43,14 @@
 - Produces: `contract.ValidateExpectation([]byte) error`, `contract.ValidateProof([]byte) error`, `canonical.Marshal(any) ([]byte, error)`, and `proof.AssignID(*model.Proof) error`.
 - Produces domain types `Expectation`, `ProcessIdentity`, `Candidate`, `ArtifactObservation`, and `Proof` with JSON names identical to the public schemas.
 
-- [ ] **Step 1: Write failing tests for canonical object ordering, Unicode-key ordering, safe integer rejection, Proof field-tamper detection, and an observation-only Proof with absent expectation and host attribution.**
-- [ ] **Step 2: Run the focused tests and confirm failures are caused by missing production packages and the current schema rejecting honest observation-only output.**
-- [ ] **Step 3: Embed the authoritative schemas from the public `schemas` package and implement strict schema validation without filesystem lookup.**
-- [ ] **Step 4: Implement the restricted RFC 8785 serializer with UTF-16 property ordering, deterministic string escaping, finite safe integers, arrays, objects, and structs; reject floats and unsupported values.**
-- [ ] **Step 5: Implement `AssignID` by canonicalizing a copy without `proof_id`, hashing exact UTF-8 bytes, and assigning lowercase `sha256:<hex>`.**
-- [ ] **Step 6: Amend Proof 1.0 before runtime release so `expectation` and `host_attribution` may be null for honest explicit-PID inspection; add privacy classifications and rejection fixtures for contradictory projections.**
-- [ ] **Step 7: Run contract, canonical, and Proof tests; confirm golden vectors and Phase 0 compatibility still pass.**
-- [ ] **Step 8: Commit the executable contract model.**
+- [x] **Step 1: Write failing tests for canonical object ordering, Unicode-key ordering, safe integer rejection, Proof field-tamper detection, and an observation-only Proof with absent expectation and host attribution.**
+- [x] **Step 2: Run the focused tests and confirm failures are caused by missing production packages and the current schema rejecting honest observation-only output.**
+- [x] **Step 3: Embed the authoritative schemas from the public `schemas` package and implement strict schema validation without filesystem lookup.**
+- [x] **Step 4: Implement the restricted RFC 8785 serializer with UTF-16 property ordering, deterministic string escaping, finite safe integers, arrays, objects, and structs; reject floats and unsupported values.**
+- [x] **Step 5: Implement `AssignID` by canonicalizing a copy without `proof_id`, hashing exact UTF-8 bytes, and assigning lowercase `sha256:<hex>`.**
+- [x] **Step 6: Amend Proof 1.0 before runtime release so `expectation` and `host_attribution` may be null for honest explicit-PID inspection; add privacy classifications and rejection fixtures for contradictory projections.**
+- [x] **Step 7: Run contract, canonical, and Proof tests; confirm golden vectors and Phase 0 compatibility still pass.**
+- [x] **Step 8: Commit the executable contract model.**
 
 ### Task 2: Expectation loading and root-safe resolution
 

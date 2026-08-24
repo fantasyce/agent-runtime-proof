@@ -1,0 +1,22 @@
+{
+  "schema_version": "agent-runtime-proof/1.0",
+  "proof_id": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "observed_at": "2026-08-24T12:34:56Z",
+  "tool": {"name": "agent-runtime-proof", "version": "0.1.0", "commit": "abcdef0", "toolchain": "go1.27.0"},
+  "platform": {"os": "darwin", "arch": "arm64"},
+  "subject": {"id": "example", "display_name": "Example", "version": "unknown"},
+  "expectation": null,
+  "observation": {
+    "process": {"pid": 42, "created_at_unix_nano": "1787536210123456789", "boot_id_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"},
+    "executable": {"basename": "example", "path_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"},
+    "artifact": null,
+    "inaccessible_fields": []
+  },
+  "host_attribution": null,
+  "verdict": "UNKNOWN",
+  "proof_level": "PROCESS_OBSERVED",
+  "reason_codes": ["EXPECTATION_MISSING"],
+  "evidence": [{"type": "process_identity", "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "observed_at": "2026-08-24T12:34:56Z"}],
+  "privacy": {"redaction_mode": "safe-default", "home_redacted": true, "omitted_fields": []},
+  "limitations": ["EXPECTATION_MISSING"]
+}

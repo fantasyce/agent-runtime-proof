@@ -1,0 +1,22 @@
+{
+  "schema_version": "agent-runtime-proof/1.0",
+  "proof_id": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+  "observed_at": "2026-08-24T12:36:56Z",
+  "tool": {"name": "agent-runtime-proof", "version": "0.1.0", "commit": "abcdef0", "toolchain": "go1.27.0"},
+  "platform": {"os": "darwin", "arch": "arm64"},
+  "subject": {"id": "example", "display_name": "Example", "version": "unknown"},
+  "expectation": null,
+  "observation": {
+    "process": {"pid": 42, "created_at_unix_nano": "1787536210123456789", "boot_id_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"},
+    "executable": {"basename": "example", "path_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"},
+    "artifact": {"sha256": "7777777777777777777777777777777777777777777777777777777777777777", "file_count": 1, "byte_count": 10, "duration_ms": 1},
+    "inaccessible_fields": []
+  },
+  "host_attribution": null,
+  "verdict": "MATCHED",
+  "proof_level": "ARTIFACT_OBSERVED",
+  "reason_codes": ["MATCH_CONFIRMED"],
+  "evidence": [{"type": "artifact_digest", "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777", "observed_at": "2026-08-24T12:36:56Z"}],
+  "privacy": {"redaction_mode": "safe-default", "home_redacted": true, "omitted_fields": []},
+  "limitations": []
+}
