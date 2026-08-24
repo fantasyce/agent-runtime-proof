@@ -53,11 +53,12 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags '-s -w -X main.version=0.1.0 -X main.commit=abcdef0' -o "$run_dir/agent-runtime-proof" "$repo_dir/cmd/agent-runtime-proof"
+linux_arch="${ARP_LINUX_ARCH:-$(go env GOARCH)}"
+GOOS=linux GOARCH="$linux_arch" CGO_ENABLED=0 go build -trimpath -ldflags '-s -w -X main.version=0.1.0 -X main.commit=abcdef0' -o "$run_dir/agent-runtime-proof" "$repo_dir/cmd/agent-runtime-proof"
 mkdir -p "$run_dir/token-secret/payload/bin"
-GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -o "$run_dir/token-secret/payload/bin/fixture-runtime" "$repo_dir/testdata/acceptance/helper"
+GOOS=linux GOARCH="$linux_arch" CGO_ENABLED=0 go build -trimpath -o "$run_dir/token-secret/payload/bin/fixture-runtime" "$repo_dir/testdata/acceptance/helper"
 image="${ARP_LINUX_IMAGE:-ubuntu:24.04}"
-docker run --rm --network none --mount "type=bind,src=$run_dir,dst=/work" --mount "type=bind,src=$repo_dir,dst=/repo,readonly" "$image" bash /repo/scripts/run_linux_acceptance.sh --inside /work
+docker run --rm --network none --platform "linux/$linux_arch" --mount "type=bind,src=$run_dir,dst=/work" --mount "type=bind,src=$repo_dir,dst=/repo,readonly" "$image" bash /repo/scripts/run_linux_acceptance.sh --inside /work
 
 trap - EXIT INT TERM
 cleanup
