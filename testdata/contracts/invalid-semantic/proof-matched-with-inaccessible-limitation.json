@@ -1,0 +1,17 @@
+{
+  "schema_version": "agent-runtime-proof/1.0",
+  "proof_id": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "observed_at": "2026-08-24T06:30:00Z",
+  "tool": {"name": "agent-runtime-proof", "version": "0.1.0", "commit": "0123456789abcdef", "toolchain": "go1.27.0"},
+  "platform": {"os": "darwin", "arch": "arm64"},
+  "subject": {"id": "com.example.runtime", "display_name": "Example", "version": "1.0.0"},
+  "expectation": {"source_kind": "user-file", "source_locator_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "trust": "declared", "expected_version": "1.0.0", "expected_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+  "observation": {"process": {"pid": 1, "created_at_unix_nano": "1", "boot_id_hash": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}, "executable": {"basename": "example", "path_hash": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"}, "artifact": null, "inaccessible_fields": []},
+  "host_attribution": {"host_id": "generic-mcp", "config_source_hash": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "confidence": "hint"},
+  "verdict": "MATCHED",
+  "proof_level": "PROCESS_OBSERVED",
+  "reason_codes": ["MATCH_CONFIRMED"],
+  "evidence": [{"type": "process_identity", "observed_at": "2026-08-24T06:30:00Z"}],
+  "privacy": {"redaction_mode": "safe-default", "home_redacted": true, "omitted_fields": ["process.argv", "process.environment"]},
+  "limitations": ["PROCESS_INACCESSIBLE"]
+}

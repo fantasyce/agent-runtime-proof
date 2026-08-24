@@ -59,17 +59,19 @@ func validateDecisionSemantics(proof map[string]any, registry decisionRegistry) 
 			minimumOrder    int
 		}{allowedVerdicts: allowed, minimumOrder: proofOrder[minimumLevel]}
 	}
-	for _, rawReason := range proof["reason_codes"].([]any) {
-		reasonCode := rawReason.(string)
-		rule, ok := reasons[reasonCode]
-		if !ok {
-			return fmt.Errorf("unknown reason code %s", reasonCode)
-		}
-		if !rule.allowedVerdicts[verdict] {
-			return fmt.Errorf("reason %s is not allowed for verdict %s", reasonCode, verdict)
-		}
-		if proofOrder[proofLevel] < rule.minimumOrder {
-			return fmt.Errorf("reason %s requires stronger proof level than %s", reasonCode, proofLevel)
+	for _, field := range []string{"reason_codes", "limitations"} {
+		for _, rawReason := range proof[field].([]any) {
+			reasonCode := rawReason.(string)
+			rule, ok := reasons[reasonCode]
+			if !ok {
+				return fmt.Errorf("unknown %s code %s", field, reasonCode)
+			}
+			if !rule.allowedVerdicts[verdict] {
+				return fmt.Errorf("%s code %s is not allowed for verdict %s", field, reasonCode, verdict)
+			}
+			if proofOrder[proofLevel] < rule.minimumOrder {
+				return fmt.Errorf("%s code %s requires stronger proof level than %s", field, reasonCode, proofLevel)
+			}
 		}
 	}
 	return nil

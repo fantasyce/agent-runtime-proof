@@ -25,7 +25,8 @@ cross-platform behavior already exists.
   required implementation phase;
 - eight canonical JSON and artifact-tree SHA-256 vectors;
 - three valid expectation/Proof fixtures, five structurally rejected fixtures,
-  and one structurally valid but semantically rejected Verdict/Reason fixture;
+  and two structurally valid but semantically rejected Verdict/Reason or
+  Verdict/Limitation fixtures;
 - one valid Darwin, Windows, and Linux host fixture plus one rejected raw-state
   fixture;
 - privacy, canonical digest, host fixture, and threat-model documentation;
@@ -48,8 +49,8 @@ Results:
 - 15 test/subtest pass events, zero failures;
 - both public schemas and the cross-platform fixture schema compiled;
 - every valid fixture was accepted and every rejection fixture was rejected;
-- every Reason Code was checked against its allowed Verdict and minimum Proof
-  Level;
+- every Reason Code and Limitation was checked against its allowed Verdict and
+  minimum Proof Level;
 - all canonical vectors reproduced their independently stored SHA-256 values;
 - every reachable schema field matched exactly one privacy rule;
 - all privacy threat references resolved to a complete threat record;
