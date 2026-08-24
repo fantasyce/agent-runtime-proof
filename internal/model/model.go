@@ -80,13 +80,14 @@ type Observation struct {
 }
 
 type Candidate struct {
-	Platform          Platform              `json:"platform"`
-	Process           ProcessIdentity       `json:"process"`
-	Executable        ExecutableObservation `json:"executable"`
-	ParentPID         int                   `json:"parent_pid,omitempty"`
-	ExecutablePath    string                `json:"-"`
-	ExecutableDeleted bool                  `json:"-"`
-	Inaccessible      []string              `json:"inaccessible_fields"`
+	Platform               Platform              `json:"platform"`
+	Process                ProcessIdentity       `json:"process"`
+	Executable             ExecutableObservation `json:"executable"`
+	ParentPID              int                   `json:"parent_pid,omitempty"`
+	ExecutablePath         string                `json:"-"`
+	DeclaredExecutablePath string                `json:"-"`
+	ExecutableDeleted      bool                  `json:"-"`
+	Inaccessible           []string              `json:"inaccessible_fields"`
 }
 
 type ExpectationProjection struct {

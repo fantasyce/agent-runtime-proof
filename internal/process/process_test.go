@@ -10,16 +10,17 @@ import (
 
 func TestCandidateJSONNeverExposesRuntimePath(t *testing.T) {
 	candidate := model.Candidate{
-		Platform:       model.Platform{OS: "darwin", Arch: "arm64"},
-		Process:        model.ProcessIdentity{PID: 42, CreatedAtUnixNano: "100", BootIDHash: "sha256:" + strings.Repeat("0", 64)},
-		Executable:     model.ExecutableObservation{Basename: "runtime", PathHash: "sha256:" + strings.Repeat("1", 64)},
-		ExecutablePath: "/Users/private/repository/token-secret/runtime",
+		Platform:               model.Platform{OS: "darwin", Arch: "arm64"},
+		Process:                model.ProcessIdentity{PID: 42, CreatedAtUnixNano: "100", BootIDHash: "sha256:" + strings.Repeat("0", 64)},
+		Executable:             model.ExecutableObservation{Basename: "runtime", PathHash: "sha256:" + strings.Repeat("1", 64)},
+		ExecutablePath:         "/Users/private/repository/token-secret/runtime",
+		DeclaredExecutablePath: "/Users/private/repository/cookie-secret/runtime",
 	}
 	encoded, err := json.Marshal(candidate)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(string(encoded), "/Users/private") || strings.Contains(string(encoded), "token-secret") {
+	if strings.Contains(string(encoded), "/Users/private") || strings.Contains(string(encoded), "token-secret") || strings.Contains(string(encoded), "cookie-secret") {
 		t.Fatalf("candidate leaked runtime path: %s", encoded)
 	}
 }

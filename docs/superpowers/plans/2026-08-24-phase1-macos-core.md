@@ -131,13 +131,13 @@
 - Consumes: immutable Candidate, optional resolved Expectation, optional ArtifactObservation, and registered Reason Code rules.
 - Produces: `evaluator.Evaluate(input evaluator.Input) evaluator.Decision`, `privacy.Project(input proof.Input) model.Proof`, and `proof.Build(input proof.Input) (model.Proof, error)`.
 
-- [ ] **Step 1: Write failing table tests for MATCHED, root-outside LEAKED, direct-known-old STALE, mismatch-without-loaded-byte proof UNKNOWN, NOT_RUNNING, permission UNKNOWN, identity-race UNKNOWN, untrusted expectation limitation, scan-limit UNKNOWN, and contradictory reason rejection.**
-- [ ] **Step 2: Write failing privacy tests containing fake tokens, cookies, home paths, repository paths, argv, and environment values; assert none appears in Proof JSON or errors.**
-- [ ] **Step 3: Implement evidence-to-verdict rules with minimum Proof Levels from the decision registry and no time-order-only STALE conclusion.**
-- [ ] **Step 4: Implement safe path and argument hashing with domain separation, `$HOME` projection only for explicitly local table output, and omission lists for unavailable or prohibited fields.**
-- [ ] **Step 5: Build schema-valid Proofs, revalidate process identity before finalization, assign Proof IDs, and verify digest recomputation after round trip.**
-- [ ] **Step 6: Run focused tests, mutation checks, schema validation, and the complete gate.**
-- [ ] **Step 7: Commit evaluator and Proof generation.**
+- [x] **Step 1: Write failing table tests for MATCHED, root-outside LEAKED, direct-known-old STALE, mismatch-without-loaded-byte proof UNKNOWN, NOT_RUNNING, permission UNKNOWN, identity-race UNKNOWN, untrusted expectation limitation, scan-limit UNKNOWN, and contradictory reason rejection.**
+- [x] **Step 2: Write failing privacy tests containing fake tokens, cookies, home paths, repository paths, argv, and environment values; assert none appears in Proof JSON or errors.**
+- [x] **Step 3: Implement evidence-to-verdict rules with minimum Proof Levels from the decision registry and no time-order-only STALE conclusion.**
+- [x] **Step 4: Implement safe path and argument hashing with domain separation, `$HOME` projection only for explicitly local table output, and omission lists for unavailable or prohibited fields.**
+- [x] **Step 5: Build schema-valid Proofs, revalidate process identity before finalization, assign Proof IDs, and verify digest recomputation after round trip.**
+- [x] **Step 6: Run focused tests, mutation checks, schema validation, and the complete gate.**
+- [x] **Step 7: Commit evaluator and Proof generation.**
 
 ### Task 6: Application service for inspect, verify, and doctor
 

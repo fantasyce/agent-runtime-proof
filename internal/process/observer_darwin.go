@@ -82,6 +82,7 @@ func (observer *nativeObserver) Snapshot(ctx context.Context, pid int) (model.Ca
 		return candidate, &Error{Kind: ErrorInternal, Operation: "identify process image", Err: err}
 	}
 	candidate.ExecutablePath = path
+	candidate.DeclaredExecutablePath = path
 	candidate.Executable = model.ExecutableObservation{
 		Basename:   filepath.Base(path),
 		PathHash:   hashIdentifier("arp:path:v1", path),
