@@ -209,7 +209,7 @@ PID 会复用，因此任何进程证据必须绑定：
 ```json
 {
   "pid": 4127,
-  "created_at_unix_nano": 1787536210123456789,
+  "created_at_unix_nano": "1787536210123456789",
   "boot_id_hash": "sha256:...",
   "executable_identity": {
     "path_hash": "sha256:...",

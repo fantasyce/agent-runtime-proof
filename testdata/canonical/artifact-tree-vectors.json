@@ -1,0 +1,15 @@
+{
+  "schema_version": "agent-runtime-canonical-vectors/1.0",
+  "vectors": [
+    {
+      "name": "empty-tree",
+      "canonical": "[]",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "name": "two-file-tree",
+      "canonical": "[{\"path\":\"bin/agent-runtime-proof\",\"sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"size\":12},{\"path\":\"manifest.json\",\"sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"size\":34}]",
+      "sha256": "c83617dfc5d2c00a81861a78dbed631096397a7a1973119f9d73d27f5fee8c15"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": "agent-runtime-canonical-vectors/1.0",
+  "vectors": [
+    {
+      "name": "empty-object",
+      "canonical": "{}",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "name": "ascii-key-order",
+      "canonical": "{\"a\":2,\"b\":1}",
+      "sha256": "d3626ac30a87e6f7a6428233b3c68299976865fa5508e4267c5415c76af7a772"
+    },
+    {
+      "name": "unicode-key-order",
+      "canonical": "{\"a\":1,\"é\":2,\"中\":3}",
+      "sha256": "538942c8777d02e22db9dccc599fe6d728da13883c7a8299579fb0a88df06ea8"
+    },
+    {
+      "name": "escaped-controls",
+      "canonical": "{\"text\":\"line\\nbreak\\t\\u0000\"}",
+      "sha256": "27a80702b3e06e1bd39c3941f75cf79c0583107b99e4e3ba6ce4f9d1aca8a616"
+    },
+    {
+      "name": "safe-integer-boundaries",
+      "canonical": "{\"max_safe\":9007199254740991,\"min_safe\":-9007199254740991}",
+      "sha256": "a89049ae419a1d5be4e19bf82d230cbd8b668759c1602a32899faddba91e2d9a"
+    },
+    {
+      "name": "proof-decision-body",
+      "canonical": "{\"proof_level\":\"ARTIFACT_OBSERVED\",\"reason_codes\":[\"MATCH_CONFIRMED\"],\"schema_version\":\"agent-runtime-proof/1.0\",\"verdict\":\"MATCHED\"}",
+      "sha256": "7dd5731cfc112a81b582927f306e48f45a362c39b25bb4c4491a287fa881cbfb"
+    }
+  ]
+}

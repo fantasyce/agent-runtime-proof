@@ -13,7 +13,7 @@
     "expected_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "observation": {
-    "process": {"pid": 991, "created_at_unix_nano": 1787536270000000000, "boot_id_hash": "sha256:3434343434343434343434343434343434343434343434343434343434343434"},
+    "process": {"pid": 991, "created_at_unix_nano": "1787536270000000000", "boot_id_hash": "sha256:3434343434343434343434343434343434343434343434343434343434343434"},
     "executable": {"basename": "python.exe", "path_hash": "sha256:5656565656565656565656565656565656565656565656565656565656565656"},
     "artifact": null,
     "inaccessible_fields": ["process.image", "artifact.bytes"]
