@@ -151,12 +151,12 @@
 - Produces: `Service.Inspect(context.Context, InspectRequest) (InspectResult, error)`, `Service.Verify(context.Context, VerifyRequest) (VerifyResult, error)`, and `Service.Doctor(context.Context) DoctorResult`.
 - Inspect supports explicit PID or a bounded current-user inventory; Verify requires an expectation and explicit PID in Phase 1A; binding selection returns a clear unavailable-input error until host Profiles exist.
 
-- [ ] **Step 1: Write failing service tests for explicit PID, bounded inventory, required expectation, process disappearance, negative domain results as successful Proof output, cancellation, and severity aggregation.**
-- [ ] **Step 2: Write failing doctor tests for supported platform, embedded schema health, observer availability, read-only state boundary, and no host Profile claim.**
-- [ ] **Step 3: Implement orchestration with dependency injection, immutable snapshots, bounded concurrency, and identity revalidation.**
-- [ ] **Step 4: Implement doctor as read-only capability reporting with no filesystem writes or network probes.**
-- [ ] **Step 5: Run focused tests with race detection and then the complete gate.**
-- [ ] **Step 6: Commit the application service.**
+- [x] **Step 1: Write failing service tests for explicit PID, bounded inventory, required expectation, process disappearance, negative domain results as successful Proof output, cancellation, and severity aggregation.**
+- [x] **Step 2: Write failing doctor tests for supported platform, embedded schema health, observer availability, read-only state boundary, and no host Profile claim.**
+- [x] **Step 3: Implement orchestration with dependency injection, immutable snapshots, bounded concurrency, and identity revalidation.**
+- [x] **Step 4: Implement doctor as read-only capability reporting with no filesystem writes or network probes.**
+- [x] **Step 5: Run focused tests with race detection and then the complete gate.**
+- [x] **Step 6: Commit the application service.**
 
 ### Task 7: CLI executable and exit-code contract
 

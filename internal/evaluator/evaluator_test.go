@@ -17,6 +17,7 @@ func TestEvaluateVerdictMatrix(t *testing.T) {
 	resolved.Value.Artifact.SHA256 = repeated('a')
 	resolved.Value.Source.Trust = "verified"
 	resolved.Value.Launch.Kind = "native"
+	resolved.Value.Launch.Entrypoint = filepath.Join("bin", "runtime")
 	candidate := &model.Candidate{DeclaredExecutablePath: filepath.Join(allowed, "bin", "runtime")}
 	observedMatch := &model.ArtifactObservation{SHA256: repeated('a')}
 	observedOld := &model.ArtifactObservation{SHA256: repeated('b')}
@@ -30,6 +31,7 @@ func TestEvaluateVerdictMatrix(t *testing.T) {
 	}{
 		{"matched", Input{Candidate: candidate, Expectation: resolved, Artifact: observedMatch}, "MATCHED", "MATCH_CONFIRMED", ""},
 		{"outside root", Input{Candidate: &model.Candidate{DeclaredExecutablePath: filepath.Join(string(filepath.Separator), "dev", "runtime")}, Expectation: resolved, Artifact: observedMatch}, "LEAKED", "RUNTIME_OUTSIDE_ALLOWED_ROOT", ""},
+		{"wrong executable inside root", Input{Candidate: &model.Candidate{DeclaredExecutablePath: filepath.Join(allowed, "bin", "other")}, Expectation: resolved, Artifact: observedMatch}, "UNKNOWN", "HOST_BINDING_AMBIGUOUS", ""},
 		{"known old digest", Input{Candidate: candidate, Expectation: resolved, Artifact: observedOld, KnownPriorDigests: map[string]bool{repeated('b'): true}}, "STALE", "ARTIFACT_MISMATCH", ""},
 		{"unattributed mismatch", Input{Candidate: candidate, Expectation: resolved, Artifact: observedOld}, "UNKNOWN", "POSSIBLE_STALE_AFTER_REPLACEMENT", ""},
 		{"not running", Input{Expectation: resolved, ProcessError: &processobserver.Error{Kind: processobserver.ErrorNotFound, Operation: "snapshot"}}, "NOT_RUNNING", "PROCESS_NOT_FOUND", ""},
@@ -57,12 +59,20 @@ func TestEvaluateRecordsUntrustedAndDynamicLimitations(t *testing.T) {
 	resolved.Value.Artifact.SHA256 = repeated('a')
 	resolved.Value.Source.Trust = "untrusted"
 	resolved.Value.Launch.Kind = "interpreter-script"
+	resolved.Value.Launch.Entrypoint = "runtime"
 	decision := Evaluate(Input{
 		Candidate:   &model.Candidate{DeclaredExecutablePath: filepath.Join(root, "runtime")},
 		Expectation: resolved,
 		Artifact:    &model.ArtifactObservation{SHA256: repeated('a')},
 	})
-	if decision.Verdict != "MATCHED" || !contains(decision.Limitations, "EXPECTATION_UNTRUSTED") || !contains(decision.Limitations, "DYNAMIC_DEPENDENCIES_UNPROVEN") {
+	if decision.Verdict != "UNKNOWN" || !contains(decision.Limitations, "EXPECTATION_UNTRUSTED") || !contains(decision.Limitations, "DYNAMIC_DEPENDENCIES_UNPROVEN") || !contains(decision.ReasonCodes, "PLATFORM_EVIDENCE_UNAVAILABLE") {
+		t.Fatalf("decision = %#v", decision)
+	}
+}
+
+func TestEvaluateObservationOnlyRetainsProcessFailure(t *testing.T) {
+	decision := Evaluate(Input{ProcessError: &processobserver.Error{Kind: processobserver.ErrorIdentityChanged, Operation: "revalidate"}})
+	if decision.Verdict != "UNKNOWN" || !contains(decision.ReasonCodes, "EXPECTATION_MISSING") || !contains(decision.ReasonCodes, "PROCESS_IDENTITY_CHANGED") {
 		t.Fatalf("decision = %#v", decision)
 	}
 }
