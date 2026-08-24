@@ -1,18 +1,19 @@
 # Phase 1 Windows Core Acceptance
 
 - Date: 2026-08-25
-- Candidate source commit: `2cfc1e19a8bbe79e8261b11902aa0a4768fc04ae`
+- Candidate source commit: `43a6990538ef4207395b938b7424daa1c5802eca`
 - Branch: `main`
-- Decision: **PASS for the Phase 1 Windows core candidate**
+- Decision: **PASS for the Phase 1 Windows core gate**
 - Full Phase 1 / v1 decision: **NOT COMPLETE**
 
 ## Scope Accepted
 
 This acceptance covers the Windows 11 amd64 read-only CLI core: native process
 identity, handle-relative local artifact traversal, file and directory hashing,
-junction/reparse-point rejection, final change detection, `verify`, and
-`doctor`. It does not accept a release asset, elevated/denied-access behavior,
-MCP, Witness, host Profiles, real Agent hosts, or the public release matrix.
+junction/reparse-point rejection, final change detection, `verify`, `doctor`,
+denied artifact access, and an installed candidate package. It does not accept
+MCP, Witness, host Profiles, real Agent hosts, a public release, or a remotely
+executed CI matrix.
 
 ## Environment
 
@@ -68,23 +69,43 @@ and doctor capability reporting. Windows race instrumentation was not claimed;
 the native run used `CGO_ENABLED=0`, while the full macOS suite ran with the Go
 race detector.
 
+The reusable Windows gate is
+[`scripts/run_windows_phase1_acceptance.ps1`](../scripts/run_windows_phase1_acceptance.ps1).
+It builds a commit-stamped binary, writes a manifest, creates and checks a
+Windows amd64 ZIP plus `SHA256SUMS`, extracts it into an independent installation
+directory, verifies the installed binary against the manifest, and runs all
+live checks from that installed path. The Windows CI definition now runs the
+complete native package suite and this acceptance script; remote CI execution
+remains separately unproven because this repository has no Git remote.
+
 ## Live CLI Evidence
 
 A task-owned native helper was built, started, observed, verified, and removed.
-The final positive run returned:
+The final installed-candidate positive run returned:
 
 - exit code `0`;
 - verdict `MATCHED`;
 - proof level `ARTIFACT_OBSERVED`;
 - reason `MATCH_CONFIRMED`;
 - Proof ID
-  `sha256:c194f865df5a332f41642e35d8a90fa557e906ce2c144e4f7a0109797886a0b3`.
+  `sha256:ad89d203bf200d218f5711613b79c4f18cd38a66b768ffcf8e5ba3a726ecef8d`.
+
+The candidate asset SHA-256 was
+`16b99f368e2f015dbab58c340285028f2964a883c4ffa0250129d2dcb31dc43a`;
+the installed binary SHA-256 was
+`417a1af83eecc2119cbe98f064bf217713b189c5f684e0bfc28ba146a1ddfc25`.
 
 The same live process with an intentionally wrong expected digest returned exit
 code `3`, verdict `UNKNOWN`, and reason
 `POSSIBLE_STALE_AFTER_REPLACEMENT`; it never returned a false `MATCHED`.
 `doctor --format json` returned status `ok` and advertised
 `read-only-artifact-digest`, `embedded-contracts`, and `process-observation`.
+
+For the denied-access case, the acceptance script applied an explicit
+read-data denial only to its own running helper. The installed CLI returned
+exit code `3`, verdict `UNKNOWN`, and reason `ARTIFACT_INACCESSIBLE`. The script
+then removed that deny entry and required the same helper to return `MATCHED`
+again before cleanup, proving both the safe result and ACL restoration.
 
 ## Security and Residue
 
@@ -99,8 +120,9 @@ code `3`, verdict `UNKNOWN`, and reason
 
 ## Remaining Gates
 
-This evidence closes the Windows safe-walker implementation gap. It only
-partially satisfies the wider Windows release gate: denied-access behavior on a
-restricted fixture, a formally packaged/installed release asset, public Windows
-CI, MCP/Witness, and real Agent-host acceptance remain open. The authoritative
-list is [phase1-deferred-gates.md](issues/phase1-deferred-gates.md).
+This evidence closes both recorded Windows Phase 1 core gaps: the safe walker
+and the remaining denied-access/installed-candidate gate. Full Phase 1 and v1
+are still incomplete because cross-platform core semantics, native Linux amd64,
+remote CI, MCP/Witness, real Agent hosts, and public release gates remain
+separate. The authoritative list is
+[phase1-deferred-gates.md](issues/phase1-deferred-gates.md).

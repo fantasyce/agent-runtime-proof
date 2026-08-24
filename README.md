@@ -9,9 +9,10 @@ the read-only `inspect`, `verify`, and `doctor` CLI core with native macOS,
 Windows, and Linux process observation, bounded artifact hashing, and
 privacy-safe Proof output. Phase 1A has passed its macOS-primary local
 acceptance, and the Windows core candidate has passed native Windows 11 build,
-test, safe-junction, and live CLI verification. Full Phase 1 and v1 remain
-incomplete because permission, release-asset, CI, MCP, Witness, and real-host
-gates are tracked separately.
+test, safe-junction, installed-candidate, permission-denial, and live CLI
+verification. Full Phase 1 and v1 remain incomplete because cross-platform
+core semantics, native Linux amd64, remote CI, MCP, Witness, release, and
+real-host gates are tracked separately.
 
 The v1 boundary is intentionally narrow:
 

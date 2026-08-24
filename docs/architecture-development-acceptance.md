@@ -1,7 +1,7 @@
 # Agent Runtime Proof 架构、开发与验收设计
 
 - 更新日期：2026-08-25
-- 状态：Phase 0 已完成；Phase 1A macOS 主线候选与 Windows 核心候选已通过各自实机验收，完整 Phase 1 尚未完成
+- 状态：Phase 0 已完成；Phase 1A macOS 主线候选与 Windows Phase 1 核心门已通过各自实机验收，完整 Phase 1 尚未完成
 - Phase 0 验收记录：[phase0-acceptance.md](phase0-acceptance.md)
 - Phase 1A 验收记录：[phase1-macos-acceptance.md](phase1-macos-acceptance.md)
 - Windows 核心验收记录：[phase1-windows-acceptance.md](phase1-windows-acceptance.md)
