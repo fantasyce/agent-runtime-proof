@@ -121,6 +121,17 @@ func TestDigestEnforcesFileAndByteLimits(t *testing.T) {
 	}
 }
 
+func TestSingleFileByteLimitStopsBeforeReadLoop(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "runtime")
+	writeFile(t, root, "larger-than-one-byte")
+	clock := &countingClock{}
+	_, err := Digest(context.Background(), resolvedFor(root, []string{"**"}, nil, 1, 1, 1000), clock)
+	assertReason(t, err, "ARTIFACT_SCAN_LIMIT_EXCEEDED")
+	if clock.count > 2 {
+		t.Fatalf("read loop started before rejecting known size: clock calls=%d", clock.count)
+	}
+}
+
 func TestDigestHonorsCancellationAndTimeLimit(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, filepath.Join(root, "runtime"), "content")
@@ -221,6 +232,13 @@ type callbackClock struct {
 	count    int
 	at       int
 	callback func()
+}
+
+type countingClock struct{ count int }
+
+func (clock *countingClock) Now() time.Time {
+	clock.count++
+	return time.Unix(100, 0)
 }
 
 func (clock *callbackClock) Now() time.Time {

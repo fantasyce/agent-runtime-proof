@@ -2,6 +2,7 @@ package contract
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"testing"
 )
@@ -10,6 +11,22 @@ func TestValidateProofRejectsMatchedWithoutExpectation(t *testing.T) {
 	document := readFixture(t, "../../testdata/contracts/invalid-semantic/proof-matched-without-expectation.json")
 	if err := ValidateProof(document); err == nil {
 		t.Fatal("semantically contradictory proof accepted")
+	}
+}
+
+func TestValidateProofRejectsNonCanonicalExtensionNumber(t *testing.T) {
+	document := readFixture(t, "../../testdata/contracts/valid/proof-observation-only.json")
+	var value map[string]any
+	if err := json.Unmarshal(document, &value); err != nil {
+		t.Fatal(err)
+	}
+	value["extensions"] = map[string]any{"example.value": 1.5}
+	document, err := json.Marshal(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidateProof(document); err == nil {
+		t.Fatal("non-canonical extension float accepted")
 	}
 }
 

@@ -145,7 +145,17 @@
     "extensions": {
       "type": "object",
       "propertyNames": {"pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)+$"},
-      "additionalProperties": true
+      "additionalProperties": {"$ref": "#/$defs/extensionValue"}
+    },
+    "extensionValue": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "boolean"},
+        {"type": "string"},
+        {"type": "integer", "minimum": -9007199254740991, "maximum": 9007199254740991},
+        {"type": "array", "items": {"$ref": "#/$defs/extensionValue"}},
+        {"type": "object", "additionalProperties": {"$ref": "#/$defs/extensionValue"}}
+      ]
     }
   }
 }

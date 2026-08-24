@@ -40,6 +40,9 @@ type fileState struct {
 }
 
 func Digest(ctx context.Context, resolved expectation.Resolved, clock Clock) (model.ArtifactObservation, error) {
+	if !artifactReadingSupported() {
+		return model.ArtifactObservation{}, domainError("PLATFORM_EVIDENCE_UNAVAILABLE", errors.New("safe handle-relative artifact traversal is unavailable on this platform"))
+	}
 	if clock == nil {
 		clock = realClock{}
 	}
@@ -58,7 +61,7 @@ func Digest(ctx context.Context, resolved expectation.Resolved, clock Clock) (mo
 		return model.ArtifactObservation{}, domainError("ARTIFACT_INACCESSIBLE", err)
 	}
 	if rootInfo.Mode().IsRegular() {
-		digest, size, _, err := digestOpenedFile(ctx, rootFile, clock, deadline)
+		digest, size, _, err := digestOpenedFile(ctx, rootFile, clock, deadline, resolved.Value.Artifact.MaxBytes)
 		if err != nil {
 			return model.ArtifactObservation{}, err
 		}
@@ -95,7 +98,7 @@ func Digest(ctx context.Context, resolved expectation.Resolved, clock Clock) (mo
 	}, nil
 }
 
-func digestOpenedFile(ctx context.Context, file *os.File, clock Clock, deadline time.Time) (string, int64, os.FileInfo, error) {
+func digestOpenedFile(ctx context.Context, file *os.File, clock Clock, deadline time.Time, maxBytes int64) (string, int64, os.FileInfo, error) {
 	beforeInfo, err := file.Stat()
 	if err != nil {
 		return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", err)
@@ -103,15 +106,23 @@ func digestOpenedFile(ctx context.Context, file *os.File, clock Clock, deadline 
 	if !beforeInfo.Mode().IsRegular() {
 		return "", 0, nil, domainError("ARTIFACT_UNSUPPORTED_TYPE", errors.New("artifact is not a regular file"))
 	}
+	if beforeInfo.Size() > maxBytes {
+		return "", 0, nil, domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact exceeds configured byte limit"))
+	}
 	before := stateFromInfo(beforeInfo)
 	hash := sha256.New()
 	buffer := make([]byte, 64*1024)
+	var bytesRead int64
 	for {
 		if err := checkActive(ctx, clock, deadline); err != nil {
 			return "", 0, nil, err
 		}
 		count, readErr := file.Read(buffer)
 		if count > 0 {
+			if int64(count) > maxBytes-bytesRead {
+				return "", 0, nil, domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact grew beyond configured byte limit"))
+			}
+			bytesRead += int64(count)
 			if _, err := hash.Write(buffer[:count]); err != nil {
 				return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", err)
 			}

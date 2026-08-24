@@ -20,6 +20,8 @@ import (
 
 var errLinkRejected = errors.New("symbolic link rejected")
 
+func artifactReadingSupported() bool { return true }
+
 type pinnedSnapshot struct {
 	path string
 	info os.FileInfo
@@ -178,7 +180,7 @@ func walkPinnedDirectory(ctx context.Context, directory *os.File, prefix string,
 			child.Close()
 			return domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact exceeds configured limits"))
 		}
-		digest, size, openedInfo, digestErr := digestOpenedFile(ctx, child, clock, deadline)
+		digest, size, openedInfo, digestErr := digestOpenedFile(ctx, child, clock, deadline, resolved.Value.Artifact.MaxBytes-*totalBytes)
 		child.Close()
 		if digestErr != nil {
 			return digestErr

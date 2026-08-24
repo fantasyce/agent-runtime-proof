@@ -200,6 +200,12 @@ func collectSchemaFields(t *testing.T, documents map[string]map[string]any, curr
 		*fields = append(*fields, path+".*")
 		return
 	}
+	if object["type"] == "object" {
+		if _, ok := object["additionalProperties"].(map[string]any); ok {
+			*fields = append(*fields, path+".*")
+			return
+		}
+	}
 	*fields = append(*fields, path)
 }
 

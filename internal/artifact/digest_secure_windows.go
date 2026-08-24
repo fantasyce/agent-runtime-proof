@@ -15,6 +15,8 @@ import (
 	"github.com/fantasyce/agent-runtime-proof/internal/expectation"
 )
 
+func artifactReadingSupported() bool { return false }
+
 func openArtifactRoot(path string) (*os.File, error) { return openNoFollow(path) }
 
 func classifyArtifactOpen(err error) error { return domainError("ARTIFACT_INACCESSIBLE", err) }
@@ -74,7 +76,7 @@ func digestDirectory(ctx context.Context, _ *os.File, resolved expectation.Resol
 		if err != nil {
 			return domainError("ARTIFACT_INACCESSIBLE", err)
 		}
-		digest, size, openedInfo, err := digestOpenedFile(ctx, file, clock, deadline)
+		digest, size, openedInfo, err := digestOpenedFile(ctx, file, clock, deadline, resolved.Value.Artifact.MaxBytes-totalBytes)
 		file.Close()
 		if err != nil {
 			return err
