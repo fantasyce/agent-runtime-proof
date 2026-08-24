@@ -92,7 +92,8 @@ function Invoke-MCPAcceptance([string]$Binary, [int]$ProcessID) {
         $call = [ordered]@{ jsonrpc = '2.0'; id = 3; method = 'tools/call'; params = [ordered]@{ name = 'inspect_local_runtimes'; arguments = [ordered]@{ pid = $ProcessID } } } | ConvertTo-Json -Compress -Depth 8
         $process.StandardInput.WriteLine($call)
         $called = $process.StandardOutput.ReadLine() | ConvertFrom-Json
-        Assert-Condition (-not $called.result.isError) 'installed MCP inspect call returned a tool error'
+        $isErrorProperty = $called.result.PSObject.Properties['isError']
+        Assert-Condition (($null -eq $isErrorProperty) -or (-not [bool]$isErrorProperty.Value)) 'installed MCP inspect call returned a tool error'
         Assert-Condition ($null -ne $called.result.structuredContent.proofs) 'installed MCP call omitted structured Proof output'
         $process.StandardInput.Close()
         Assert-Condition ($process.WaitForExit(3000)) 'installed MCP candidate did not exit after EOF'

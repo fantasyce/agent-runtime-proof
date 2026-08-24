@@ -45,6 +45,27 @@ if [[ "${1:-}" == "--inside" ]]; then
     printf 'Linux verification leaked a local path\n' >&2
     exit 1
   fi
+  coproc ARP_MCP { "$binary" mcp 2>"$work_dir/mcp-stderr.txt"; }
+  mcp_in="${ARP_MCP[1]}"
+  mcp_out="${ARP_MCP[0]}"
+  mcp_pid="$ARP_MCP_PID"
+  printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"linux-native-fixture","version":"1"}}}' >&"$mcp_in"
+  IFS= read -r initialize_response <&"$mcp_out"
+  grep -q '"protocolVersion":"2025-06-18"' <<<"$initialize_response"
+  printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}' >&"$mcp_in"
+  printf '%s\n' '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' >&"$mcp_in"
+  IFS= read -r tools_response <&"$mcp_out"
+  [[ "$(grep -o '"name":"[^"]*"' <<<"$tools_response" | grep -c '_local_runtime\|local_runtime_')" -eq 3 ]]
+  printf '%s\n' "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"inspect_local_runtimes\",\"arguments\":{\"pid\":$helper_pid}}}" >&"$mcp_in"
+  IFS= read -r call_response <&"$mcp_out"
+  grep -q '"structuredContent":{"proofs":' <<<"$call_response"
+  exec {mcp_in}>&-
+  wait "$mcp_pid"
+  [[ ! -s "$work_dir/mcp-stderr.txt" ]]
+  if IFS= read -r trailing_response <&"$mcp_out"; then
+    printf 'Linux MCP stdout contained trailing pollution\n' >&2
+    exit 1
+  fi
   cp "$helper" "$work_dir/deleted-runtime"
   "$work_dir/deleted-runtime" &
   deleted_pid=$!
