@@ -36,9 +36,9 @@
 - Consumes: repository-relative fixture paths.
 - Produces: test helpers `repoRoot(t *testing.T) string` and `loadJSON(t *testing.T, path string) any`; one command, `bash scripts/check.sh`, for Phase 0 verification.
 
-- [ ] **Step 1: Write the failing loader test**
+- [ ] **Step 1: Add module metadata and write the failing loader test**
 
-Create `internal/contracttest/loader_test.go` with a test that calls the wished-for `loadJSON` helper on `internal/contracttest/testdata/valid.json` and asserts the decoded object contains `{"ready": true}`.
+Create `go.mod` with the declared module and Go 1.26 baseline, then create `internal/contracttest/loader_test.go` with a test that calls the wished-for `loadJSON` helper on `internal/contracttest/testdata/valid.json` and asserts the decoded object contains `{"ready": true}`. Module metadata is test scaffolding; no production behavior is added before RED.
 
 - [ ] **Step 2: Verify RED**
 
@@ -47,7 +47,7 @@ Expected: compile failure because `loadJSON` is undefined.
 
 - [ ] **Step 3: Implement the minimal test helper**
 
-Add `repoRoot` by walking from `runtime.Caller(0)` to the repository root, and `loadJSON` using `os.ReadFile`, `json.Decoder.UseNumber`, one successful decode, then an EOF check so trailing JSON is rejected. Add `go.mod` with:
+Add `repoRoot` by walking from `runtime.Caller(0)` to the repository root, and `loadJSON` using `os.ReadFile`, `json.Decoder.UseNumber`, one successful decode, then an EOF check so trailing JSON is rejected. The module metadata is:
 
 ```go
 module github.com/fantasyce/agent-runtime-proof
