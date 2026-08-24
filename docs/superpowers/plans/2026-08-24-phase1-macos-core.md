@@ -65,12 +65,12 @@
 - Produces: `expectation.Load(path string) (expectation.Resolved, error)` and `Resolved.Includes(relativeSlashPath string) bool`.
 - `Resolved` contains the validated public expectation, absolute manifest path, resolved artifact root, and resolved allowed roots; it never exposes these local paths in public JSON.
 
-- [ ] **Step 1: Write failing tests for valid relative roots, absolute roots, path escape, symlink-root escape, missing file, malformed JSON, unknown fields, duplicate argument positions, and `**` include/exclude matching.**
-- [ ] **Step 2: Run the tests and confirm the loader API is missing.**
-- [ ] **Step 3: Implement bounded file reading, schema validation, duplicate-position semantic validation, root resolution relative to the expectation file, symlink evaluation, and component-aware containment checks.**
-- [ ] **Step 4: Implement slash-normalized `*`, `?`, character class, and recursive `**` matching; exclusion wins over inclusion.**
-- [ ] **Step 5: Run focused and full tests; verify local absolute paths appear only in the internal resolved value.**
-- [ ] **Step 6: Commit expectation resolution.**
+- [x] **Step 1: Write failing tests for valid relative roots, absolute roots, path escape, symlink-root escape, missing file, malformed JSON, unknown fields, duplicate argument positions, and `**` include/exclude matching.**
+- [x] **Step 2: Run the tests and confirm the loader API is missing.**
+- [x] **Step 3: Implement bounded file reading, schema validation, duplicate-position semantic validation, root resolution relative to the expectation file, symlink evaluation, and component-aware containment checks.**
+- [x] **Step 4: Implement slash-normalized `*`, `?`, character class, and recursive `**` matching; exclusion wins over inclusion.**
+- [x] **Step 5: Run focused and full tests; verify local absolute paths appear only in the internal resolved value.**
+- [x] **Step 6: Commit expectation resolution.**
 
 ### Task 3: Bounded artifact digester
 
