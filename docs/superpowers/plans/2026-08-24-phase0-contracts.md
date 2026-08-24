@@ -36,16 +36,16 @@
 - Consumes: repository-relative fixture paths.
 - Produces: test helpers `repoRoot(t *testing.T) string` and `loadJSON(t *testing.T, path string) any`; one command, `bash scripts/check.sh`, for Phase 0 verification.
 
-- [ ] **Step 1: Add module metadata and write the failing loader test**
+- [x] **Step 1: Add module metadata and write the failing loader test**
 
 Create `go.mod` with the declared module and Go 1.26 baseline, then create `internal/contracttest/loader_test.go` with a test that calls the wished-for `loadJSON` helper on `internal/contracttest/testdata/valid.json` and asserts the decoded object contains `{"ready": true}`. Module metadata is test scaffolding; no production behavior is added before RED.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run: `go test ./internal/contracttest -run TestLoadJSON -v`
 Expected: compile failure because `loadJSON` is undefined.
 
-- [ ] **Step 3: Implement the minimal test helper**
+- [x] **Step 3: Implement the minimal test helper**
 
 Add `repoRoot` by walking from `runtime.Caller(0)` to the repository root, and `loadJSON` using `os.ReadFile`, `json.Decoder.UseNumber`, one successful decode, then an EOF check so trailing JSON is rejected. The module metadata is:
 
@@ -55,16 +55,16 @@ module github.com/fantasyce/agent-runtime-proof
 go 1.26
 ```
 
-- [ ] **Step 4: Verify GREEN**
+- [x] **Step 4: Verify GREEN**
 
 Run: `go test ./internal/contracttest -run TestLoadJSON -v`
 Expected: one passing test.
 
-- [ ] **Step 5: Add the repository check entrypoint**
+- [x] **Step 5: Add the repository check entrypoint**
 
 Create executable `scripts/check.sh` using `set -euo pipefail`, `gofmt -l`, `go vet ./...`, `go test -race ./...`, and `git diff --check`. The script must resolve the repository root from its own location and must not mutate user state.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add go.mod internal/contracttest scripts/check.sh
@@ -92,16 +92,16 @@ git commit -m "test: establish contract verification harness"
 - Consumes: JSON Schema 2020-12 and the fixed vocabulary in Global Constraints.
 - Produces: two authoritative public schemas and one registry whose values are checked against schema enums.
 
-- [ ] **Step 1: Write failing schema compilation and fixture tests**
+- [x] **Step 1: Write failing schema compilation and fixture tests**
 
 Add table-driven tests that compile both schema paths with `jsonschema/v6`, validate every `testdata/contracts/valid/*.json`, require every `testdata/contracts/invalid/*.json` to fail, and compare schema verdict/proof-level enums with `contracts/decision-registry.json`.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run: `go test ./internal/contracttest -run 'TestSchemasCompile|TestContractFixtures|TestDecisionRegistryMatchesSchemas' -v`
 Expected: failure because the schemas and registry do not exist.
 
-- [ ] **Step 3: Add the decision registry**
+- [x] **Step 3: Add the decision registry**
 
 The registry must contain the six verdicts, four ordered proof levels, and reason-code records with `code`, `category`, `description`, and `allowed_verdicts`. Required reason codes are:
 
@@ -138,20 +138,20 @@ SCAN_CANCELLED
 
 Registry tests must reject duplicate names, empty descriptions, unknown verdict references, and proof-level order gaps.
 
-- [ ] **Step 4: Add strict expectation and proof schemas**
+- [x] **Step 4: Add strict expectation and proof schemas**
 
 Use `$schema: https://json-schema.org/draft/2020-12/schema`, stable `$id` values rooted at `https://agent-runtime-proof.dev/schemas/`, strict nested objects, SHA-256 patterns of `^[a-f0-9]{64}$` or `^sha256:[a-f0-9]{64}$` as appropriate, RFC 3339 timestamps, non-negative integer limits, and `$HOME`-redacted path projections. The Proof schema must not define raw `argv`, `environment`, `content`, `transcript`, or `secret` properties.
 
-- [ ] **Step 5: Add valid and invalid golden fixtures**
+- [x] **Step 5: Add valid and invalid golden fixtures**
 
 Valid fixtures cover trusted native expectation, hash-backed MATCHED proof, and permission-limited UNKNOWN proof. Invalid fixtures each violate one named rule: missing subject, unknown security field, unsupported verdict, and raw argv disclosure.
 
-- [ ] **Step 6: Verify GREEN and all registry invariants**
+- [x] **Step 6: Verify GREEN and all registry invariants**
 
 Run: `go test ./internal/contracttest -run 'TestSchemasCompile|TestContractFixtures|TestDecisionRegistryMatchesSchemas|TestDecisionRegistryInvariants' -v`
 Expected: all tests pass with every invalid fixture observed failing.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add go.mod go.sum contracts schemas testdata/contracts internal/contracttest/schema_test.go
@@ -170,29 +170,29 @@ git commit -m "feat: freeze runtime expectation and proof contracts"
 - Consumes: RFC 8785 canonical JSON rules and Phase 0 contract objects.
 - Produces: golden `{name, canonical, sha256}` vectors for Proof bodies and artifact-entry arrays.
 
-- [ ] **Step 1: Write failing vector tests**
+- [x] **Step 1: Write failing vector tests**
 
 Tests load both vector files, require unique names, parse each `canonical` string as exactly one JSON value using `UseNumber`, require no newline or surrounding whitespace, calculate SHA-256 over the exact UTF-8 bytes, and compare lowercase hexadecimal output with `sha256`.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run: `go test ./internal/contracttest -run TestCanonicalVectors -v`
 Expected: failure because vector files are missing.
 
-- [ ] **Step 3: Write the canonicalization profile**
+- [x] **Step 3: Write the canonicalization profile**
 
 The document must state: RFC 8785 property ordering and string escaping; UTF-8; no insignificant whitespace; integers only in public contracts; no NaN/Infinity; timestamps normalized to UTC with `Z`; Unicode strings are preserved rather than silently normalized; paths are normalized separately before entering JSON; `proof_id` hashes the Proof with `proof_id` omitted; directory entries are `{path,size,sha256}` sorted by normalized path; empty directories are not represented; and normalization collisions reject the scan.
 
-- [ ] **Step 4: Add independently computed golden vectors**
+- [x] **Step 4: Add independently computed golden vectors**
 
 Include at least: empty object, reordered ASCII keys, non-ASCII keys, escaped controls, integer limits, one MATCHED Proof body, empty artifact tree, and a two-file artifact tree. Calculate expected SHA-256 with `shasum -a 256` over the exact canonical strings and store only the digest, not a shell command.
 
-- [ ] **Step 5: Verify GREEN**
+- [x] **Step 5: Verify GREEN**
 
 Run: `go test ./internal/contracttest -run TestCanonicalVectors -v`
 Expected: all vectors parse and hash exactly.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add docs/contracts testdata/canonical internal/contracttest/canonical_vectors_test.go
@@ -214,20 +214,20 @@ git commit -m "docs: freeze canonical proof and artifact digest vectors"
 - Consumes: expectation/proof schemas and privacy constraints.
 - Produces: `agent-runtime-fixture/1.0`, a data-only format for later OS-adapter tests.
 
-- [ ] **Step 1: Write failing fixture schema tests**
+- [x] **Step 1: Write failing fixture schema tests**
 
 Compile the fixture schema, validate every darwin/windows/linux fixture, require every invalid fixture to fail, and assert that each supported platform has at least one valid fixture.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run: `go test ./internal/contracttest -run TestHostFixtures -v`
 Expected: failure because the fixture schema and files are missing.
 
-- [ ] **Step 3: Define the fixture schema**
+- [x] **Step 3: Define the fixture schema**
 
 Required fields: `schema_version`, `fixture_id`, `platform`, `snapshot`, `expectation`, and `expected`. `platform` contains `os` and `arch`; `snapshot` contains process identity, safe executable projection, parent relation, observable artifact facts, denied fields, and optional host binding; `expected` contains verdict, proof level, and reason codes. Environment values and complete argv are forbidden.
 
-- [ ] **Step 4: Add representative platform fixtures**
+- [x] **Step 4: Add representative platform fixtures**
 
 - Darwin: native executable, allowed root, matching artifact digest.
 - Windows: interpreter entrypoint with process-image permission denied, yielding UNKNOWN.
@@ -236,12 +236,12 @@ Required fields: `schema_version`, `fixture_id`, `platform`, `snapshot`, `expect
 
 All paths use `$HOME`, `%USERPROFILE%`, or fixture-owned synthetic roots; no developer absolute path appears.
 
-- [ ] **Step 5: Verify GREEN**
+- [x] **Step 5: Verify GREEN**
 
 Run: `go test ./internal/contracttest -run TestHostFixtures -v`
 Expected: three valid fixtures and one rejected privacy fixture.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add schemas/agent-runtime-fixture-1.0.schema.json testdata/hosts docs/contracts/host-fixture-format.md internal/contracttest/host_fixture_test.go
@@ -261,16 +261,16 @@ git commit -m "test: define cross-platform runtime fixture contract"
 - Consumes: every serialized field in all three schemas.
 - Produces: exhaustive field classification and mitigations traceable to automated tests.
 
-- [ ] **Step 1: Write failing privacy coverage tests**
+- [x] **Step 1: Write failing privacy coverage tests**
 
 Recursively collect leaf property paths from all three schemas. Require each path to appear exactly once in `contracts/privacy-registry.json`; reject prohibited property names matching case-insensitive `environment|env_value|argv|content|transcript|password|secret|token|cookie|private_key`; require every threat record referenced by a privacy rule to exist in `contracts/threat-registry.json` using stable IDs such as `T-PID-REUSE`. Human prose is reviewed but not tested by source-text matching.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run: `go test ./internal/contracttest -run TestPrivacy -v`
 Expected: failure because registry and documents are missing.
 
-- [ ] **Step 3: Add exhaustive privacy classes**
+- [x] **Step 3: Add exhaustive privacy classes**
 
 Use exactly these classes:
 
@@ -282,16 +282,16 @@ Use exactly these classes:
 
 Every registry row includes `field`, `class`, `projection`, and one or more threat IDs.
 
-- [ ] **Step 4: Write the threat model**
+- [x] **Step 4: Write the threat model**
 
 Define assets, trust boundaries, attacker capabilities, non-goals, and mitigations for PID reuse, TOCTOU, symlink/junction escape, normalization collision, unbounded directory denial of service, config execution, command-line secret leakage, privilege escalation, forged expectation, Proof modification, Witness stdout corruption, child leakage, and test-state pollution. Store the executable records in `contracts/threat-registry.json`; each threat has stable ID, title, precondition, impact, prevention, detection, residual risk, and required test phase. Explain the same model for humans in `docs/threat-model.md` without brittle prose-matching tests.
 
-- [ ] **Step 5: Verify GREEN**
+- [x] **Step 5: Verify GREEN**
 
 Run: `go test ./internal/contracttest -run TestPrivacy -v`
 Expected: all schema fields classified exactly once and all threat links resolved.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add contracts/privacy-registry.json contracts/threat-registry.json docs/privacy-model.md docs/threat-model.md internal/contracttest/privacy_test.go
@@ -310,19 +310,19 @@ git commit -m "docs: define privacy and threat contracts"
 - Consumes: `bash scripts/check.sh` and all Phase 0 assets.
 - Produces: a repeatable macOS-primary acceptance record and future CI definition for Go 1.26.x/1.27.x.
 
-- [ ] **Step 1: Write the acceptance checklist before claiming completion**
+- [x] **Step 1: Write the acceptance checklist before claiming completion**
 
 Record the exact repository commit, macOS version/architecture, Go version, commands, expected zero-residue boundary, test counts, and explicit deferrals: no CLI/MCP/process/Witness implementation, no Windows live acceptance, and no Linux runtime acceptance in Phase 0.
 
-- [ ] **Step 2: Add CI workflow**
+- [x] **Step 2: Add CI workflow**
 
 Define least-privilege `contents: read`, no secrets, concurrency cancellation, macOS jobs for Go `1.26.x` and `1.27.x`, dependency download, `bash scripts/check.sh`, and a separate Ubuntu schema-fixture portability job. Do not add Windows live claims; a Windows schema-only CI lane may be added later with Phase 1 planning.
 
-- [ ] **Step 3: Update public status**
+- [x] **Step 3: Update public status**
 
 README must say Phase 0 contracts are implemented and Phase 1 runtime code has not started. The architecture document must link the acceptance record without changing v1 scope.
 
-- [ ] **Step 4: Run complete verification**
+- [x] **Step 4: Run complete verification**
 
 Run, in order:
 
@@ -336,14 +336,14 @@ git status --short
 
 Expected: all commands exit 0; tests have zero failures; only intended Phase 0 files are modified; no process, receipt, runtime directory, network listener, or user configuration is created.
 
-- [ ] **Step 5: Commit acceptance artifacts**
+- [x] **Step 5: Commit acceptance artifacts**
 
 ```bash
 git add .github/workflows/quality.yml README.md docs/architecture-development-acceptance.md docs/phase0-acceptance.md
 git commit -m "ci: add Phase 0 contract acceptance"
 ```
 
-- [ ] **Step 6: Verify clean branch**
+- [x] **Step 6: Verify clean branch**
 
 Run: `bash scripts/check.sh && git status --short --branch`
 Expected: checks pass and branch is clean.
