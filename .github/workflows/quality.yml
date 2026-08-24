@@ -1,0 +1,57 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos-contracts:
+    name: macOS Go ${{ matrix.go-version }}
+    runs-on: macos-14
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version:
+          - 1.26.x
+          - 1.27.x
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache-dependency-path: go.sum
+
+      - name: Verify Phase 0 contracts
+        run: bash scripts/check.sh
+
+  linux-fixture-portability:
+    name: Linux fixture portability
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: 1.27.x
+          cache-dependency-path: go.sum
+
+      - name: Verify platform-neutral contracts
+        run: bash scripts/check.sh

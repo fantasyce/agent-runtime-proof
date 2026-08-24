@@ -2,6 +2,7 @@
 
 - 更新日期：2026-08-24
 - 状态：独立项目设计基线，待负责人确认后进入实现
+- Phase 0 验收记录：[phase0-acceptance.md](phase0-acceptance.md)
 本期唯一开发切口：Agent Runtime Proof（下文简称 ARP）
 
 ## 1. 决策摘要
@@ -22,8 +23,7 @@ ARP 是一个面向本地 Agent 运行环境的开源取证工具。它回答的
 
 实现语言选择 Go。语言兼容基线为 Go 1.26，CI 同时验证仍受支持的 1.26 最新补丁版和 1.27 最新补丁版；发版记录实际构建工具链。MCP 使用官方 Go SDK 的稳定非预发布版本并锁定依赖。
 
-本项目使用独立仓库；本地项目根为
-`/Users/fanhcy/Documents/projects/agent-runtime-proof`，建议的公开仓库为：
+本项目使用独立仓库；建议的公开仓库为：
 
 - 仓库：`fantasyce/agent-runtime-proof`
 - 可执行文件：`agent-runtime-proof`

@@ -12,5 +12,6 @@ if [[ -n "$unformatted_files" ]]; then
 fi
 
 go vet ./...
+go mod verify
 go test -count=1 -race ./...
 git diff --check
