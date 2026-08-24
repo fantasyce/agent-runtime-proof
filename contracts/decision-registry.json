@@ -1,5 +1,23 @@
 {
   "schema_version": "agent-runtime-decision-registry/1.0",
+  "default_minimum_proof_level": "PROCESS_OBSERVED",
+  "minimum_proof_level_overrides": {
+    "ARTIFACT_MISMATCH": "ARTIFACT_OBSERVED",
+    "ARTIFACT_VERSION_MISMATCH": "ARTIFACT_OBSERVED",
+    "ARTIFACT_CHANGED_DURING_READ": "CONFIG_BOUND",
+    "ARTIFACT_SCAN_LIMIT_EXCEEDED": "CONFIG_BOUND",
+    "ARTIFACT_INACCESSIBLE": "CONFIG_BOUND",
+    "ARTIFACT_PATH_ESCAPE": "CONFIG_BOUND",
+    "ARTIFACT_SYMLINK_REJECTED": "CONFIG_BOUND",
+    "ARTIFACT_NORMALIZATION_COLLISION": "CONFIG_BOUND",
+    "ARTIFACT_UNSUPPORTED_TYPE": "CONFIG_BOUND",
+    "POSSIBLE_STALE_AFTER_REPLACEMENT": "CONFIG_BOUND",
+    "STALE_WITNESS_RECEIPT": "LAUNCH_WITNESSED",
+    "RUNTIME_OUTSIDE_ALLOWED_ROOT": "CONFIG_BOUND",
+    "MULTIPLE_ACTIVE_DIGESTS": "ARTIFACT_OBSERVED",
+    "WITNESS_EXPECTATION_MISSING": "LAUNCH_WITNESSED",
+    "DYNAMIC_DEPENDENCIES_UNPROVEN": "ARTIFACT_OBSERVED"
+  },
   "verdicts": [
     {"name": "MATCHED", "description": "Observed evidence covered by the proof level agrees with the expectation."},
     {"name": "STALE", "description": "Direct evidence binds the running subject to a known older artifact than the current expectation."},

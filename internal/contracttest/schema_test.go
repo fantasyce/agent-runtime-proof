@@ -2,6 +2,7 @@ package contracttest
 
 import (
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -13,8 +14,10 @@ import (
 const schemaBaseURL = "https://agent-runtime-proof.dev/schemas/"
 
 type decisionRegistry struct {
-	SchemaVersion string `json:"schema_version"`
-	Verdicts      []struct {
+	SchemaVersion            string            `json:"schema_version"`
+	DefaultMinimumProofLevel string            `json:"default_minimum_proof_level"`
+	MinimumProofOverrides    map[string]string `json:"minimum_proof_level_overrides"`
+	Verdicts                 []struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
 	} `json:"verdicts"`
@@ -29,6 +32,76 @@ type decisionRegistry struct {
 		Description     string   `json:"description"`
 		AllowedVerdicts []string `json:"allowed_verdicts"`
 	} `json:"reason_codes"`
+}
+
+func validateDecisionSemantics(proof map[string]any, registry decisionRegistry) error {
+	verdict, _ := proof["verdict"].(string)
+	proofLevel, _ := proof["proof_level"].(string)
+	proofOrder := map[string]int{}
+	for _, level := range registry.ProofLevels {
+		proofOrder[level.Name] = level.Order
+	}
+	reasons := map[string]struct {
+		allowedVerdicts map[string]bool
+		minimumOrder    int
+	}{}
+	for _, reason := range registry.ReasonCodes {
+		minimumLevel := registry.DefaultMinimumProofLevel
+		if override := registry.MinimumProofOverrides[reason.Code]; override != "" {
+			minimumLevel = override
+		}
+		allowed := map[string]bool{}
+		for _, allowedVerdict := range reason.AllowedVerdicts {
+			allowed[allowedVerdict] = true
+		}
+		reasons[reason.Code] = struct {
+			allowedVerdicts map[string]bool
+			minimumOrder    int
+		}{allowedVerdicts: allowed, minimumOrder: proofOrder[minimumLevel]}
+	}
+	for _, rawReason := range proof["reason_codes"].([]any) {
+		reasonCode := rawReason.(string)
+		rule, ok := reasons[reasonCode]
+		if !ok {
+			return fmt.Errorf("unknown reason code %s", reasonCode)
+		}
+		if !rule.allowedVerdicts[verdict] {
+			return fmt.Errorf("reason %s is not allowed for verdict %s", reasonCode, verdict)
+		}
+		if proofOrder[proofLevel] < rule.minimumOrder {
+			return fmt.Errorf("reason %s requires stronger proof level than %s", reasonCode, proofLevel)
+		}
+	}
+	return nil
+}
+
+func TestProofDecisionSemantics(t *testing.T) {
+	registry := loadDecisionRegistry(t)
+	schema := compileSchema(t, "schemas/agent-runtime-proof-1.0.schema.json")
+	for _, fixtureClass := range []string{"valid", "invalid-semantic"} {
+		pattern := filepath.Join(repoRoot(t), "testdata", "contracts", fixtureClass, "proof-*.json")
+		paths, err := filepath.Glob(pattern)
+		if err != nil {
+			t.Fatalf("glob %s: %v", pattern, err)
+		}
+		if len(paths) == 0 {
+			t.Fatalf("no %s proof fixtures", fixtureClass)
+		}
+		for _, absolutePath := range paths {
+			relativePath := filepath.ToSlash(strings.TrimPrefix(absolutePath, repoRoot(t)+string(filepath.Separator)))
+			document := loadJSON(t, relativePath)
+			if err := schema.Validate(document); err != nil {
+				t.Fatalf("semantic fixture %s must be structurally valid: %v", filepath.Base(absolutePath), err)
+			}
+			err := validateDecisionSemantics(document.(map[string]any), registry)
+			if fixtureClass == "valid" && err != nil {
+				t.Errorf("valid proof %s failed decision semantics: %v", filepath.Base(absolutePath), err)
+			}
+			if fixtureClass == "invalid-semantic" && err == nil {
+				t.Errorf("invalid semantic proof %s accepted", filepath.Base(absolutePath))
+			}
+		}
+	}
 }
 
 func compileSchema(t *testing.T, path string) *jsonschema.Schema {
@@ -132,11 +205,16 @@ func TestDecisionRegistryInvariants(t *testing.T) {
 		requireUniqueNamedValue(t, verdictSet, verdict.Name, verdict.Description)
 	}
 	proofSet := map[string]bool{}
+	proofOrder := map[string]int{}
 	for index, level := range registry.ProofLevels {
 		requireUniqueNamedValue(t, proofSet, level.Name, level.Description)
+		proofOrder[level.Name] = level.Order
 		if level.Order != index+1 {
 			t.Errorf("proof level %s order = %d, want %d", level.Name, level.Order, index+1)
 		}
+	}
+	if proofOrder[registry.DefaultMinimumProofLevel] == 0 {
+		t.Errorf("unknown default minimum proof level %s", registry.DefaultMinimumProofLevel)
 	}
 	reasonSet := map[string]bool{}
 	for _, reason := range registry.ReasonCodes {
@@ -151,6 +229,14 @@ func TestDecisionRegistryInvariants(t *testing.T) {
 			if !verdictSet[verdict] {
 				t.Errorf("reason %s references unknown verdict %s", reason.Code, verdict)
 			}
+		}
+	}
+	for reasonCode, proofLevel := range registry.MinimumProofOverrides {
+		if !reasonSet[reasonCode] {
+			t.Errorf("minimum proof override references unknown reason %s", reasonCode)
+		}
+		if proofOrder[proofLevel] == 0 {
+			t.Errorf("minimum proof override for %s references unknown level %s", reasonCode, proofLevel)
 		}
 	}
 }
