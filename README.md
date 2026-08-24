@@ -32,8 +32,9 @@ bash scripts/check.sh
 
 The [Phase 0 acceptance record](docs/phase0-acceptance.md),
 [Phase 1A macOS record](docs/phase1-macos-acceptance.md), and
-[Windows core record](docs/phase1-windows-acceptance.md) state exactly what
-passed and what remains intentionally deferred.
+[Windows core record](docs/phase1-windows-acceptance.md) state the platform
+core evidence. The [Phase 2 acceptance record](docs/phase2-acceptance.md)
+captures the stdio MCP, native platform, CI, and real Codex-host results.
 
 ## CLI
 

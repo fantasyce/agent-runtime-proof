@@ -51,6 +51,11 @@ func TestToolsDelegateValidatedRequestsAndKeepDomainVerdictsSuccessful(t *testin
 	if err != nil || list.IsError || runtime.lastInspect != (app.InspectRequest{All: true, Limit: 7}) {
 		t.Fatalf("list err=%v isError=%v request=%#v", err, list.IsError, runtime.lastInspect)
 	}
+	listStructured := list.StructuredContent.(map[string]any)
+	candidates := listStructured["candidates"].([]any)
+	if fields := candidates[0].(map[string]any)["inaccessible_fields"]; fields == nil {
+		t.Fatal("candidate inaccessible_fields encoded as null, want an array")
+	}
 
 	inspect, err := session.CallTool(context.Background(), &mcp.CallToolParams{Name: "inspect_local_runtimes", Arguments: map[string]any{"pid": 42}})
 	if err != nil || inspect.IsError || runtime.lastInspect != (app.InspectRequest{PID: 42}) {

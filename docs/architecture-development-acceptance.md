@@ -598,9 +598,9 @@ agent-runtime-proof/
 ├── schemas/
 │   ├── agent-runtime-expectation-1.0.schema.json
 │   └── agent-runtime-proof-1.0.schema.json
-├── plugin/
+├── plugin/agent-runtime-proof/
 │   ├── .codex-plugin/plugin.json
-│   ├── mcp.json
+│   ├── .mcp.json
 │   └── skills/agent-runtime-proof/SKILL.md
 ├── testdata/
 │   ├── hosts/
@@ -616,7 +616,7 @@ agent-runtime-proof/
 └── README.md
 ```
 
-Agent Plugin 必须保持薄：manifest、Skill 和 `mcp.json` 只调用 PATH 中的 `agent-runtime-proof mcp`。Plugin 不内嵌另一份核心逻辑，也不偷偷下载二进制。
+Agent Plugin 必须保持薄：manifest、Skill 和 `.mcp.json` 只调用 PATH 中的 `agent-runtime-proof mcp`。Plugin 不内嵌另一份核心逻辑，也不偷偷下载二进制。
 
 ## 18. 开发计划
 

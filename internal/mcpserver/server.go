@@ -83,7 +83,7 @@ func New(runtime Runtime, version string) *mcp.Server {
 		for _, value := range result.Proofs {
 			output.Candidates = append(output.Candidates, CandidateSummary{
 				Platform: value.Platform, Process: value.Observation.Process, Executable: value.Observation.Executable,
-				InaccessibleFields: append([]string(nil), value.Observation.InaccessibleFields...),
+				InaccessibleFields: append([]string{}, value.Observation.InaccessibleFields...),
 			})
 		}
 		return nil, output, nil

@@ -35,10 +35,10 @@ jobs:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: go.sum
 
-      - name: Verify contracts and Phase 1A core
+      - name: Verify contracts and Phase 1/2 core
         run: bash scripts/check.sh
 
-      - name: Run macOS Phase 1A acceptance
+      - name: Run macOS Phase 1 acceptance
         if: matrix.go-version == '1.27.x'
         run: bash scripts/run_phase1_acceptance.sh
 
@@ -57,10 +57,10 @@ jobs:
           go-version: 1.27.x
           cache-dependency-path: go.sum
 
-      - name: Verify Linux runtime core
+      - name: Verify Linux runtime and MCP core
         run: bash scripts/check.sh
 
-      - name: Run Linux container acceptance
+      - name: Run Linux container CLI and MCP acceptance
         run: bash scripts/run_linux_acceptance.sh
 
   windows-runtime:
@@ -78,12 +78,12 @@ jobs:
           go-version: 1.27.x
           cache-dependency-path: go.sum
 
-      - name: Verify Windows runtime core
+      - name: Verify Windows runtime and MCP core
         shell: pwsh
         run: |
           go vet ./...
           go test -count=1 ./...
 
-      - name: Run Windows Phase 1 candidate acceptance
+      - name: Run Windows installed CLI and MCP acceptance
         shell: pwsh
         run: ./scripts/run_windows_phase1_acceptance.ps1 -CandidateCommit '${{ github.sha }}'
