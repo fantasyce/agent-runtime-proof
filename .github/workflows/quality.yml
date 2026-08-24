@@ -63,8 +63,8 @@ jobs:
       - name: Run Linux container acceptance
         run: bash scripts/run_linux_acceptance.sh
 
-  windows-compile-contracts:
-    name: Windows compile and contracts only
+  windows-runtime:
+    name: Windows runtime and candidate acceptance
     runs-on: windows-2025
     timeout-minutes: 15
 
@@ -78,10 +78,12 @@ jobs:
           go-version: 1.27.x
           cache-dependency-path: go.sum
 
-      - name: Test platform-neutral contracts
-        shell: bash
-        run: go test ./internal/canonical ./internal/contract ./internal/contracttest ./internal/expectation ./internal/privacy ./internal/proof
+      - name: Verify Windows runtime core
+        shell: pwsh
+        run: |
+          go vet ./...
+          go test -count=1 ./...
 
-      - name: Compile Windows CLI and process adapter
-        shell: bash
-        run: go build -trimpath ./cmd/agent-runtime-proof
+      - name: Run Windows Phase 1 candidate acceptance
+        shell: pwsh
+        run: ./scripts/run_windows_phase1_acceptance.ps1 -CandidateCommit '${{ github.sha }}'
