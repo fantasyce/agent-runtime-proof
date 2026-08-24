@@ -1,0 +1,28 @@
+{
+  "schema_version": "agent-runtime-proof/1.0",
+  "proof_id": "sha256:abababababababababababababababababababababababababababababababab",
+  "observed_at": "2026-08-24T06:31:00Z",
+  "tool": {"name": "agent-runtime-proof", "version": "0.1.0", "commit": "0123456789abcdef", "toolchain": "go1.27.0"},
+  "platform": {"os": "windows", "arch": "amd64"},
+  "subject": {"id": "com.example.runtime", "display_name": "Example Runtime", "version": "1.4.2"},
+  "expectation": {
+    "source_kind": "user-file",
+    "source_locator_hash": "1212121212121212121212121212121212121212121212121212121212121212",
+    "trust": "declared",
+    "expected_version": "1.4.2",
+    "expected_artifact_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "observation": {
+    "process": {"pid": 991, "created_at_unix_nano": 1787536270000000000, "boot_id_hash": "sha256:3434343434343434343434343434343434343434343434343434343434343434"},
+    "executable": {"basename": "python.exe", "path_hash": "sha256:5656565656565656565656565656565656565656565656565656565656565656"},
+    "artifact": null,
+    "inaccessible_fields": ["process.image", "artifact.bytes"]
+  },
+  "host_attribution": {"host_id": "generic-mcp", "config_source_hash": "sha256:7878787878787878787878787878787878787878787878787878787878787878", "confidence": "hint"},
+  "verdict": "UNKNOWN",
+  "proof_level": "PROCESS_OBSERVED",
+  "reason_codes": ["PROCESS_INACCESSIBLE"],
+  "evidence": [{"type": "process_identity", "observed_at": "2026-08-24T06:31:00Z"}],
+  "privacy": {"redaction_mode": "safe-default", "home_redacted": true, "omitted_fields": ["process.argv", "process.environment"]},
+  "limitations": ["PLATFORM_EVIDENCE_UNAVAILABLE"]
+}

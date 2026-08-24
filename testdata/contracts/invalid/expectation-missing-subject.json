@@ -1,0 +1,7 @@
+{
+  "schema_version": "agent-runtime-expectation/1.0",
+  "launch": {"kind": "native", "entrypoint": "bin/example", "argument_fingerprints": []},
+  "artifact": {"root": "$HOME/example", "include": ["bin/**"], "exclude": [], "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "max_files": 1, "max_bytes": 1, "max_duration_ms": 1},
+  "policy": {"allowed_roots": ["$HOME/example"], "allow_symlinks": false},
+  "source": {"kind": "user-file", "locator_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "trust": "declared"}
+}

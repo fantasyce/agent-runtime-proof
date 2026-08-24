@@ -1,0 +1,24 @@
+{
+  "schema_version": "agent-runtime-expectation/1.0",
+  "subject": {"id": "com.example.runtime", "display_name": "Example Runtime", "version": "1.4.2"},
+  "launch": {
+    "kind": "native",
+    "entrypoint": "bin/example-runtime",
+    "argument_fingerprints": [{"position": 1, "sha256": "1111111111111111111111111111111111111111111111111111111111111111"}]
+  },
+  "artifact": {
+    "root": "$HOME/.local/share/example-runtime",
+    "include": ["bin/**", "manifest.json"],
+    "exclude": ["cache/**", "logs/**"],
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "max_files": 20000,
+    "max_bytes": 268435456,
+    "max_duration_ms": 10000
+  },
+  "policy": {"allowed_roots": ["$HOME/.local/share/example-runtime"], "allow_symlinks": false},
+  "source": {
+    "kind": "release-manifest",
+    "locator_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "trust": "verified"
+  }
+}

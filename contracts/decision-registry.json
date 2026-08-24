@@ -1,0 +1,47 @@
+{
+  "schema_version": "agent-runtime-decision-registry/1.0",
+  "verdicts": [
+    {"name": "MATCHED", "description": "Observed evidence covered by the proof level agrees with the expectation."},
+    {"name": "STALE", "description": "Direct evidence binds the running subject to a known older artifact than the current expectation."},
+    {"name": "LEAKED", "description": "The identified subject resolves outside every allowed runtime root."},
+    {"name": "CONFLICT", "description": "Multiple incompatible active artifacts or equally trusted expectations prevent a unique result."},
+    {"name": "NOT_RUNNING", "description": "A complete permitted scan found no process for the requested subject."},
+    {"name": "UNKNOWN", "description": "Available evidence is insufficient for a safe deterministic verdict."}
+  ],
+  "proof_levels": [
+    {"name": "PROCESS_OBSERVED", "order": 1, "description": "A PID plus creation time and bounded process metadata were observed."},
+    {"name": "CONFIG_BOUND", "order": 2, "description": "The process is bound to a declared local host configuration or expectation."},
+    {"name": "ARTIFACT_OBSERVED", "order": 3, "description": "Declared entrypoint or payload bytes were read and hashed during observation."},
+    {"name": "LAUNCH_WITNESSED", "order": 4, "description": "ARP hashed the declared payload before spawning and recorded the resulting process identity."}
+  ],
+  "reason_codes": [
+    {"code": "MATCH_CONFIRMED", "category": "match", "description": "All evidence required by the reported proof level matches the expectation.", "allowed_verdicts": ["MATCHED"]},
+    {"code": "PROCESS_NOT_FOUND", "category": "process", "description": "No process matched the requested subject in a complete permitted scan.", "allowed_verdicts": ["NOT_RUNNING"]},
+    {"code": "PROCESS_IDENTITY_CHANGED", "category": "process", "description": "PID or creation-time identity changed while evidence was collected.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "PROCESS_INACCESSIBLE", "category": "process", "description": "The operating system denied required process evidence without privilege escalation.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "EXPECTATION_MISSING", "category": "expectation", "description": "No expectation was supplied for a requested verification.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "EXPECTATION_INVALID", "category": "expectation", "description": "The supplied expectation failed structural or semantic validation.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "EXPECTATION_UNTRUSTED", "category": "expectation", "description": "The bytes match a declaration whose source is explicitly untrusted.", "allowed_verdicts": ["MATCHED", "UNKNOWN"]},
+    {"code": "EXPECTATION_AMBIGUOUS", "category": "expectation", "description": "Multiple equally trusted expectations apply to the same binding.", "allowed_verdicts": ["CONFLICT", "UNKNOWN"]},
+    {"code": "ARTIFACT_MISMATCH", "category": "artifact", "description": "An observed artifact digest differs from the expected digest.", "allowed_verdicts": ["STALE", "CONFLICT"]},
+    {"code": "ARTIFACT_VERSION_MISMATCH", "category": "artifact", "description": "A directly observed artifact version differs from the expected version.", "allowed_verdicts": ["STALE", "CONFLICT"]},
+    {"code": "ARTIFACT_CHANGED_DURING_READ", "category": "artifact", "description": "File identity or metadata changed while the artifact was hashed.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "ARTIFACT_SCAN_LIMIT_EXCEEDED", "category": "artifact", "description": "File, byte, or time limits stopped the artifact scan before completion.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "ARTIFACT_INACCESSIBLE", "category": "artifact", "description": "The operating system denied access to required artifact bytes.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "ARTIFACT_PATH_ESCAPE", "category": "artifact", "description": "A resolved artifact path escaped the declared root.", "allowed_verdicts": ["LEAKED", "UNKNOWN"]},
+    {"code": "ARTIFACT_SYMLINK_REJECTED", "category": "artifact", "description": "A symbolic link, junction, or reparse point violated the expectation policy.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "ARTIFACT_NORMALIZATION_COLLISION", "category": "artifact", "description": "Two artifact paths collide after contract path normalization.", "allowed_verdicts": ["UNKNOWN", "CONFLICT"]},
+    {"code": "ARTIFACT_UNSUPPORTED_TYPE", "category": "artifact", "description": "The declared artifact contains a file type outside the v1 contract.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "POSSIBLE_STALE_AFTER_REPLACEMENT", "category": "staleness", "description": "Timestamps suggest replacement after launch but no direct old digest is available.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "STALE_WITNESS_RECEIPT", "category": "staleness", "description": "A launch receipt directly binds the process to an older declared payload.", "allowed_verdicts": ["STALE"]},
+    {"code": "RUNTIME_OUTSIDE_ALLOWED_ROOT", "category": "boundary", "description": "The subject runtime resolves outside all roots allowed by the expectation.", "allowed_verdicts": ["LEAKED"]},
+    {"code": "MULTIPLE_ACTIVE_DIGESTS", "category": "conflict", "description": "The same binding has live processes with incompatible artifact digests.", "allowed_verdicts": ["CONFLICT"]},
+    {"code": "HOST_BINDING_AMBIGUOUS", "category": "host", "description": "Host evidence cannot uniquely bind the process to one configured runtime.", "allowed_verdicts": ["CONFLICT", "UNKNOWN"]},
+    {"code": "HOST_CONFIG_INACCESSIBLE", "category": "host", "description": "A declared host configuration source cannot be read without additional privilege.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "HOST_CONFIG_INVALID", "category": "host", "description": "A host configuration source is malformed or uses unsupported executable constructs.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "WITNESS_EXPECTATION_MISSING", "category": "witness", "description": "Witness created an observation-only receipt because no expectation was supplied.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "DYNAMIC_DEPENDENCIES_UNPROVEN", "category": "limitation", "description": "The declared payload does not cover all dependencies that may be loaded dynamically.", "allowed_verdicts": ["MATCHED", "UNKNOWN"]},
+    {"code": "PLATFORM_EVIDENCE_UNAVAILABLE", "category": "platform", "description": "The current operating system cannot expose evidence required for a stronger proof level.", "allowed_verdicts": ["UNKNOWN"]},
+    {"code": "SCAN_CANCELLED", "category": "operation", "description": "The caller cancelled the scan before a complete result was available.", "allowed_verdicts": ["UNKNOWN"]}
+  ]
+}
