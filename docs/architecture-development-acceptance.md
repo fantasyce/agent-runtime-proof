@@ -1,9 +1,10 @@
 # Agent Runtime Proof 架构、开发与验收设计
 
-- 更新日期：2026-08-24
-- 状态：Phase 0 已完成；Phase 1A macOS 主线候选已通过本地验收，完整 Phase 1 尚未完成
+- 更新日期：2026-08-25
+- 状态：Phase 0 已完成；Phase 1A macOS 主线候选与 Windows 核心候选已通过各自实机验收，完整 Phase 1 尚未完成
 - Phase 0 验收记录：[phase0-acceptance.md](phase0-acceptance.md)
 - Phase 1A 验收记录：[phase1-macos-acceptance.md](phase1-macos-acceptance.md)
+- Windows 核心验收记录：[phase1-windows-acceptance.md](phase1-windows-acceptance.md)
 - Phase 1 延后门与问题：[phase1-deferred-gates.md](issues/phase1-deferred-gates.md)
 本期唯一开发切口：Agent Runtime Proof（下文简称 ARP）
 
@@ -874,6 +875,8 @@ Linux Docker 验证的是容器内本地核心、CLI、进程和 stdio MCP 行�
 - [MCP stdio 规范](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/basic/transports/stdio.mdx)：stdout 仅承载 MCP 消息，日志使用 stderr，并定义 EOF 与进程终止语义。
 - [gopsutil 平台矩阵](https://github.com/shirou/gopsutil/blob/master/README.md)：macOS 的进程 `exe` 能力不完整，需要 Darwin 原生补充。
 - [Windows `QueryFullProcessImageNameW`](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-queryfullprocessimagenamew)：读取本地进程可执行映像路径的正式 API。
+- [Windows `CreateFile`](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew) 与 [`NtCreateFile`](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntcreatefile)：分别用于固定本地卷根，以及相对已打开父目录句柄逐级打开路径组件并拒绝 reparse point。
+- [Windows `GetFileInformationByHandleEx`](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandleex)：从已打开句柄取得 `FileIdInfo` 与 `FileBasicInfo`，用于文件身份和变更屏障。
 - [Cursor MCP 文档](https://docs.cursor.com/context/model-context-protocol)、[OpenCode MCP 文档](https://opencode.ai/v2/docs/mcp-servers)、[VS Code MCP 配置](https://code.visualstudio.com/docs/agents/reference/mcp-configuration)：均支持本地 stdio MCP Server。
 - [DeepSeek Harness MCP client](https://github.com/deepseek-ai/deepseek-harness/tree/master/packages/mcp/mcp-client)：支持通过 Cordis 配置启动本地 stdio MCP Server。
 

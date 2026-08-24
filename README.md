@@ -5,11 +5,13 @@ which local runtime an Agent actually launched and whether the observable
 runtime matches a declared expectation.
 
 Current status: the Phase 0 contract baseline is complete. Phase 1A implements
-the read-only `inspect`, `verify`, and `doctor` CLI core with native macOS
-process observation, bounded artifact hashing, privacy-safe Proof output,
-Linux support, and compile-checked Windows support. Phase 1A has passed its
-macOS-primary local acceptance; Windows live-machine acceptance remains a
-separate gate for full Phase 1 and v1.
+the read-only `inspect`, `verify`, and `doctor` CLI core with native macOS,
+Windows, and Linux process observation, bounded artifact hashing, and
+privacy-safe Proof output. Phase 1A has passed its macOS-primary local
+acceptance, and the Windows core candidate has passed native Windows 11 build,
+test, safe-junction, and live CLI verification. Full Phase 1 and v1 remain
+incomplete because permission, release-asset, CI, MCP, Witness, and real-host
+gates are tracked separately.
 
 The v1 boundary is intentionally narrow:
 
@@ -33,7 +35,9 @@ an executable Go verification harness. Run the complete current gate with:
 bash scripts/check.sh
 ```
 
-The [Phase 0 acceptance record](docs/phase0-acceptance.md) states exactly what
+The [Phase 0 acceptance record](docs/phase0-acceptance.md),
+[Phase 1A macOS record](docs/phase1-macos-acceptance.md), and
+[Windows core record](docs/phase1-windows-acceptance.md) state exactly what
 passed and what remains intentionally deferred.
 
 ## Phase 1A CLI
