@@ -252,6 +252,7 @@ git commit -m "test: define cross-platform runtime fixture contract"
 
 **Files:**
 - Create: `contracts/privacy-registry.json`
+- Create: `contracts/threat-registry.json`
 - Create: `docs/privacy-model.md`
 - Create: `docs/threat-model.md`
 - Create: `internal/contracttest/privacy_test.go`
@@ -262,7 +263,7 @@ git commit -m "test: define cross-platform runtime fixture contract"
 
 - [ ] **Step 1: Write failing privacy coverage tests**
 
-Recursively collect leaf property paths from all three schemas. Require each path to appear exactly once in `contracts/privacy-registry.json`; reject prohibited property names matching case-insensitive `environment|env_value|argv|content|transcript|password|secret|token|cookie|private_key`; require every threat record referenced by a privacy rule to exist in `docs/threat-model.md` using stable IDs such as `T-PID-REUSE`.
+Recursively collect leaf property paths from all three schemas. Require each path to appear exactly once in `contracts/privacy-registry.json`; reject prohibited property names matching case-insensitive `environment|env_value|argv|content|transcript|password|secret|token|cookie|private_key`; require every threat record referenced by a privacy rule to exist in `contracts/threat-registry.json` using stable IDs such as `T-PID-REUSE`. Human prose is reviewed but not tested by source-text matching.
 
 - [ ] **Step 2: Verify RED**
 
@@ -283,7 +284,7 @@ Every registry row includes `field`, `class`, `projection`, and one or more thre
 
 - [ ] **Step 4: Write the threat model**
 
-Define assets, trust boundaries, attacker capabilities, non-goals, and mitigations for PID reuse, TOCTOU, symlink/junction escape, normalization collision, unbounded directory denial of service, config execution, command-line secret leakage, privilege escalation, forged expectation, Proof modification, Witness stdout corruption, child leakage, and test-state pollution. Each threat has stable ID, precondition, impact, prevention, detection, residual risk, and required test phase.
+Define assets, trust boundaries, attacker capabilities, non-goals, and mitigations for PID reuse, TOCTOU, symlink/junction escape, normalization collision, unbounded directory denial of service, config execution, command-line secret leakage, privilege escalation, forged expectation, Proof modification, Witness stdout corruption, child leakage, and test-state pollution. Store the executable records in `contracts/threat-registry.json`; each threat has stable ID, title, precondition, impact, prevention, detection, residual risk, and required test phase. Explain the same model for humans in `docs/threat-model.md` without brittle prose-matching tests.
 
 - [ ] **Step 5: Verify GREEN**
 
@@ -293,7 +294,7 @@ Expected: all schema fields classified exactly once and all threat links resolve
 - [ ] **Step 6: Commit**
 
 ```bash
-git add contracts/privacy-registry.json docs/privacy-model.md docs/threat-model.md internal/contracttest/privacy_test.go
+git add contracts/privacy-registry.json contracts/threat-registry.json docs/privacy-model.md docs/threat-model.md internal/contracttest/privacy_test.go
 git commit -m "docs: define privacy and threat contracts"
 ```
 
