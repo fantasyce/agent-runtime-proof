@@ -1,7 +1,7 @@
 # Phase 2 Local stdio MCP Acceptance
 
 - Date: 2026-08-25
-- Accepted implementation commit: `b23920dd08a62ccf327d3a06bd55f36fb0afa43e`
+- Accepted implementation commit: `345f8205f1dda2ec52d3e7e4bf9b3fe349d8df27`
 - Branch: `codex/phase1-phase2-completion`
 - Decision: **PASS**
 - Unresolved Phase 2 defects: **none**
@@ -97,7 +97,7 @@ were removed after the call.
 
 ## Remote Matrix
 
-Private GitHub Actions run `32763518762` passed all four jobs from the accepted
+Private GitHub Actions run `32764337638` passed all four jobs from the accepted
 implementation commit:
 
 - macOS 14 / Go 1.26.x;
