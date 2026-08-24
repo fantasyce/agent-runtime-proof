@@ -1,6 +1,7 @@
 .DS_Store
 .idea/
 .vscode/
+.worktrees/
 
 # Build and test output
 /bin/
