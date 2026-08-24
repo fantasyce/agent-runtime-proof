@@ -7,6 +7,10 @@
 # Build and test output
 /bin/
 /build/
+!/build/
+/build/*
+!/build/package/
+!/build/package/Dockerfile.phase1
 /dist/
 /coverage/
 *.out

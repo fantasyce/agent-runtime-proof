@@ -35,11 +35,15 @@ jobs:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: go.sum
 
-      - name: Verify Phase 0 contracts
+      - name: Verify contracts and Phase 1A core
         run: bash scripts/check.sh
 
-  linux-fixture-portability:
-    name: Linux fixture portability
+      - name: Run macOS Phase 1A acceptance
+        if: matrix.go-version == '1.27.x'
+        run: bash scripts/run_phase1_acceptance.sh
+
+  linux-runtime:
+    name: Linux runtime and container acceptance
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
@@ -53,5 +57,31 @@ jobs:
           go-version: 1.27.x
           cache-dependency-path: go.sum
 
-      - name: Verify platform-neutral contracts
+      - name: Verify Linux runtime core
         run: bash scripts/check.sh
+
+      - name: Run Linux container acceptance
+        run: bash scripts/run_linux_acceptance.sh
+
+  windows-compile-contracts:
+    name: Windows compile and contracts only
+    runs-on: windows-2025
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: 1.27.x
+          cache-dependency-path: go.sum
+
+      - name: Test platform-neutral contracts
+        shell: bash
+        run: go test ./internal/canonical ./internal/contract ./internal/contracttest ./internal/expectation ./internal/privacy ./internal/proof
+
+      - name: Compile Windows CLI and process adapter
+        shell: bash
+        run: go build -trimpath ./cmd/agent-runtime-proof
