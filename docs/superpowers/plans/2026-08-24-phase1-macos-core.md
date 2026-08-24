@@ -173,13 +173,13 @@
 - `--format json` writes exactly one JSON value to stdout; diagnostics go only to stderr.
 - Exit codes are 0 success/MATCHED, 2 negative verdict, 3 UNKNOWN, 64 invalid input, and 70 internal failure.
 
-- [ ] **Step 1: Write failing end-to-end CLI tests for help, malformed arguments, inspect PID JSON/table, verify MATCHED/negative/UNKNOWN, doctor JSON/table, stdout purity, stderr separation, and exit-code severity.**
-- [ ] **Step 2: Run tests and confirm the executable behavior is missing.**
-- [ ] **Step 3: Implement standard-library flag parsing, explicit mutually exclusive selectors, JSON encoder output, stable human tables, and error-to-exit mapping.**
-- [ ] **Step 4: Wire the production observer and application service in `main`; inject version, commit, and toolchain through build metadata without leaking source paths.**
-- [ ] **Step 5: Add README usage and honest Phase 1A status without MCP, Witness, Windows-live, or release claims.**
-- [ ] **Step 6: Run focused CLI tests, build with `-trimpath`, inspect binary strings for developer paths, and run the complete gate.**
-- [ ] **Step 7: Commit the CLI.**
+- [x] **Step 1: Write failing end-to-end CLI tests for help, malformed arguments, inspect PID JSON/table, verify MATCHED/negative/UNKNOWN, doctor JSON/table, stdout purity, stderr separation, and exit-code severity.**
+- [x] **Step 2: Run tests and confirm the executable behavior is missing.**
+- [x] **Step 3: Implement standard-library flag parsing, explicit mutually exclusive selectors, JSON encoder output, stable human tables, and error-to-exit mapping.**
+- [x] **Step 4: Wire the production observer and application service in `main`; inject version, commit, and toolchain through build metadata without leaking source paths.**
+- [x] **Step 5: Add README usage and honest Phase 1A status without MCP, Witness, Windows-live, or release claims.**
+- [x] **Step 6: Run focused CLI tests, build with `-trimpath`, inspect binary strings for developer paths, and run the complete gate.**
+- [x] **Step 7: Commit the CLI.**
 
 ### Task 8: macOS-primary and Linux Docker acceptance
 
