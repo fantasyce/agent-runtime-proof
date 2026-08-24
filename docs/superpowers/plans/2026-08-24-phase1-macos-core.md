@@ -97,26 +97,25 @@
 **Files:**
 - Create: `internal/process/process.go`
 - Create: `internal/process/errors.go`
-- Create: `internal/process/darwin/observer.go`
-- Create: `internal/process/darwin/observer_test.go`
-- Create: `internal/process/linux/observer.go`
-- Create: `internal/process/linux/observer_test.go`
-- Create: `internal/process/windows/observer.go`
 - Create: `internal/process/observer_darwin.go`
+- Create: `internal/process/observer_darwin_nocgo.go`
+- Create: `internal/process/observer_darwin_test.go`
 - Create: `internal/process/observer_linux.go`
+- Create: `internal/process/observer_linux_test.go`
 - Create: `internal/process/observer_windows.go`
+- Create: `internal/process/observer_windows_test.go`
 
 **Interfaces:**
 - Produces: `process.Observer` with `Snapshot(context.Context, int) (model.Candidate, error)`, `List(context.Context, int) ([]model.Candidate, error)`, and `Revalidate(context.Context, model.ProcessIdentity) error`.
 - Candidate exposes safe basename and hashes; absolute executable paths remain in an unexported/internal observation field used by evaluation only.
 
-- [ ] **Step 1: Write platform-neutral contract tests using a deterministic fake observer for identity revalidation, inaccessible fields, stable ordering, cancellation, and current-user filtering.**
-- [ ] **Step 2: On macOS, write failing live tests that observe the test process and a controlled helper process without exposing argv or environment.**
-- [ ] **Step 3: Implement the Darwin adapter with `libproc` process listing/path/creation metadata, boot-time-derived hash, parent PID, and executable file identity; convert permission failures to typed inaccessible errors.**
-- [ ] **Step 4: Implement Linux `/proc` observation and tests runnable inside an Ubuntu container, including deleted executable and permission-limited outcomes.**
-- [ ] **Step 5: Implement Windows process listing, image path, creation time, and file identity using wide-character APIs; map access denial to typed inaccessible errors.**
-- [ ] **Step 6: Run native macOS tests, Linux container tests, and `GOOS=windows GOARCH=amd64` compile tests.**
-- [ ] **Step 7: Commit process observers.**
+- [x] **Step 1: Write platform-neutral contract tests using a deterministic fake observer for identity revalidation, inaccessible fields, stable ordering, cancellation, and current-user filtering.**
+- [x] **Step 2: On macOS, write failing live tests that observe the test process and a controlled helper process without exposing argv or environment.**
+- [x] **Step 3: Implement the Darwin adapter with `libproc` process listing/path/creation metadata, boot-time-derived hash, parent PID, and executable file identity; convert permission failures to typed inaccessible errors.**
+- [x] **Step 4: Implement Linux `/proc` observation and tests runnable inside an Ubuntu container, including deleted executable and permission-limited outcomes.**
+- [x] **Step 5: Implement Windows process listing, image path, creation time, and file identity using wide-character APIs; map access denial to typed inaccessible errors.**
+- [x] **Step 6: Run native macOS tests, Linux container tests, and `GOOS=windows GOARCH=amd64` compile tests.**
+- [x] **Step 7: Commit process observers.**
 
 ### Task 5: Verdict evaluation, privacy projection, and Proof generation
 
