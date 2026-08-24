@@ -23,8 +23,8 @@ var errLinkRejected = errors.New("symbolic link rejected")
 func artifactReadingSupported() bool { return true }
 
 type pinnedSnapshot struct {
-	path string
-	info os.FileInfo
+	path  string
+	state fileState
 }
 
 func openArtifactRoot(path string) (*os.File, error) {
@@ -79,14 +79,14 @@ func classifyArtifactOpen(err error) error {
 	return domainError("ARTIFACT_INACCESSIBLE", err)
 }
 
-func verifyArtifactPath(path string, expected os.FileInfo) error {
+func verifyArtifactPath(_ context.Context, path string, expected fileState, _ string, _ Clock, _ time.Time) error {
 	actual, err := openArtifactRoot(path)
 	if err != nil {
 		return domainError("ARTIFACT_CHANGED_DURING_READ", err)
 	}
 	defer actual.Close()
-	actualInfo, err := actual.Stat()
-	if err != nil || !os.SameFile(expected, actualInfo) || fileChanged(stateFromInfo(expected), stateFromInfo(actualInfo)) {
+	actualState, err := fileStateFromFile(actual)
+	if err != nil || fileChanged(expected, actualState) {
 		return domainError("ARTIFACT_CHANGED_DURING_READ", errors.New("artifact root changed during read"))
 	}
 	return nil
@@ -97,17 +97,17 @@ func digestDirectory(ctx context.Context, root *os.File, resolved expectation.Re
 	seen := map[string]string{}
 	var totalBytes int64
 	var entrypointIdentity string
-	rootInfo, err := root.Stat()
+	rootState, err := fileStateFromFile(root)
 	if err != nil {
 		return nil, 0, "", domainError("ARTIFACT_INACCESSIBLE", err)
 	}
-	snapshots := []pinnedSnapshot{{path: "", info: rootInfo}}
+	snapshots := []pinnedSnapshot{{path: "", state: rootState}}
 	err = walkPinnedDirectory(ctx, root, "", resolved, clock, deadline, &entries, seen, &totalBytes, &entrypointIdentity, &snapshots)
 	if err != nil {
 		return nil, 0, "", err
 	}
 	for _, snapshot := range snapshots {
-		if err := verifyRelativeSnapshot(root, snapshot); err != nil {
+		if err := verifyRelativeSnapshot(ctx, root, snapshot, clock, deadline); err != nil {
 			return nil, 0, "", err
 		}
 	}
@@ -116,7 +116,7 @@ func digestDirectory(ctx context.Context, root *os.File, resolved expectation.Re
 }
 
 func walkPinnedDirectory(ctx context.Context, directory *os.File, prefix string, resolved expectation.Resolved, clock Clock, deadline time.Time, entries *[]treeEntry, seen map[string]string, totalBytes *int64, entrypointIdentity *string, snapshots *[]pinnedSnapshot) error {
-	before, err := directory.Stat()
+	before, err := fileStateFromFile(directory)
 	if err != nil {
 		return domainError("ARTIFACT_INACCESSIBLE", err)
 	}
@@ -148,13 +148,18 @@ func walkPinnedDirectory(ctx context.Context, directory *os.File, prefix string,
 			return domainError("ARTIFACT_PATH_ESCAPE", normalizeErr)
 		}
 		if info.IsDir() {
-			*snapshots = append(*snapshots, pinnedSnapshot{path: normalized, info: info})
+			state, stateErr := fileStateFromFile(child)
+			if stateErr != nil {
+				child.Close()
+				return domainError("ARTIFACT_INACCESSIBLE", stateErr)
+			}
+			*snapshots = append(*snapshots, pinnedSnapshot{path: normalized, state: state})
 			err = walkPinnedDirectory(ctx, child, normalized, resolved, clock, deadline, entries, seen, totalBytes, entrypointIdentity, snapshots)
 			child.Close()
 			if err != nil {
 				return err
 			}
-			if err := verifyPinnedChild(directory, childEntry.Name(), info); err != nil {
+			if err := verifyPinnedChild(directory, childEntry.Name(), state); err != nil {
 				return err
 			}
 			continue
@@ -180,37 +185,37 @@ func walkPinnedDirectory(ctx context.Context, directory *os.File, prefix string,
 			child.Close()
 			return domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact exceeds configured limits"))
 		}
-		digest, size, openedInfo, digestErr := digestOpenedFile(ctx, child, clock, deadline, resolved.Value.Artifact.MaxBytes-*totalBytes)
+		digest, size, openedState, digestErr := digestOpenedFile(ctx, child, clock, deadline, resolved.Value.Artifact.MaxBytes-*totalBytes)
 		child.Close()
 		if digestErr != nil {
 			return digestErr
 		}
-		if err := verifyPinnedChild(directory, childEntry.Name(), openedInfo); err != nil {
+		if err := verifyPinnedChild(directory, childEntry.Name(), openedState); err != nil {
 			return err
 		}
 		*totalBytes += size
 		*entries = append(*entries, treeEntry{Path: normalized, SHA256: digest, Size: size})
-		*snapshots = append(*snapshots, pinnedSnapshot{path: normalized, info: openedInfo})
+		*snapshots = append(*snapshots, pinnedSnapshot{path: normalized, state: openedState})
 		entrypoint, _ := normalizeRelative(filepath.ToSlash(resolved.Value.Launch.Entrypoint))
 		if normalized == entrypoint {
-			*entrypointIdentity = fileIdentity(openedInfo)
+			*entrypointIdentity = openedState.identity
 		}
 	}
-	after, err := directory.Stat()
-	if err != nil || fileChanged(stateFromInfo(before), stateFromInfo(after)) {
+	after, err := fileStateFromFile(directory)
+	if err != nil || fileChanged(before, after) {
 		return domainError("ARTIFACT_CHANGED_DURING_READ", errors.New("artifact directory changed during read"))
 	}
 	return nil
 }
 
-func verifyRelativeSnapshot(root *os.File, snapshot pinnedSnapshot) error {
+func verifyRelativeSnapshot(_ context.Context, root *os.File, snapshot pinnedSnapshot, _ Clock, _ time.Time) error {
 	actual, err := openRelativeNoFollow(root, snapshot.path)
 	if err != nil {
 		return domainError("ARTIFACT_CHANGED_DURING_READ", err)
 	}
 	defer actual.Close()
-	actualInfo, err := actual.Stat()
-	if err != nil || !os.SameFile(snapshot.info, actualInfo) || fileChanged(stateFromInfo(snapshot.info), stateFromInfo(actualInfo)) {
+	actualState, err := fileStateFromFile(actual)
+	if err != nil || fileChanged(snapshot.state, actualState) {
 		return domainError("ARTIFACT_CHANGED_DURING_READ", errors.New("artifact snapshot changed before completion"))
 	}
 	return nil
@@ -236,23 +241,37 @@ func openRelativeNoFollow(root *os.File, relative string) (*os.File, error) {
 	return current, nil
 }
 
-func verifyPinnedChild(parent *os.File, name string, expected os.FileInfo) error {
+func verifyPinnedChild(parent *os.File, name string, expected fileState) error {
 	actual, err := openChildNoFollow(parent, name)
 	if err != nil {
 		return domainError("ARTIFACT_CHANGED_DURING_READ", err)
 	}
 	defer actual.Close()
-	actualInfo, err := actual.Stat()
-	if err != nil || !os.SameFile(expected, actualInfo) || fileChanged(stateFromInfo(expected), stateFromInfo(actualInfo)) {
+	actualState, err := fileStateFromFile(actual)
+	if err != nil || fileChanged(expected, actualState) {
 		return domainError("ARTIFACT_CHANGED_DURING_READ", errors.New("artifact entry changed during read"))
 	}
 	return nil
 }
 
-func fileIdentity(info os.FileInfo) string {
+func fileIdentity(file *os.File) string {
+	info, err := file.Stat()
+	if err != nil {
+		return ""
+	}
 	stat, ok := info.Sys().(*syscall.Stat_t)
 	if !ok {
 		return ""
 	}
 	return fmt.Sprintf("%d:%d", stat.Dev, stat.Ino)
+}
+
+func fileStateFromFile(file *os.File) (fileState, error) {
+	info, err := file.Stat()
+	if err != nil {
+		return fileState{}, err
+	}
+	state := stateFromInfo(info)
+	state.identity = fileIdentity(file)
+	return state, nil
 }

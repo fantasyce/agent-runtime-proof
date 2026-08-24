@@ -4,6 +4,7 @@ package process
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -147,16 +148,23 @@ func windowsFileIdentity(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	handle, err := windows.CreateFile(pointer, windows.GENERIC_READ, windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE|windows.FILE_SHARE_DELETE, nil, windows.OPEN_EXISTING, windows.FILE_ATTRIBUTE_NORMAL, 0)
+	handle, err := windows.CreateFile(pointer, windows.FILE_READ_ATTRIBUTES, windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE|windows.FILE_SHARE_DELETE, nil, windows.OPEN_EXISTING, windows.FILE_ATTRIBUTE_NORMAL, 0)
 	if err != nil {
 		return "", err
 	}
 	defer windows.CloseHandle(handle)
-	var info windows.ByHandleFileInformation
-	if err := windows.GetFileInformationByHandle(handle, &info); err != nil {
+	var extended struct {
+		VolumeSerialNumber uint64
+		FileID             [16]byte
+	}
+	if err := windows.GetFileInformationByHandleEx(handle, windows.FileIdInfo, (*byte)(unsafe.Pointer(&extended)), uint32(unsafe.Sizeof(extended))); err == nil {
+		return fmt.Sprintf("%016x:%s", extended.VolumeSerialNumber, hex.EncodeToString(extended.FileID[:])), nil
+	}
+	var fallback windows.ByHandleFileInformation
+	if err := windows.GetFileInformationByHandle(handle, &fallback); err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%d:%d:%d", info.VolumeSerialNumber, info.FileIndexHigh, info.FileIndexLow), nil
+	return fmt.Sprintf("%08x:%08x%08x", fallback.VolumeSerialNumber, fallback.FileIndexHigh, fallback.FileIndexLow), nil
 }
 
 func currentProcessSID() string {

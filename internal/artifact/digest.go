@@ -39,6 +39,10 @@ type fileState struct {
 	info        os.FileInfo
 }
 
+// ReadingSupported reports whether the current platform provides the
+// handle-pinned artifact traversal required by Digest.
+func ReadingSupported() bool { return artifactReadingSupported() }
+
 func Digest(ctx context.Context, resolved expectation.Resolved, clock Clock) (model.ArtifactObservation, error) {
 	if !artifactReadingSupported() {
 		return model.ArtifactObservation{}, domainError("PLATFORM_EVIDENCE_UNAVAILABLE", errors.New("safe handle-relative artifact traversal is unavailable on this platform"))
@@ -56,22 +60,23 @@ func Digest(ctx context.Context, resolved expectation.Resolved, clock Clock) (mo
 		return model.ArtifactObservation{}, classifyArtifactOpen(err)
 	}
 	defer rootFile.Close()
-	rootInfo, err := rootFile.Stat()
+	rootState, err := fileStateFromFile(rootFile)
 	if err != nil {
 		return model.ArtifactObservation{}, domainError("ARTIFACT_INACCESSIBLE", err)
 	}
+	rootInfo := rootState.info
 	if rootInfo.Mode().IsRegular() {
-		digest, size, _, err := digestOpenedFile(ctx, rootFile, clock, deadline, resolved.Value.Artifact.MaxBytes)
+		digest, size, openedState, err := digestOpenedFile(ctx, rootFile, clock, deadline, resolved.Value.Artifact.MaxBytes)
 		if err != nil {
 			return model.ArtifactObservation{}, err
 		}
 		if wouldExceed(0, 0, size, resolved.Value.Artifact.MaxFiles, resolved.Value.Artifact.MaxBytes) {
 			return model.ArtifactObservation{}, domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact exceeds configured limits"))
 		}
-		if err := verifyArtifactPath(resolved.ArtifactRoot, rootInfo); err != nil {
+		if err := verifyArtifactPath(ctx, resolved.ArtifactRoot, openedState, digest, clock, deadline); err != nil {
 			return model.ArtifactObservation{}, err
 		}
-		return model.ArtifactObservation{SHA256: digest, FileCount: 1, ByteCount: size, DurationMS: elapsedMS(start, clock.Now()), EntrypointFileIdentity: fileIdentity(rootInfo)}, nil
+		return model.ArtifactObservation{SHA256: digest, FileCount: 1, ByteCount: size, DurationMS: elapsedMS(start, clock.Now()), EntrypointFileIdentity: openedState.identity}, nil
 	}
 	if !rootInfo.IsDir() {
 		return model.ArtifactObservation{}, domainError("ARTIFACT_UNSUPPORTED_TYPE", errors.New("artifact root is neither a regular file nor a directory"))
@@ -81,7 +86,7 @@ func Digest(ctx context.Context, resolved expectation.Resolved, clock Clock) (mo
 	if err != nil {
 		return model.ArtifactObservation{}, err
 	}
-	if err := verifyArtifactPath(resolved.ArtifactRoot, rootInfo); err != nil {
+	if err := verifyArtifactPath(ctx, resolved.ArtifactRoot, rootState, "", clock, deadline); err != nil {
 		return model.ArtifactObservation{}, err
 	}
 	if len(entries) == 0 {
@@ -98,50 +103,50 @@ func Digest(ctx context.Context, resolved expectation.Resolved, clock Clock) (mo
 	}, nil
 }
 
-func digestOpenedFile(ctx context.Context, file *os.File, clock Clock, deadline time.Time, maxBytes int64) (string, int64, os.FileInfo, error) {
-	beforeInfo, err := file.Stat()
+func digestOpenedFile(ctx context.Context, file *os.File, clock Clock, deadline time.Time, maxBytes int64) (string, int64, fileState, error) {
+	before, err := fileStateFromFile(file)
 	if err != nil {
-		return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", err)
+		return "", 0, fileState{}, domainError("ARTIFACT_INACCESSIBLE", err)
 	}
+	beforeInfo := before.info
 	if !beforeInfo.Mode().IsRegular() {
-		return "", 0, nil, domainError("ARTIFACT_UNSUPPORTED_TYPE", errors.New("artifact is not a regular file"))
+		return "", 0, fileState{}, domainError("ARTIFACT_UNSUPPORTED_TYPE", errors.New("artifact is not a regular file"))
 	}
 	if beforeInfo.Size() > maxBytes {
-		return "", 0, nil, domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact exceeds configured byte limit"))
+		return "", 0, fileState{}, domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact exceeds configured byte limit"))
 	}
-	before := stateFromInfo(beforeInfo)
 	hash := sha256.New()
 	buffer := make([]byte, 64*1024)
 	var bytesRead int64
 	for {
 		if err := checkActive(ctx, clock, deadline); err != nil {
-			return "", 0, nil, err
+			return "", 0, fileState{}, err
 		}
 		count, readErr := file.Read(buffer)
 		if count > 0 {
 			if int64(count) > maxBytes-bytesRead {
-				return "", 0, nil, domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact grew beyond configured byte limit"))
+				return "", 0, fileState{}, domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact grew beyond configured byte limit"))
 			}
 			bytesRead += int64(count)
 			if _, err := hash.Write(buffer[:count]); err != nil {
-				return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", err)
+				return "", 0, fileState{}, domainError("ARTIFACT_INACCESSIBLE", err)
 			}
 		}
 		if errors.Is(readErr, io.EOF) {
 			break
 		}
 		if readErr != nil {
-			return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", readErr)
+			return "", 0, fileState{}, domainError("ARTIFACT_INACCESSIBLE", readErr)
 		}
 	}
-	afterInfo, err := file.Stat()
+	after, err := fileStateFromFile(file)
 	if err != nil {
-		return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", err)
+		return "", 0, fileState{}, domainError("ARTIFACT_INACCESSIBLE", err)
 	}
-	if fileChanged(before, stateFromInfo(afterInfo)) {
-		return "", 0, nil, domainError("ARTIFACT_CHANGED_DURING_READ", errors.New("artifact identity, size, or modification time changed"))
+	if fileChanged(before, after) {
+		return "", 0, fileState{}, domainError("ARTIFACT_CHANGED_DURING_READ", errors.New("artifact identity, size, or modification time changed"))
 	}
-	return hex.EncodeToString(hash.Sum(nil)), before.size, beforeInfo, nil
+	return hex.EncodeToString(hash.Sum(nil)), before.size, before, nil
 }
 
 func stateFromInfo(info os.FileInfo) fileState {

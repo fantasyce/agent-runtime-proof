@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/fantasyce/agent-runtime-proof/internal/artifact"
 	"github.com/fantasyce/agent-runtime-proof/internal/contract"
 	"github.com/fantasyce/agent-runtime-proof/internal/model"
 )
@@ -27,8 +28,14 @@ type DoctorResult struct {
 func (service *Service) Doctor(ctx context.Context) DoctorResult {
 	result := DoctorResult{
 		Status: "ok", Platform: model.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH},
-		Checks: []DoctorCheck{}, Capabilities: []string{"read-only-artifact-digest"},
+		Checks: []DoctorCheck{}, Capabilities: []string{},
 		Limitations: []string{"host-profiles unavailable in Phase 1A", "MCP unavailable in Phase 1A", "Witness unavailable in Phase 1A"},
+	}
+	if artifact.ReadingSupported() {
+		result.Capabilities = append(result.Capabilities, "read-only-artifact-digest")
+	} else {
+		result.Status = "warning"
+		result.Limitations = append(result.Limitations, "safe artifact digest unavailable on this platform")
 	}
 	if err := contract.ValidateExpectation([]byte(doctorExpectation)); err != nil {
 		result.Status = "warning"
