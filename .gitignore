@@ -2,6 +2,7 @@
 .idea/
 .vscode/
 .worktrees/
+.codebase-memory/
 
 # Build and test output
 /bin/
