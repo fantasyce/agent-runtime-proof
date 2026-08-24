@@ -27,13 +27,14 @@ type DoctorResult struct {
 func (service *Service) Doctor(ctx context.Context) DoctorResult {
 	result := DoctorResult{
 		Status: "ok", Platform: model.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH},
-		Checks: []DoctorCheck{}, Capabilities: []string{"embedded-contracts", "process-observation", "read-only-artifact-digest"},
+		Checks: []DoctorCheck{}, Capabilities: []string{"read-only-artifact-digest"},
 		Limitations: []string{"host-profiles unavailable in Phase 1A", "MCP unavailable in Phase 1A", "Witness unavailable in Phase 1A"},
 	}
 	if err := contract.ValidateExpectation([]byte(doctorExpectation)); err != nil {
 		result.Status = "warning"
 		result.Checks = append(result.Checks, DoctorCheck{Name: "embedded-contracts", Status: "error", Detail: "embedded contract validation failed"})
 	} else {
+		result.Capabilities = append(result.Capabilities, "embedded-contracts")
 		result.Checks = append(result.Checks, DoctorCheck{Name: "embedded-contracts", Status: "ok", Detail: "embedded schemas are available"})
 	}
 	if service.Observer == nil {
@@ -45,6 +46,7 @@ func (service *Service) Doctor(ctx context.Context) DoctorResult {
 		result.Status = "warning"
 		result.Checks = append(result.Checks, DoctorCheck{Name: "process-observation", Status: "warning", Detail: "current process could not be observed without additional access"})
 	} else {
+		result.Capabilities = append(result.Capabilities, "process-observation")
 		result.Checks = append(result.Checks, DoctorCheck{Name: "process-observation", Status: "ok", Detail: "current process is observable"})
 	}
 	return result

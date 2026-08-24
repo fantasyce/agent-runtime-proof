@@ -29,10 +29,10 @@ func Project(candidate *model.Candidate, resolved *expectation.Resolved, artifac
 	subject := inferredSubject(candidate)
 	var expectationProjection *model.ExpectationProjection
 	if resolved != nil {
-		subject = resolved.Value.Subject
+		subject = safeSubject(resolved.Value.Subject)
 		expectationProjection = &model.ExpectationProjection{
 			SourceKind: resolved.Value.Source.Kind, SourceLocatorHash: resolved.Value.Source.LocatorHash,
-			Trust: resolved.Value.Source.Trust, ExpectedVersion: resolved.Value.Subject.Version,
+			Trust: resolved.Value.Source.Trust, ExpectedVersion: truncateRunes(safeField(resolved.Value.Subject.Version), 64),
 			ExpectedArtifactSHA256: resolved.Value.Artifact.SHA256,
 		}
 	}
@@ -41,6 +41,7 @@ func Project(candidate *model.Candidate, resolved *expectation.Resolved, artifac
 	if candidate != nil {
 		processIdentity := candidate.Process
 		executable := candidate.Executable
+		executable.Basename = safeField(executable.Basename)
 		observation.Process = &processIdentity
 		observation.Executable = &executable
 		observation.InaccessibleFields = append([]string{}, candidate.Inaccessible...)
@@ -64,8 +65,43 @@ func inferredSubject(candidate *model.Candidate) model.Subject {
 	if candidate != nil && candidate.Executable.Basename != "" {
 		name = truncateRunes(candidate.Executable.Basename, 128)
 	}
+	name = safeField(name)
 	id := sanitizeID(name)
 	return model.Subject{ID: id, DisplayName: name, Version: "unknown"}
+}
+
+func safeSubject(value model.Subject) model.Subject {
+	return model.Subject{ID: sanitizeID(safeField(value.ID)), DisplayName: safeField(value.DisplayName), Version: truncateRunes(safeField(value.Version), 64)}
+}
+
+func safeField(value string) string {
+	lower := strings.ToLower(value)
+	sensitiveMarkers := []string{"token", "secret", "cookie", "password", "passwd", "private-key", "credential", "authorization", "bearer", "api-key", "apikey"}
+	sensitive := strings.ContainsAny(value, "/\\\x00")
+	for _, marker := range sensitiveMarkers {
+		sensitive = sensitive || strings.Contains(lower, marker)
+	}
+	sensitive = sensitive || strings.HasPrefix(lower, "sk-") || strings.HasPrefix(lower, "ghp_") || strings.HasPrefix(lower, "github_pat_") || strings.HasPrefix(strings.ToUpper(value), "AKIA")
+	if !sensitive && tokenLike(value) {
+		sensitive = true
+	}
+	if !sensitive {
+		return truncateRunes(value, 128)
+	}
+	digest := sha256.Sum256([]byte("arp:safe-label:v1\x00" + value))
+	return "redacted-" + hex.EncodeToString(digest[:6])
+}
+
+func tokenLike(value string) bool {
+	if len(value) < 32 {
+		return false
+	}
+	for _, char := range value {
+		if char > 127 || !(char >= 'A' && char <= 'Z' || char >= 'a' && char <= 'z' || char >= '0' && char <= '9' || strings.ContainsRune("_-.=+", char)) {
+			return false
+		}
+	}
+	return true
 }
 
 func sanitizeID(value string) string {

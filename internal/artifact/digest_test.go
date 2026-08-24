@@ -49,6 +49,20 @@ func TestDigestHashesCanonicalDirectoryTree(t *testing.T) {
 	}
 }
 
+func TestDigestRecordsDeclaredEntrypointIdentity(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "runtime"), "content")
+	resolved := resolvedFor(root, []string{"**"}, nil, 10, 1024, 1000)
+	resolved.Value.Launch.Entrypoint = "runtime"
+	result, err := Digest(context.Background(), resolved, fixedClock{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.EntrypointFileIdentity == "" {
+		t.Fatal("entrypoint file identity was not retained internally")
+	}
+}
+
 func TestDigestPreservesSafeUnicodeAndSpacePath(t *testing.T) {
 	root := t.TempDir()
 	directory := filepath.Join(root, "子 目录")
@@ -134,11 +148,12 @@ func TestNormalizedPathCollisionKeyUsesNFC(t *testing.T) {
 }
 
 func TestFileChangedDetectsIdentitySizeOrTimeMutation(t *testing.T) {
-	base := fileState{size: 4, modUnixNano: 10, identity: "dev:1:ino:2"}
+	base := fileState{size: 4, modUnixNano: 10, identity: "dev:1:ino:2", changeToken: "10"}
 	for _, changed := range []fileState{
-		{size: 5, modUnixNano: 10, identity: "dev:1:ino:2"},
-		{size: 4, modUnixNano: 11, identity: "dev:1:ino:2"},
-		{size: 4, modUnixNano: 10, identity: "dev:1:ino:3"},
+		{size: 5, modUnixNano: 10, identity: "dev:1:ino:2", changeToken: "10"},
+		{size: 4, modUnixNano: 11, identity: "dev:1:ino:2", changeToken: "10"},
+		{size: 4, modUnixNano: 10, identity: "dev:1:ino:3", changeToken: "10"},
+		{size: 4, modUnixNano: 10, identity: "dev:1:ino:2", changeToken: "11"},
 	} {
 		if !fileChanged(base, changed) {
 			t.Fatalf("mutation not detected: %#v", changed)
@@ -155,7 +170,20 @@ func TestWouldExceedLimitsUsesPostOpenFileSize(t *testing.T) {
 	}
 }
 
+func TestDigestRejectsEarlierFileMutatedBeforeFinalBarrier(t *testing.T) {
+	root := t.TempDir()
+	first := filepath.Join(root, "a")
+	writeFile(t, first, "old")
+	writeFile(t, filepath.Join(root, "b"), "stable")
+	clock := &callbackClock{at: 6, callback: func() { _ = os.WriteFile(first, []byte("new"), 0o600) }}
+	_, err := Digest(context.Background(), resolvedFor(root, []string{"**"}, nil, 10, 1024, 1000), clock)
+	assertReason(t, err, "ARTIFACT_CHANGED_DURING_READ")
+}
+
 func resolvedFor(root string, include, exclude []string, maxFiles int, maxBytes, maxDurationMS int64) expectation.Resolved {
+	if evaluated, err := filepath.EvalSymlinks(root); err == nil {
+		root = evaluated
+	}
 	resolved := expectation.Resolved{ArtifactRoot: root}
 	resolved.Value.Artifact.Include = include
 	resolved.Value.Artifact.Exclude = exclude
@@ -187,6 +215,20 @@ func (fixedClock) Now() time.Time { return time.Unix(100, 0) }
 type steppingClock struct {
 	step time.Duration
 	now  time.Time
+}
+
+type callbackClock struct {
+	count    int
+	at       int
+	callback func()
+}
+
+func (clock *callbackClock) Now() time.Time {
+	clock.count++
+	if clock.count == clock.at {
+		clock.callback()
+	}
+	return time.Unix(100, 0)
 }
 
 func (clock *steppingClock) Now() time.Time {

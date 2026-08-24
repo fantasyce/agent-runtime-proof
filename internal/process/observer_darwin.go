@@ -5,7 +5,9 @@ package process
 /*
 #include <errno.h>
 #include <libproc.h>
+#include <mach/vm_prot.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/proc_info.h>
 #include <unistd.h>
 
@@ -19,6 +21,29 @@ static int arp_pid_path(int pid, void *buffer, uint32_t size, int *error_number)
 	int result = proc_pidpath(pid, buffer, size);
 	if (result <= 0) *error_number = errno;
 	return result;
+}
+
+static int arp_pid_executable_identity(int pid, uint64_t *device, uint64_t *inode, int *error_number) {
+	uint64_t address = 0;
+	for (int count = 0; count < 65536; count++) {
+		struct proc_regionwithpathinfo info;
+		memset(&info, 0, sizeof(info));
+		int result = proc_pidinfo(pid, PROC_PIDREGIONPATHINFO, address, &info, sizeof(info));
+		if (result != sizeof(info)) {
+			if (result <= 0) *error_number = errno;
+			return 0;
+		}
+		if ((info.prp_prinfo.pri_protection & VM_PROT_EXECUTE) != 0 &&
+			info.prp_vip.vip_vi.vi_stat.vst_ino != 0 && info.prp_vip.vip_path[0] != '\0') {
+			*device = info.prp_vip.vip_vi.vi_stat.vst_dev;
+			*inode = info.prp_vip.vip_vi.vi_stat.vst_ino;
+			return 1;
+		}
+		uint64_t next = info.prp_prinfo.pri_address + info.prp_prinfo.pri_size;
+		if (next <= address) return 0;
+		address = next;
+	}
+	return 0;
 }
 */
 import "C"
@@ -72,17 +97,14 @@ func (observer *nativeObserver) Snapshot(ctx context.Context, pid int) (model.Ca
 		candidate.Inaccessible = []string{"process.image"}
 		return candidate, classifyDarwinError("read process image", errno)
 	}
-	fileInfo, err := os.Stat(path)
-	if err != nil {
+	identity, errno, ok := darwinLoadedExecutableIdentity(pid)
+	if !ok {
 		candidate.Inaccessible = []string{"process.image.file_identity"}
-		return candidate, &Error{Kind: ErrorInaccessible, Operation: "stat process image", Err: err}
-	}
-	identity, err := darwinFileIdentity(fileInfo)
-	if err != nil {
-		return candidate, &Error{Kind: ErrorInternal, Operation: "identify process image", Err: err}
+		return candidate, classifyDarwinError("identify loaded process image", errno)
 	}
 	candidate.ExecutablePath = path
 	candidate.DeclaredExecutablePath = path
+	candidate.ExecutableFileIdentity = identity
 	candidate.Executable = model.ExecutableObservation{
 		Basename:   filepath.Base(path),
 		PathHash:   hashIdentifier("arp:path:v1", path),
@@ -160,6 +182,16 @@ func darwinPIDPath(pid int) (string, int, bool) {
 		return "", int(errorNumber), false
 	}
 	return C.GoString((*C.char)(unsafe.Pointer(&buffer[0]))), 0, true
+}
+
+func darwinLoadedExecutableIdentity(pid int) (string, int, bool) {
+	var device C.uint64_t
+	var inode C.uint64_t
+	var errorNumber C.int
+	if C.arp_pid_executable_identity(C.int(pid), &device, &inode, &errorNumber) == 0 {
+		return "", int(errorNumber), false
+	}
+	return fmt.Sprintf("%d:%d", uint64(device), uint64(inode)), 0, true
 }
 
 func darwinBootHash() string {

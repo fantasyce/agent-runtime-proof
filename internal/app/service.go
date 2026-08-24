@@ -150,6 +150,7 @@ func (service *Service) Verify(ctx context.Context, request VerifyRequest) (Veri
 		}
 		if revalidateErr := service.Observer.Revalidate(ctx, candidate); revalidateErr != nil {
 			processErr = revalidateErr
+			candidatePointer = nil
 			artifactPointer = nil
 			artifactErr = nil
 		}

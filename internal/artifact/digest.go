@@ -5,11 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io"
 	"os"
-	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"time"
@@ -38,6 +35,7 @@ type fileState struct {
 	size        int64
 	modUnixNano int64
 	identity    string
+	changeToken string
 	info        os.FileInfo
 }
 
@@ -50,87 +48,37 @@ func Digest(ctx context.Context, resolved expectation.Resolved, clock Clock) (mo
 	if err := checkActive(ctx, clock, deadline); err != nil {
 		return model.ArtifactObservation{}, err
 	}
-	rootInfo, err := os.Lstat(resolved.ArtifactRoot)
+	rootFile, err := openArtifactRoot(resolved.ArtifactRoot)
+	if err != nil {
+		return model.ArtifactObservation{}, classifyArtifactOpen(err)
+	}
+	defer rootFile.Close()
+	rootInfo, err := rootFile.Stat()
 	if err != nil {
 		return model.ArtifactObservation{}, domainError("ARTIFACT_INACCESSIBLE", err)
 	}
-	if rootInfo.Mode()&os.ModeSymlink != 0 {
-		return model.ArtifactObservation{}, domainError("ARTIFACT_SYMLINK_REJECTED", errors.New("artifact root is a symbolic link"))
-	}
 	if rootInfo.Mode().IsRegular() {
-		digest, size, err := digestFile(ctx, resolved.ArtifactRoot, clock, deadline)
+		digest, size, _, err := digestOpenedFile(ctx, rootFile, clock, deadline)
 		if err != nil {
 			return model.ArtifactObservation{}, err
 		}
 		if wouldExceed(0, 0, size, resolved.Value.Artifact.MaxFiles, resolved.Value.Artifact.MaxBytes) {
 			return model.ArtifactObservation{}, domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact exceeds configured limits"))
 		}
-		return model.ArtifactObservation{SHA256: digest, FileCount: 1, ByteCount: size, DurationMS: elapsedMS(start, clock.Now())}, nil
+		if err := verifyArtifactPath(resolved.ArtifactRoot, rootInfo); err != nil {
+			return model.ArtifactObservation{}, err
+		}
+		return model.ArtifactObservation{SHA256: digest, FileCount: 1, ByteCount: size, DurationMS: elapsedMS(start, clock.Now()), EntrypointFileIdentity: fileIdentity(rootInfo)}, nil
 	}
 	if !rootInfo.IsDir() {
 		return model.ArtifactObservation{}, domainError("ARTIFACT_UNSUPPORTED_TYPE", errors.New("artifact root is neither a regular file nor a directory"))
 	}
 
-	entries := []treeEntry{}
-	seen := map[string]string{}
-	var totalBytes int64
-	err = filepath.WalkDir(resolved.ArtifactRoot, func(path string, entry os.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return domainError("ARTIFACT_INACCESSIBLE", walkErr)
-		}
-		if err := checkActive(ctx, clock, deadline); err != nil {
-			return err
-		}
-		if path == resolved.ArtifactRoot {
-			return nil
-		}
-		if entry.Type()&os.ModeSymlink != 0 {
-			return domainError("ARTIFACT_SYMLINK_REJECTED", fmt.Errorf("symbolic link %q", entry.Name()))
-		}
-		if entry.IsDir() {
-			return nil
-		}
-		info, err := entry.Info()
-		if err != nil {
-			return domainError("ARTIFACT_INACCESSIBLE", err)
-		}
-		if !info.Mode().IsRegular() {
-			return domainError("ARTIFACT_UNSUPPORTED_TYPE", fmt.Errorf("unsupported artifact type %q", entry.Name()))
-		}
-		relative, err := filepath.Rel(resolved.ArtifactRoot, path)
-		if err != nil || filepath.IsAbs(relative) || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
-			return domainError("ARTIFACT_PATH_ESCAPE", errors.New("artifact path escapes root"))
-		}
-		normalized, err := normalizeRelative(filepath.ToSlash(relative))
-		if err != nil {
-			return domainError("ARTIFACT_PATH_ESCAPE", err)
-		}
-		if !resolved.Includes(normalized) {
-			return nil
-		}
-		key := normalized
-		if runtime.GOOS == "windows" {
-			key = strings.ToLower(key)
-		}
-		if previous, exists := seen[key]; exists {
-			return domainError("ARTIFACT_NORMALIZATION_COLLISION", fmt.Errorf("%q collides with %q", normalized, previous))
-		}
-		seen[key] = normalized
-		if wouldExceed(len(entries), totalBytes, info.Size(), resolved.Value.Artifact.MaxFiles, resolved.Value.Artifact.MaxBytes) {
-			return domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact exceeds configured limits"))
-		}
-		digest, size, err := digestFile(ctx, path, clock, deadline)
-		if err != nil {
-			return err
-		}
-		if wouldExceed(len(entries), totalBytes, size, resolved.Value.Artifact.MaxFiles, resolved.Value.Artifact.MaxBytes) {
-			return domainError("ARTIFACT_SCAN_LIMIT_EXCEEDED", errors.New("artifact exceeds configured limits"))
-		}
-		totalBytes += size
-		entries = append(entries, treeEntry{Path: normalized, SHA256: digest, Size: size})
-		return nil
-	})
+	entries, totalBytes, entrypointIdentity, err := digestDirectory(ctx, rootFile, resolved, clock, deadline)
 	if err != nil {
+		return model.ArtifactObservation{}, err
+	}
+	if err := verifyArtifactPath(resolved.ArtifactRoot, rootInfo); err != nil {
 		return model.ArtifactObservation{}, err
 	}
 	if len(entries) == 0 {
@@ -143,63 +91,54 @@ func Digest(ctx context.Context, resolved expectation.Resolved, clock Clock) (mo
 	}
 	digest := sha256.Sum256(encoded)
 	return model.ArtifactObservation{
-		SHA256: hex.EncodeToString(digest[:]), FileCount: len(entries), ByteCount: totalBytes, DurationMS: elapsedMS(start, clock.Now()),
+		SHA256: hex.EncodeToString(digest[:]), FileCount: len(entries), ByteCount: totalBytes, DurationMS: elapsedMS(start, clock.Now()), EntrypointFileIdentity: entrypointIdentity,
 	}, nil
 }
 
-func digestFile(ctx context.Context, path string, clock Clock, deadline time.Time) (string, int64, error) {
-	file, err := openNoFollow(path)
-	if err != nil {
-		return "", 0, domainError("ARTIFACT_INACCESSIBLE", err)
-	}
-	defer file.Close()
+func digestOpenedFile(ctx context.Context, file *os.File, clock Clock, deadline time.Time) (string, int64, os.FileInfo, error) {
 	beforeInfo, err := file.Stat()
 	if err != nil {
-		return "", 0, domainError("ARTIFACT_INACCESSIBLE", err)
+		return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", err)
 	}
 	if !beforeInfo.Mode().IsRegular() {
-		return "", 0, domainError("ARTIFACT_UNSUPPORTED_TYPE", errors.New("artifact is not a regular file"))
+		return "", 0, nil, domainError("ARTIFACT_UNSUPPORTED_TYPE", errors.New("artifact is not a regular file"))
 	}
 	before := stateFromInfo(beforeInfo)
 	hash := sha256.New()
 	buffer := make([]byte, 64*1024)
 	for {
 		if err := checkActive(ctx, clock, deadline); err != nil {
-			return "", 0, err
+			return "", 0, nil, err
 		}
 		count, readErr := file.Read(buffer)
 		if count > 0 {
 			if _, err := hash.Write(buffer[:count]); err != nil {
-				return "", 0, domainError("ARTIFACT_INACCESSIBLE", err)
+				return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", err)
 			}
 		}
 		if errors.Is(readErr, io.EOF) {
 			break
 		}
 		if readErr != nil {
-			return "", 0, domainError("ARTIFACT_INACCESSIBLE", readErr)
+			return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", readErr)
 		}
 	}
 	afterInfo, err := file.Stat()
 	if err != nil {
-		return "", 0, domainError("ARTIFACT_INACCESSIBLE", err)
+		return "", 0, nil, domainError("ARTIFACT_INACCESSIBLE", err)
 	}
-	pathInfo, err := os.Lstat(path)
-	if err != nil {
-		return "", 0, domainError("ARTIFACT_CHANGED_DURING_READ", err)
+	if fileChanged(before, stateFromInfo(afterInfo)) {
+		return "", 0, nil, domainError("ARTIFACT_CHANGED_DURING_READ", errors.New("artifact identity, size, or modification time changed"))
 	}
-	if pathInfo.Mode()&os.ModeSymlink != 0 || fileChanged(before, stateFromInfo(afterInfo)) || !os.SameFile(beforeInfo, pathInfo) {
-		return "", 0, domainError("ARTIFACT_CHANGED_DURING_READ", errors.New("artifact identity, size, or modification time changed"))
-	}
-	return hex.EncodeToString(hash.Sum(nil)), before.size, nil
+	return hex.EncodeToString(hash.Sum(nil)), before.size, beforeInfo, nil
 }
 
 func stateFromInfo(info os.FileInfo) fileState {
-	return fileState{size: info.Size(), modUnixNano: info.ModTime().UnixNano(), info: info}
+	return fileState{size: info.Size(), modUnixNano: info.ModTime().UnixNano(), changeToken: fileChangeToken(info), info: info}
 }
 
 func fileChanged(before, after fileState) bool {
-	if before.size != after.size || before.modUnixNano != after.modUnixNano {
+	if before.size != after.size || before.modUnixNano != after.modUnixNano || before.changeToken != after.changeToken {
 		return true
 	}
 	if before.identity != "" || after.identity != "" {

@@ -45,6 +45,21 @@ func TestBuildProducesSchemaValidSelfVerifyingProof(t *testing.T) {
 	if err := VerifyID(value); err != nil {
 		t.Fatal(err)
 	}
+	roundTripped, err := Validate(encoded)
+	if err != nil {
+		t.Fatalf("round-trip validation failed: %v", err)
+	}
+	if roundTripped.ProofID != value.ProofID {
+		t.Fatalf("round-trip proof ID = %s, want %s", roundTripped.ProofID, value.ProofID)
+	}
+	roundTripped.Subject.DisplayName = "Tampered"
+	tampered, err := json.Marshal(roundTripped)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Validate(tampered); err == nil {
+		t.Fatal("protected-field mutation passed public proof validation")
+	}
 }
 
 func TestBuildSupportsHonestObservationOnlyAndNotRunningProofs(t *testing.T) {

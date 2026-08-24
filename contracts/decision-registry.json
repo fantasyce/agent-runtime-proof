@@ -34,7 +34,7 @@
   ],
   "reason_codes": [
     {"code": "MATCH_CONFIRMED", "category": "match", "description": "All evidence required by the reported proof level matches the expectation.", "allowed_verdicts": ["MATCHED"]},
-    {"code": "PROCESS_NOT_FOUND", "category": "process", "description": "No process matched the requested subject in a complete permitted scan.", "allowed_verdicts": ["NOT_RUNNING"]},
+    {"code": "PROCESS_NOT_FOUND", "category": "process", "description": "No process matched the requested subject in a complete permitted scan.", "allowed_verdicts": ["NOT_RUNNING", "UNKNOWN"]},
     {"code": "PROCESS_IDENTITY_CHANGED", "category": "process", "description": "PID or creation-time identity changed while evidence was collected.", "allowed_verdicts": ["UNKNOWN"]},
     {"code": "PROCESS_INACCESSIBLE", "category": "process", "description": "The operating system denied required process evidence without privilege escalation.", "allowed_verdicts": ["UNKNOWN"]},
     {"code": "EXPECTATION_MISSING", "category": "expectation", "description": "No expectation was supplied for a requested verification.", "allowed_verdicts": ["UNKNOWN"]},

@@ -46,12 +46,23 @@ func TestInspectRejectsInvalidSelectorsAndCancellation(t *testing.T) {
 	}
 }
 
+func TestInspectMissingPIDPreservesNotFoundReason(t *testing.T) {
+	service := testService(&fakeObserver{snapshotErr: &processobserver.Error{Kind: processobserver.ErrorNotFound, Operation: "snapshot"}})
+	result, err := service.Inspect(context.Background(), InspectRequest{PID: 999999})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !containsReason(result.Proofs[0].ReasonCodes, "PROCESS_NOT_FOUND") {
+		t.Fatalf("reason codes = %v", result.Proofs[0].ReasonCodes)
+	}
+}
+
 func TestVerifyProducesMatchedAndNegativeProofsAndRevalidates(t *testing.T) {
 	observer := &fakeObserver{candidates: map[int]model.Candidate{42: candidate(42)}}
 	service := testService(observer)
 	service.LoadExpectation = func(string) (expectation.Resolved, error) { return resolvedExpectation(), nil }
 	service.DigestArtifact = func(context.Context, expectation.Resolved, artifact.Clock) (model.ArtifactObservation, error) {
-		return model.ArtifactObservation{SHA256: strings.Repeat("b", 64), FileCount: 1, ByteCount: 10}, nil
+		return model.ArtifactObservation{SHA256: strings.Repeat("b", 64), FileCount: 1, ByteCount: 10, EntrypointFileIdentity: "dev:1"}, nil
 	}
 	matched, err := service.Verify(context.Background(), VerifyRequest{PID: 42, ExpectationPath: "expectation.json"})
 	if err != nil {
@@ -68,6 +79,9 @@ func TestVerifyProducesMatchedAndNegativeProofsAndRevalidates(t *testing.T) {
 	}
 	if changed.Proof.Verdict != "UNKNOWN" || changed.Proof.ReasonCodes[0] != "PROCESS_IDENTITY_CHANGED" {
 		t.Fatalf("changed = %#v", changed)
+	}
+	if changed.Proof.Observation.Process != nil || changed.Proof.Observation.Executable != nil {
+		t.Fatalf("identity-changed proof retained abandoned process evidence: %#v", changed.Proof.Observation)
 	}
 }
 
@@ -144,6 +158,7 @@ func candidate(pid int) model.Candidate {
 		Process:                model.ProcessIdentity{PID: pid, CreatedAtUnixNano: "100", BootIDHash: "sha256:" + strings.Repeat("c", 64)},
 		Executable:             model.ExecutableObservation{Basename: "runtime", PathHash: "sha256:" + strings.Repeat("d", 64)},
 		DeclaredExecutablePath: root,
+		ExecutableFileIdentity: "dev:1",
 	}
 }
 
@@ -160,3 +175,12 @@ func resolvedExpectation() expectation.Resolved {
 type fixedClock struct{ value time.Time }
 
 func (clock fixedClock) Now() time.Time { return clock.value }
+
+func containsReason(values []string, target string) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
+}

@@ -72,6 +72,17 @@ func Evaluate(input Input) Decision {
 	if input.Artifact == nil {
 		return decision("UNKNOWN", "CONFIG_BOUND", "ARTIFACT_INACCESSIBLE")
 	}
+	if input.Expectation.Value.Launch.Kind == "native" {
+		if input.Candidate.ExecutableFileIdentity == "" || input.Artifact.EntrypointFileIdentity == "" {
+			return decision("UNKNOWN", "ARTIFACT_OBSERVED", "PLATFORM_EVIDENCE_UNAVAILABLE")
+		}
+		if input.Candidate.ExecutableFileIdentity != input.Artifact.EntrypointFileIdentity {
+			return decision("UNKNOWN", "ARTIFACT_OBSERVED", "POSSIBLE_STALE_AFTER_REPLACEMENT")
+		}
+		if len(input.Expectation.Value.Launch.ArgumentFingerprints) > 0 {
+			return decision("UNKNOWN", "ARTIFACT_OBSERVED", "PLATFORM_EVIDENCE_UNAVAILABLE")
+		}
+	}
 	if input.Artifact.SHA256 != input.Expectation.Value.Artifact.SHA256 {
 		if input.KnownPriorDigests[input.Artifact.SHA256] {
 			return decision("STALE", "ARTIFACT_OBSERVED", "ARTIFACT_MISMATCH")
@@ -99,6 +110,8 @@ func processReason(value error) string {
 		return ""
 	}
 	switch processError.Kind {
+	case processobserver.ErrorNotFound:
+		return "PROCESS_NOT_FOUND"
 	case processobserver.ErrorInaccessible:
 		return "PROCESS_INACCESSIBLE"
 	case processobserver.ErrorIdentityChanged:

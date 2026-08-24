@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/fantasyce/agent-runtime-proof/internal/contract"
 	"github.com/fantasyce/agent-runtime-proof/internal/evaluator"
 	"github.com/fantasyce/agent-runtime-proof/internal/expectation"
 	"github.com/fantasyce/agent-runtime-proof/internal/model"
@@ -42,7 +41,7 @@ func Build(input Input) (model.Proof, error) {
 	if err != nil {
 		return model.Proof{}, err
 	}
-	if err := contract.ValidateProof(encoded); err != nil {
+	if _, err := Validate(encoded); err != nil {
 		return model.Proof{}, err
 	}
 	return value, nil

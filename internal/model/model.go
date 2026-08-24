@@ -66,10 +66,11 @@ type ExecutableObservation struct {
 }
 
 type ArtifactObservation struct {
-	SHA256     string `json:"sha256"`
-	FileCount  int    `json:"file_count"`
-	ByteCount  int64  `json:"byte_count"`
-	DurationMS int64  `json:"duration_ms"`
+	SHA256                 string `json:"sha256"`
+	FileCount              int    `json:"file_count"`
+	ByteCount              int64  `json:"byte_count"`
+	DurationMS             int64  `json:"duration_ms"`
+	EntrypointFileIdentity string `json:"-"`
 }
 
 type Observation struct {
@@ -86,6 +87,7 @@ type Candidate struct {
 	ParentPID              int                   `json:"parent_pid,omitempty"`
 	ExecutablePath         string                `json:"-"`
 	DeclaredExecutablePath string                `json:"-"`
+	ExecutableFileIdentity string                `json:"-"`
 	ExecutableDeleted      bool                  `json:"-"`
 	Inaccessible           []string              `json:"inaccessible_fields"`
 }

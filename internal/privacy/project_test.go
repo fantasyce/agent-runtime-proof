@@ -37,6 +37,24 @@ func TestProjectOmitsAllLocalPathsAndCommandData(t *testing.T) {
 	}
 }
 
+func TestProjectRedactsSecretLikePublicLabels(t *testing.T) {
+	resolved := &expectation.Resolved{}
+	resolved.Value.Subject = model.Subject{ID: "token-secret", DisplayName: "sk-private-credential", Version: "cookie-password"}
+	resolved.Value.Source = model.ExpectationSource{Kind: "user-file", LocatorHash: strings.Repeat("a", 64), Trust: "declared"}
+	resolved.Value.Artifact.SHA256 = strings.Repeat("b", 64)
+	candidate := &model.Candidate{Platform: model.Platform{OS: "darwin", Arch: "arm64"}, Executable: model.ExecutableObservation{Basename: "ghp_fakecredential"}}
+	projection, err := Project(candidate, resolved, nil, "2026-08-24T12:34:56Z")
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded := string(mustJSON(t, projection))
+	for _, prohibited := range []string{"token-secret", "sk-private-credential", "cookie-password", "ghp_fakecredential"} {
+		if strings.Contains(encoded, prohibited) {
+			t.Fatalf("public label leaked %q: %s", prohibited, encoded)
+		}
+	}
+}
+
 func TestProjectTruncatesUnicodeDisplayNameWithoutBreakingUTF8(t *testing.T) {
 	candidate := &model.Candidate{
 		Platform:   model.Platform{OS: "darwin", Arch: "arm64"},
