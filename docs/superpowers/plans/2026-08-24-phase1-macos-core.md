@@ -84,13 +84,13 @@
 - Produces: `artifact.Digest(ctx context.Context, resolved expectation.Resolved, clock artifact.Clock) (model.ArtifactObservation, error)`.
 - Domain errors carry one registered Reason Code and never return a partial digest.
 
-- [ ] **Step 1: Write failing tests with hand-derived digests for a file, a directory, empty selection, include/exclude behavior, spaces/Chinese/NFC paths, symlink rejection, root escape, unsupported file type, file-count limit, byte limit, cancellation, and mutation during read.**
-- [ ] **Step 2: Run the focused tests and confirm failure because the digester is absent.**
-- [ ] **Step 3: Implement regular-file hashing with pre/post identity, size, and modification-time comparison.**
-- [ ] **Step 4: Implement directory walking without following links, normalized collision detection, deterministic entry sorting, canonical tree hashing, and strict count/byte/time limits.**
-- [ ] **Step 5: Return registered domain errors for every incomplete observation and verify no error path returns an artifact hash.**
-- [ ] **Step 6: Run focused tests with the race detector and then the complete gate.**
-- [ ] **Step 7: Commit the artifact digester.**
+- [x] **Step 1: Write failing tests with hand-derived digests for a file, a directory, empty selection, include/exclude behavior, spaces/Chinese/NFC paths, symlink rejection, root escape, unsupported file type, file-count limit, byte limit, cancellation, and mutation during read.**
+- [x] **Step 2: Run the focused tests and confirm failure because the digester is absent.**
+- [x] **Step 3: Implement regular-file hashing with pre/post identity, size, and modification-time comparison.**
+- [x] **Step 4: Implement directory walking without following links, normalized collision detection, deterministic entry sorting, canonical tree hashing, and strict count/byte/time limits.**
+- [x] **Step 5: Return registered domain errors for every incomplete observation and verify no error path returns an artifact hash.**
+- [x] **Step 6: Run focused tests with the race detector and then the complete gate.**
+- [x] **Step 7: Commit the artifact digester.**
 
 ### Task 4: Cross-platform process observer boundary
 

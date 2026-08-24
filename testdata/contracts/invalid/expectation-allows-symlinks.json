@@ -1,0 +1,16 @@
+{
+  "schema_version": "agent-runtime-expectation/1.0",
+  "subject": {"id": "com.example.runtime", "display_name": "Example Runtime", "version": "1.4.2"},
+  "launch": {"kind": "native", "entrypoint": "bin/runtime", "argument_fingerprints": []},
+  "artifact": {
+    "root": "/fixture/runtime",
+    "include": ["**"],
+    "exclude": [],
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "max_files": 20,
+    "max_bytes": 1024,
+    "max_duration_ms": 1000
+  },
+  "policy": {"allowed_roots": ["/fixture/runtime"], "allow_symlinks": true},
+  "source": {"kind": "user-file", "locator_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "trust": "declared"}
+}
