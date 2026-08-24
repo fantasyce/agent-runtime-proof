@@ -1,0 +1,21 @@
+{
+  "schema_version": "agent-runtime-fixture/1.0",
+  "fixture_id": "linux.deleted-executable",
+  "platform": {"os": "linux", "arch": "amd64"},
+  "snapshot": {
+    "process": {"pid": 731, "created_at_unix_nano": "1787536300000000000", "boot_id_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "parent_pid": 700, "state": "running"},
+    "executable": {"basename": "example-runtime", "path_projection": "/fixture/runtime/example-runtime", "path_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "file_id_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333", "image_access": "observed"},
+    "artifact": {"status": "deleted", "sha256": "5555555555555555555555555555555555555555555555555555555555555555", "prior_sha256": "5555555555555555555555555555555555555555555555555555555555555555", "file_count": 1, "byte_count": 4096},
+    "denied_fields": [],
+    "host_binding": {"host_id": "generic-mcp", "config_source_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444", "confidence": "bound"}
+  },
+  "expectation": {
+    "schema_version": "agent-runtime-expectation/1.0",
+    "subject": {"id": "com.example.runtime", "display_name": "Example Runtime", "version": "1.4.2"},
+    "launch": {"kind": "native", "entrypoint": "bin/example-runtime", "argument_fingerprints": []},
+    "artifact": {"root": "/fixture/runtime", "include": ["example-runtime"], "exclude": [], "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "max_files": 20000, "max_bytes": 268435456, "max_duration_ms": 10000},
+    "policy": {"allowed_roots": ["/fixture/runtime"], "allow_symlinks": false},
+    "source": {"kind": "installed-record", "locator_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "trust": "verified"}
+  },
+  "expected": {"verdict": "STALE", "proof_level": "ARTIFACT_OBSERVED", "reason_codes": ["ARTIFACT_MISMATCH"]}
+}

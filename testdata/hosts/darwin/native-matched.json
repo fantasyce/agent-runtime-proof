@@ -1,0 +1,21 @@
+{
+  "schema_version": "agent-runtime-fixture/1.0",
+  "fixture_id": "darwin.native-matched",
+  "platform": {"os": "darwin", "arch": "arm64"},
+  "snapshot": {
+    "process": {"pid": 4127, "created_at_unix_nano": "1787536210123456789", "boot_id_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "parent_pid": 4000, "state": "running"},
+    "executable": {"basename": "example-runtime", "path_projection": "$HOME/.local/bin/example-runtime", "path_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "file_id_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333", "image_access": "observed"},
+    "artifact": {"status": "observed", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "file_count": 12, "byte_count": 2048},
+    "denied_fields": [],
+    "host_binding": {"host_id": "generic-mcp", "config_source_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444", "confidence": "bound"}
+  },
+  "expectation": {
+    "schema_version": "agent-runtime-expectation/1.0",
+    "subject": {"id": "com.example.runtime", "display_name": "Example Runtime", "version": "1.4.2"},
+    "launch": {"kind": "native", "entrypoint": "bin/example-runtime", "argument_fingerprints": []},
+    "artifact": {"root": "$HOME/.local/share/example-runtime", "include": ["bin/**"], "exclude": [], "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "max_files": 20000, "max_bytes": 268435456, "max_duration_ms": 10000},
+    "policy": {"allowed_roots": ["$HOME/.local/share/example-runtime"], "allow_symlinks": false},
+    "source": {"kind": "release-manifest", "locator_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "trust": "verified"}
+  },
+  "expected": {"verdict": "MATCHED", "proof_level": "ARTIFACT_OBSERVED", "reason_codes": ["MATCH_CONFIRMED"]}
+}

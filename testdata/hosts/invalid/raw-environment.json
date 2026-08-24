@@ -1,0 +1,21 @@
+{
+  "schema_version": "agent-runtime-fixture/1.0",
+  "fixture_id": "invalid.raw-environment",
+  "platform": {"os": "darwin", "arch": "arm64"},
+  "snapshot": {
+    "process": {"pid": 1, "created_at_unix_nano": "1", "boot_id_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "state": "running"},
+    "executable": {"basename": "example", "path_projection": "/fixture/example", "path_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "image_access": "observed"},
+    "artifact": {"status": "inaccessible", "sha256": null, "file_count": 0, "byte_count": 0},
+    "denied_fields": [],
+    "environment": {"FIXTURE_MODE": "enabled"}
+  },
+  "expectation": {
+    "schema_version": "agent-runtime-expectation/1.0",
+    "subject": {"id": "com.example.runtime", "display_name": "Example", "version": "1.0.0"},
+    "launch": {"kind": "native", "entrypoint": "example", "argument_fingerprints": []},
+    "artifact": {"root": "/fixture", "include": ["example"], "exclude": [], "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "max_files": 1, "max_bytes": 1, "max_duration_ms": 1},
+    "policy": {"allowed_roots": ["/fixture"], "allow_symlinks": false},
+    "source": {"kind": "user-file", "locator_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "trust": "declared"}
+  },
+  "expected": {"verdict": "UNKNOWN", "proof_level": "PROCESS_OBSERVED", "reason_codes": ["PROCESS_INACCESSIBLE"]}
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "agent-runtime-fixture/1.0",
+  "fixture_id": "windows.interpreter-inaccessible",
+  "platform": {"os": "windows", "arch": "amd64"},
+  "snapshot": {
+    "process": {"pid": 991, "created_at_unix_nano": "1787536270000000000", "boot_id_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "state": "running"},
+    "executable": {"basename": "python.exe", "path_projection": "%USERPROFILE%/AppData/Local/example/python.exe", "path_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "image_access": "denied"},
+    "artifact": {"status": "inaccessible", "sha256": null, "file_count": 0, "byte_count": 0},
+    "denied_fields": ["process.image", "artifact.bytes"],
+    "host_binding": {"host_id": "generic-mcp", "config_source_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444", "confidence": "hint"}
+  },
+  "expectation": {
+    "schema_version": "agent-runtime-expectation/1.0",
+    "subject": {"id": "com.example.runtime", "display_name": "Example Runtime", "version": "1.4.2"},
+    "launch": {"kind": "interpreter-script", "entrypoint": "lib/server.py", "argument_fingerprints": []},
+    "artifact": {"root": "%USERPROFILE%/AppData/Local/example", "include": ["lib/**"], "exclude": [], "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "max_files": 20000, "max_bytes": 268435456, "max_duration_ms": 10000},
+    "policy": {"allowed_roots": ["%USERPROFILE%/AppData/Local/example"], "allow_symlinks": false},
+    "source": {"kind": "user-file", "locator_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "trust": "declared"}
+  },
+  "expected": {"verdict": "UNKNOWN", "proof_level": "PROCESS_OBSERVED", "reason_codes": ["PROCESS_INACCESSIBLE", "PLATFORM_EVIDENCE_UNAVAILABLE"]}
+}
