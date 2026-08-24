@@ -134,7 +134,7 @@
 - [x] **Step 1: Write failing table tests for MATCHED, root-outside LEAKED, direct-known-old STALE, mismatch-without-loaded-byte proof UNKNOWN, NOT_RUNNING, permission UNKNOWN, identity-race UNKNOWN, untrusted expectation limitation, scan-limit UNKNOWN, and contradictory reason rejection.**
 - [x] **Step 2: Write failing privacy tests containing fake tokens, cookies, home paths, repository paths, argv, and environment values; assert none appears in Proof JSON or errors.**
 - [x] **Step 3: Implement evidence-to-verdict rules with minimum Proof Levels from the decision registry and no time-order-only STALE conclusion.**
-- [x] **Step 4: Implement safe path and argument hashing with domain separation, `$HOME` projection only for explicitly local table output, and omission lists for unavailable or prohibited fields.**
+- [x] **Step 4: Implement safe path hashing with domain separation and omission lists for unavailable or prohibited fields; when declared argument fingerprints cannot be observed safely in Phase 1A, return `UNKNOWN` instead of inferring a match.**
 - [x] **Step 5: Build schema-valid Proofs, revalidate process identity before finalization, assign Proof IDs, and verify digest recomputation after round trip.**
 - [x] **Step 6: Run focused tests, mutation checks, schema validation, and the complete gate.**
 - [x] **Step 7: Commit evaluator and Proof generation.**
@@ -197,14 +197,14 @@
 **Interfaces:**
 - Produces repeatable local acceptance that builds an installed-style binary in a task-owned prefix, launches controlled native/interpreter samples, verifies Proofs and exit codes, runs Linux Docker evidence, and cleans all artifacts/processes.
 
-- [ ] **Step 1: Write the acceptance checklist and fixture assertions before marking any result PASS.**
-- [ ] **Step 2: Add macOS journeys for current native MATCHED, outside-root LEAKED, missing process NOT_RUNNING, permission or evidence UNKNOWN, interpreter/tree verification, Unicode paths, scan limits, secret redaction, PID identity revalidation, and zero residue.**
-- [ ] **Step 3: Add Ubuntu Docker journeys for live `/proc` observation, deleted executable handling, native CLI, redaction, cancellation, and zero residue.**
-- [ ] **Step 4: Add macOS and Ubuntu jobs plus Windows compile/schema tests to CI; make no Windows live claim.**
-- [ ] **Step 5: Run Go 1.26 and Go 1.27 gates, race tests, macOS acceptance, Linux Docker acceptance, Windows amd64 cross-build, secret/path/cache scans, binary path scan, and residue checks.**
-- [ ] **Step 6: Record exact commits, OS/toolchain/container versions, commands, Proof IDs, test counts, deferrals, and discovered issues.**
-- [ ] **Step 7: Self-review the complete Phase 1A diff against the frozen scope, fix every defect with a failing regression test, and rerun every affected acceptance journey.**
-- [ ] **Step 8: Commit acceptance evidence and verify a clean candidate branch.**
+- [x] **Step 1: Write the acceptance checklist and fixture assertions before marking any result PASS.**
+- [x] **Step 2: Add macOS journeys for current native MATCHED, outside-root LEAKED, missing process NOT_RUNNING, permission or evidence UNKNOWN, interpreter/tree verification, Unicode paths, scan limits, secret redaction, PID identity revalidation, and zero residue.**
+- [x] **Step 3: Add Ubuntu Docker journeys for live `/proc` observation, deleted executable handling, native CLI, redaction, cancellation, and zero residue.**
+- [x] **Step 4: Add macOS and Ubuntu jobs plus Windows compile/schema tests to CI; make no Windows live claim.**
+- [x] **Step 5: Run Go 1.26 and Go 1.27 gates, race tests, macOS acceptance, Linux Docker acceptance, Windows amd64 cross-build, secret/path/cache scans, binary path scan, and residue checks.**
+- [x] **Step 6: Record exact commits, OS/toolchain/container versions, commands, Proof IDs, test counts, deferrals, and discovered issues.**
+- [x] **Step 7: Self-review the complete Phase 1A diff against the frozen scope, fix every defect with a failing regression test, and rerun every affected acceptance journey.**
+- [x] **Step 8: Commit acceptance evidence and verify a clean candidate branch.**
 
 ## Completion Decision
 

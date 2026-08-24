@@ -7,9 +7,9 @@ runtime matches a declared expectation.
 Current status: the Phase 0 contract baseline is complete. Phase 1A implements
 the read-only `inspect`, `verify`, and `doctor` CLI core with native macOS
 process observation, bounded artifact hashing, privacy-safe Proof output,
-Linux support, and compile-checked Windows support. Formal Phase 1A acceptance
-is still in progress; Windows live-machine acceptance remains a separate gate
-for full Phase 1 and v1.
+Linux support, and compile-checked Windows support. Phase 1A has passed its
+macOS-primary local acceptance; Windows live-machine acceptance remains a
+separate gate for full Phase 1 and v1.
 
 The v1 boundary is intentionally narrow:
 
