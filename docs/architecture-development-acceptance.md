@@ -1,7 +1,7 @@
 # Agent Runtime Proof 架构、开发与验收设计
 
 - 更新日期：2026-08-24
-- 状态：独立项目设计基线，待负责人确认后进入实现
+- 状态：独立项目设计基线；Phase 0 已完成，Phase 1 尚未开始
 - Phase 0 验收记录：[phase0-acceptance.md](phase0-acceptance.md)
 本期唯一开发切口：Agent Runtime Proof（下文简称 ARP）
 
