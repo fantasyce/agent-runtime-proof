@@ -4,15 +4,9 @@ Agent Runtime Proof is an independent Across ecosystem project for verifying
 which local runtime an Agent actually launched and whether the observable
 runtime matches a declared expectation.
 
-Current status: the Phase 0 contract baseline is complete. Phase 1A implements
-the read-only `inspect`, `verify`, and `doctor` CLI core with native macOS,
-Windows, and Linux process observation, bounded artifact hashing, and
-privacy-safe Proof output. Phase 1A has passed its macOS-primary local
-acceptance, and the Windows core candidate has passed native Windows 11 build,
-test, safe-junction, installed-candidate, permission-denial, and live CLI
-verification. Full Phase 1 and v1 remain incomplete because cross-platform
-core semantics, native Linux amd64, remote CI, MCP, Witness, release, and
-real-host gates are tracked separately.
+Current development includes the Phase 1 read-only CLI core and the Phase 2
+local `stdio` MCP surface. The same application layer drives both interfaces;
+MCP does not maintain a second verdict model or open a network listener.
 
 The v1 boundary is intentionally narrow:
 
@@ -41,7 +35,7 @@ The [Phase 0 acceptance record](docs/phase0-acceptance.md),
 [Windows core record](docs/phase1-windows-acceptance.md) state exactly what
 passed and what remains intentionally deferred.
 
-## Phase 1A CLI
+## CLI
 
 Build an installed-style binary without source paths:
 
@@ -60,6 +54,8 @@ Verify a native runtime against an explicit expectation:
 
 ```bash
 agent-runtime-proof verify --expectation expectation.json --pid 1234 --format json
+agent-runtime-proof verify --expectation expectation.json --pid 1234 \
+  --known-prior-digest 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 ```
 
 Check local read-only capabilities:
@@ -73,8 +69,21 @@ determinate negative verdict, `3` for `UNKNOWN`, `64` for invalid input, and
 `70` for an internal failure. JSON mode writes exactly one JSON value to
 standard output; sanitized diagnostics use standard error.
 
-Phase 1A deliberately does not include MCP, Witness, host Profiles, a daemon,
-network listeners, persistence, repair actions, or Agent configuration writes.
+## Local stdio MCP
+
+An MCP host can start the installed binary with:
+
+```json
+{"command":"agent-runtime-proof","args":["mcp"]}
+```
+
+The server exposes `list_local_runtime_candidates`, `inspect_local_runtimes`,
+and `verify_local_runtime`. All three are read-only and closed-world. See the
+[generic host configuration guide](docs/host-configuration.md) and the thin
+wrapper in `plugin/agent-runtime-proof`.
+
+The current phases deliberately do not include Witness, host Profiles, a
+daemon, network listeners, persistence, repair actions, or Agent configuration writes.
 Interpreter-script and declared-tree expectations remain `UNKNOWN` until the
 launch argument binding required to identify the active entrypoint can be
 observed safely; an artifact digest alone is never reported as a runtime match.

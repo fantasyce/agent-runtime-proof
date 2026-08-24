@@ -48,8 +48,36 @@ func Load(inputPath string) (Resolved, error) {
 	if err := validateSemantics(value); err != nil {
 		return Resolved{}, err
 	}
-
 	base := filepath.Dir(manifestPath)
+	return resolve(value, base, manifestPath)
+}
+
+// ResolveInline validates and resolves an expectation supplied directly by a
+// local protocol client. Relative filesystem roots are rejected because an
+// MCP host's working directory is not a trustworthy configuration base.
+func ResolveInline(value model.Expectation) (Resolved, error) {
+	document, err := json.Marshal(value)
+	if err != nil {
+		return Resolved{}, fmt.Errorf("encode expectation: %w", err)
+	}
+	if err := contract.ValidateExpectation(document); err != nil {
+		return Resolved{}, err
+	}
+	if err := validateSemantics(value); err != nil {
+		return Resolved{}, err
+	}
+	if !declaredAbsolute(value.Artifact.Root) {
+		return Resolved{}, errors.New("inline artifact root must be absolute or home-relative")
+	}
+	for _, root := range value.Policy.AllowedRoots {
+		if !declaredAbsolute(root) {
+			return Resolved{}, errors.New("inline allowed roots must be absolute or home-relative")
+		}
+	}
+	return resolve(value, "", "")
+}
+
+func resolve(value model.Expectation, base, manifestPath string) (Resolved, error) {
 	allowedRoots := make([]string, 0, len(value.Policy.AllowedRoots))
 	for _, declared := range value.Policy.AllowedRoots {
 		resolved, err := resolveExistingPath(base, declared)
@@ -86,6 +114,10 @@ func Load(inputPath string) (Resolved, error) {
 	return Resolved{
 		Value: value, ManifestPath: manifestPath, ArtifactRoot: artifactRoot, AllowedRoots: allowedRoots,
 	}, nil
+}
+
+func declaredAbsolute(value string) bool {
+	return filepath.IsAbs(value) || value == "$HOME" || strings.HasPrefix(value, "$HOME/") || value == "%USERPROFILE%" || strings.HasPrefix(value, "%USERPROFILE%/")
 }
 
 func readBounded(path string) ([]byte, error) {

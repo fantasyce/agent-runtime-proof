@@ -63,6 +63,35 @@ func TestRunVerifyExitSeverity(t *testing.T) {
 	}
 }
 
+func TestRunVerifyPassesValidatedKnownPriorDigests(t *testing.T) {
+	digestA := strings.Repeat("a", 64)
+	digestB := strings.Repeat("b", 64)
+	service := &fakeService{verify: app.VerifyResult{Proof: safeProof("STALE")}}
+	var stdout, stderr bytes.Buffer
+	code := Run(context.Background(), []string{
+		"verify", "--pid", "42", "--expectation", "expectation.json", "--format", "json",
+		"--known-prior-digest", digestA, "--known-prior-digest", digestB,
+	}, &stdout, &stderr, service)
+	if code != ExitNegative || stderr.Len() != 0 {
+		t.Fatalf("code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	if !service.lastVerify.KnownPriorDigests[digestA] || !service.lastVerify.KnownPriorDigests[digestB] || len(service.lastVerify.KnownPriorDigests) != 2 {
+		t.Fatalf("known prior digests = %#v", service.lastVerify.KnownPriorDigests)
+	}
+}
+
+func TestRunVerifyRejectsMalformedKnownPriorDigest(t *testing.T) {
+	service := &fakeService{}
+	var stdout, stderr bytes.Buffer
+	code := Run(context.Background(), []string{
+		"verify", "--pid", "42", "--expectation", "expectation.json",
+		"--known-prior-digest", "ABC123",
+	}, &stdout, &stderr, service)
+	if code != ExitInvalidInput || stdout.Len() != 0 || service.verifyCalls != 0 {
+		t.Fatalf("code=%d stdout=%q calls=%d stderr=%q", code, stdout.String(), service.verifyCalls, stderr.String())
+	}
+}
+
 func TestRunSeparatesDiagnosticsFromStdout(t *testing.T) {
 	service := &fakeService{err: errors.New("private /Users/example token-secret")}
 	var stdout, stderr bytes.Buffer
@@ -76,17 +105,21 @@ func TestRunSeparatesDiagnosticsFromStdout(t *testing.T) {
 }
 
 type fakeService struct {
-	inspect app.InspectResult
-	verify  app.VerifyResult
-	doctor  app.DoctorResult
-	err     error
+	inspect     app.InspectResult
+	verify      app.VerifyResult
+	doctor      app.DoctorResult
+	err         error
+	lastVerify  app.VerifyRequest
+	verifyCalls int
 }
 
 func (fake *fakeService) Inspect(context.Context, app.InspectRequest) (app.InspectResult, error) {
 	return fake.inspect, fake.err
 }
 
-func (fake *fakeService) Verify(context.Context, app.VerifyRequest) (app.VerifyResult, error) {
+func (fake *fakeService) Verify(_ context.Context, request app.VerifyRequest) (app.VerifyResult, error) {
+	fake.lastVerify = request
+	fake.verifyCalls++
 	return fake.verify, fake.err
 }
 

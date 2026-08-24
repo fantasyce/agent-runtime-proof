@@ -13,7 +13,7 @@ if [[ "${1:-}" == "--inside" ]]; then
   file_digest="$(sha256sum "$helper" | awk '{print $1}')"
   file_size="$(stat -c '%s' "$helper")"
   tree_digest="$(printf '[{"path":"bin/fixture-runtime","sha256":"%s","size":%s}]' "$file_digest" "$file_size" | sha256sum | awk '{print $1}')"
-  printf '%s\n' "{\"schema_version\":\"agent-runtime-expectation/1.0\",\"subject\":{\"id\":\"linux-fixture\",\"display_name\":\"Linux Fixture\",\"version\":\"1.0.0\"},\"launch\":{\"kind\":\"native\",\"entrypoint\":\"bin/fixture-runtime\",\"argument_fingerprints\":[]},\"artifact\":{\"root\":\"/work/token-secret/payload\",\"include\":[\"**\"],\"exclude\":[],\"sha256\":\"$tree_digest\",\"max_files\":10,\"max_bytes\":100000000,\"max_duration_ms\":5000},\"policy\":{\"allowed_roots\":[\"/work/token-secret/payload\"],\"allow_symlinks\":false},\"source\":{\"kind\":\"user-file\",\"locator_hash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"trust\":\"declared\"}}" > "$work_dir/linux-expectation.json"
+  printf '%s\n' "{\"schema_version\":\"agent-runtime-expectation/1.0\",\"subject\":{\"id\":\"linux-fixture\",\"display_name\":\"Linux Fixture\",\"version\":\"1.0.0\"},\"launch\":{\"kind\":\"native\",\"entrypoint\":\"bin/fixture-runtime\",\"argument_fingerprints\":[]},\"artifact\":{\"root\":\"$work_dir/token-secret/payload\",\"include\":[\"**\"],\"exclude\":[],\"sha256\":\"$tree_digest\",\"max_files\":10,\"max_bytes\":100000000,\"max_duration_ms\":5000},\"policy\":{\"allowed_roots\":[\"$work_dir/token-secret/payload\"],\"allow_symlinks\":false},\"source\":{\"kind\":\"user-file\",\"locator_hash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"trust\":\"declared\"}}" > "$work_dir/linux-expectation.json"
   cp "$work_dir/old-runtime" "$helper"
   "$helper" &
   helper_pid=$!
@@ -35,13 +35,13 @@ if [[ "${1:-}" == "--inside" ]]; then
   "$binary" inspect --pid "$helper_pid" --format json > "$work_dir/linux-inspect.json"
   grep -q '"verdict":"UNKNOWN"' "$work_dir/linux-inspect.json"
   grep -q '"basename":"fixture-runtime"' "$work_dir/linux-inspect.json"
-  if grep -q '/work/' "$work_dir/linux-inspect.json"; then
+  if grep -Fq "$work_dir/" "$work_dir/linux-inspect.json"; then
     printf 'Linux inspection leaked a local path\n' >&2
     exit 1
   fi
   "$binary" verify --expectation "$work_dir/linux-expectation.json" --pid "$helper_pid" --format json > "$work_dir/linux-matched.json"
   grep -q '"verdict":"MATCHED"' "$work_dir/linux-matched.json"
-  if grep -q 'token-secret\|/work/' "$work_dir/linux-matched.json"; then
+  if grep -q 'token-secret' "$work_dir/linux-matched.json" || grep -Fq "$work_dir/" "$work_dir/linux-matched.json"; then
     printf 'Linux verification leaked a local path\n' >&2
     exit 1
   fi
@@ -56,7 +56,7 @@ if [[ "${1:-}" == "--inside" ]]; then
   kill "$helper_pid"
   wait "$helper_pid" 2>/dev/null || true
   helper_pid=""
-  printf 'Phase 1A Linux container acceptance PASS\n'
+  printf 'Phase 1 Linux runtime acceptance PASS\n'
   exit 0
 fi
 

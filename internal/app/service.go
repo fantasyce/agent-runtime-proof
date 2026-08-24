@@ -34,6 +34,7 @@ type Service struct {
 	Clock           Clock
 	Tool            model.ToolInfo
 	LoadExpectation func(string) (expectation.Resolved, error)
+	ResolveInline   func(model.Expectation) (expectation.Resolved, error)
 	DigestArtifact  func(context.Context, expectation.Resolved, artifact.Clock) (model.ArtifactObservation, error)
 }
 
@@ -50,6 +51,7 @@ type InspectResult struct {
 type VerifyRequest struct {
 	PID               int
 	ExpectationPath   string
+	Expectation       *model.Expectation
 	KnownPriorDigests map[string]bool
 }
 
@@ -58,7 +60,7 @@ type VerifyResult struct {
 }
 
 func NewService(observer processobserver.Observer, tool model.ToolInfo) *Service {
-	return &Service{Observer: observer, Clock: wallClock{}, Tool: tool, LoadExpectation: expectation.Load, DigestArtifact: artifact.Digest}
+	return &Service{Observer: observer, Clock: wallClock{}, Tool: tool, LoadExpectation: expectation.Load, ResolveInline: expectation.ResolveInline, DigestArtifact: artifact.Digest}
 }
 
 func (service *Service) Inspect(ctx context.Context, request InspectRequest) (InspectResult, error) {
@@ -127,10 +129,16 @@ func (service *Service) Verify(ctx context.Context, request VerifyRequest) (Veri
 	if err := ctx.Err(); err != nil {
 		return VerifyResult{}, err
 	}
-	if request.PID <= 0 || request.ExpectationPath == "" {
-		return VerifyResult{}, fmt.Errorf("%w: verify requires a positive PID and expectation path", ErrInvalidInput)
+	if request.PID <= 0 || (request.ExpectationPath == "") == (request.Expectation == nil) {
+		return VerifyResult{}, fmt.Errorf("%w: verify requires a positive PID and exactly one expectation source", ErrInvalidInput)
 	}
-	resolved, err := service.LoadExpectation(request.ExpectationPath)
+	var resolved expectation.Resolved
+	var err error
+	if request.Expectation != nil {
+		resolved, err = service.ResolveInline(*request.Expectation)
+	} else {
+		resolved, err = service.LoadExpectation(request.ExpectationPath)
+	}
 	if err != nil {
 		return VerifyResult{}, fmt.Errorf("%w: load expectation: %v", ErrInvalidInput, err)
 	}

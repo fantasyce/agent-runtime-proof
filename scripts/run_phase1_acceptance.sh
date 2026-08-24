@@ -46,9 +46,11 @@ write_expectation() {
 expectation_path="$run_dir/expectation.json"
 limit_expectation_path="$run_dir/expectation-limit.json"
 tree_expectation_path="$run_dir/expectation-tree.json"
+stale_expectation_path="$run_dir/expectation-stale.json"
 write_expectation "$expectation_path" native 100000000
 write_expectation "$limit_expectation_path" native 1
 write_expectation "$tree_expectation_path" declared-tree 100000000
+sed "s/$tree_digest/$(printf 'b%.0s' {1..64})/" "$expectation_path" > "$stale_expectation_path"
 
 set +e
 "$install_dir/agent-runtime-proof" verify --expectation "$expectation_path" --pid "$helper_pid" --format json > "$run_dir/replaced-loaded-image.json"
@@ -67,6 +69,13 @@ sleep 1
 matched_json="$run_dir/matched.json"
 "$install_dir/agent-runtime-proof" verify --expectation "$expectation_path" --pid "$helper_pid" --format json > "$matched_json"
 jq -e '.verdict == "MATCHED" and .proof_level == "ARTIFACT_OBSERVED" and (.proof_id | startswith("sha256:"))' "$matched_json" >/dev/null
+
+set +e
+"$install_dir/agent-runtime-proof" verify --expectation "$stale_expectation_path" --pid "$helper_pid" --known-prior-digest "$tree_digest" --format json > "$run_dir/stale.json"
+stale_exit=$?
+set -e
+[[ "$stale_exit" -eq 2 ]] || { printf 'STALE returned exit %s, want 2\n' "$stale_exit" >&2; exit 1; }
+jq -e '.verdict == "STALE" and (.reason_codes | index("ARTIFACT_MISMATCH"))' "$run_dir/stale.json" >/dev/null
 
 set +e
 "$install_dir/agent-runtime-proof" verify --expectation "$expectation_path" --pid $$ --format json > "$run_dir/leaked.json"
@@ -95,7 +104,7 @@ jq -e '.status == "ok"' "$run_dir/doctor.json" >/dev/null
 
 if rg -n 'token-secret|/Users/|process\.argv[^\"]*:' \
   "$matched_json" "$run_dir/leaked.json" "$run_dir/not-running.json" "$run_dir/limit.json" \
-  "$run_dir/tree.json" "$run_dir/replaced-loaded-image.json" "$run_dir/inspect.json" "$run_dir/doctor.json"; then
+  "$run_dir/tree.json" "$run_dir/stale.json" "$run_dir/replaced-loaded-image.json" "$run_dir/inspect.json" "$run_dir/doctor.json"; then
   printf 'privacy scan found prohibited output\n' >&2
   exit 1
 fi

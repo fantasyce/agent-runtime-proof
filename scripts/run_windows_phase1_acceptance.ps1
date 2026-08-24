@@ -65,6 +65,45 @@ function Invoke-Verify([string]$Expectation, [string]$Output) {
     return [pscustomobject]@{ ExitCode = $exitCode; Proof = (($raw -join "`n") | ConvertFrom-Json) }
 }
 
+function Invoke-MCPAcceptance([string]$Binary, [int]$ProcessID) {
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $Binary
+    $startInfo.Arguments = 'mcp'
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardInput = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+    Assert-Condition ($process.Start()) 'could not start installed MCP candidate'
+    try {
+        $initialize = [ordered]@{
+            jsonrpc = '2.0'; id = 1; method = 'initialize'
+            params = [ordered]@{ protocolVersion = '2025-06-18'; capabilities = [ordered]@{}; clientInfo = [ordered]@{ name = 'windows-native-fixture'; version = '1' } }
+        } | ConvertTo-Json -Compress -Depth 8
+        $process.StandardInput.WriteLine($initialize)
+        $initialized = $process.StandardOutput.ReadLine() | ConvertFrom-Json
+        Assert-Condition ($initialized.result.protocolVersion -eq '2025-06-18') 'previous MCP protocol negotiation failed'
+        $process.StandardInput.WriteLine((([ordered]@{ jsonrpc = '2.0'; method = 'notifications/initialized' }) | ConvertTo-Json -Compress))
+        $process.StandardInput.WriteLine((([ordered]@{ jsonrpc = '2.0'; id = 2; method = 'tools/list'; params = [ordered]@{} }) | ConvertTo-Json -Compress))
+        $listed = $process.StandardOutput.ReadLine() | ConvertFrom-Json
+        Assert-Condition ($listed.result.tools.Count -eq 3) "installed MCP tool count = $($listed.result.tools.Count), want 3"
+        $call = [ordered]@{ jsonrpc = '2.0'; id = 3; method = 'tools/call'; params = [ordered]@{ name = 'inspect_local_runtimes'; arguments = [ordered]@{ pid = $ProcessID } } } | ConvertTo-Json -Compress -Depth 8
+        $process.StandardInput.WriteLine($call)
+        $called = $process.StandardOutput.ReadLine() | ConvertFrom-Json
+        Assert-Condition (-not $called.result.isError) 'installed MCP inspect call returned a tool error'
+        Assert-Condition ($null -ne $called.result.structuredContent.proofs) 'installed MCP call omitted structured Proof output'
+        $process.StandardInput.Close()
+        Assert-Condition ($process.WaitForExit(3000)) 'installed MCP candidate did not exit after EOF'
+        Assert-Condition ([string]::IsNullOrWhiteSpace($process.StandardOutput.ReadToEnd())) 'installed MCP stdout contained trailing pollution'
+        Assert-Condition ([string]::IsNullOrWhiteSpace($process.StandardError.ReadToEnd())) 'installed MCP stderr was not empty'
+    } finally {
+        if (-not $process.HasExited) { $process.Kill() }
+        $process.Dispose()
+    }
+}
+
 try {
     New-Item -ItemType Directory -Path $RunRoot, $packageStage, $assetDir, $installDir, $payloadDir, $resultsDir | Out-Null
     [System.IO.File]::WriteAllText($marker, [System.IO.Path]::GetFileName($RunRoot), $utf8NoBom)
@@ -140,6 +179,12 @@ try {
     Assert-Condition ($mismatch.Proof.verdict -eq 'UNKNOWN') "mismatch verdict = $($mismatch.Proof.verdict)"
     Assert-Condition ($mismatch.Proof.reason_codes -contains 'POSSIBLE_STALE_AFTER_REPLACEMENT') 'mismatch reason is not safe'
 
+    $staleRaw = & $installedBinary verify --expectation $mismatchExpectation --pid $helperProcess.Id --known-prior-digest $treeHash --format json
+    $staleExit = $LASTEXITCODE
+    $stale = ($staleRaw -join "`n") | ConvertFrom-Json
+    Assert-Condition ($staleExit -eq 2) "STALE exit = $staleExit, want 2"
+    Assert-Condition ($stale.verdict -eq 'STALE') "STALE verdict = $($stale.verdict)"
+
     $denyTarget = "*$sid`:(RD)"
     & icacls.exe $helper /deny $denyTarget | Out-Null
     Assert-Condition ($LASTEXITCODE -eq 0) "could not apply task-owned read-data denial: $LASTEXITCODE"
@@ -161,6 +206,8 @@ try {
     Assert-Condition ($doctor.status -eq 'ok') "doctor status = $($doctor.status)"
     Assert-Condition ($doctor.capabilities -contains 'read-only-artifact-digest') 'doctor omitted artifact capability'
 
+    Invoke-MCPAcceptance $installedBinary $helperProcess.Id
+
     $resultFiles = Get-ChildItem -LiteralPath $resultsDir -File
     foreach ($resultFile in $resultFiles) {
         $content = Get-Content -LiteralPath $resultFile.FullName -Raw
@@ -175,6 +222,7 @@ try {
     Write-Output "MATCHED_PROOF_ID=$($matched.Proof.proof_id)"
     Write-Output "PERMISSION_VERDICT=$($denied.Proof.verdict)"
     Write-Output "PERMISSION_REASON=$($denied.Proof.reason_codes -join ',')"
+    Write-Output "WINDOWS_PHASE2_MCP=PASS"
 } finally {
     if ($denyApplied -and (Test-Path -LiteralPath $helper)) {
         & icacls.exe $helper /remove:d "*$sid" | Out-Null

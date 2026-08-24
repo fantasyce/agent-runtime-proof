@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "agent-runtime-proof": {
+      "command": "agent-runtime-proof",
+      "args": ["mcp"]
+    }
+  }
+}

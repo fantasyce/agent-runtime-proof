@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -84,18 +85,20 @@ func runInspect(ctx context.Context, args []string, stdout, stderr io.Writer, ru
 
 func runVerify(ctx context.Context, args []string, stdout, stderr io.Writer, runtime Runtime) int {
 	if helpRequested(args) {
-		fmt.Fprintln(stdout, "Usage: agent-runtime-proof verify --expectation FILE --pid PID [--format table|json]")
+		fmt.Fprintln(stdout, "Usage: agent-runtime-proof verify --expectation FILE --pid PID [--known-prior-digest SHA256] [--format table|json]")
 		return ExitOK
 	}
 	flags := newFlagSet("verify")
 	pid := flags.Int("pid", 0, "process ID")
 	expectationPath := flags.String("expectation", "", "expectation file")
 	format := flags.String("format", "table", "table or json")
-	if err := flags.Parse(args); err != nil || flags.NArg() != 0 || !validFormat(*format) || *pid <= 0 || *expectationPath == "" {
+	var knownPriorDigests digestList
+	flags.Var(&knownPriorDigests, "known-prior-digest", "directly known prior artifact SHA-256 (repeatable)")
+	if err := flags.Parse(args); err != nil || flags.NArg() != 0 || !validFormat(*format) || *pid <= 0 || *expectationPath == "" || !knownPriorDigests.valid() {
 		writeDiagnostic(stderr, "invalid verify arguments")
 		return ExitInvalidInput
 	}
-	result, err := runtime.Verify(ctx, app.VerifyRequest{PID: *pid, ExpectationPath: *expectationPath})
+	result, err := runtime.Verify(ctx, app.VerifyRequest{PID: *pid, ExpectationPath: *expectationPath, KnownPriorDigests: knownPriorDigests.set()})
 	if err != nil {
 		return handleError(stderr, err)
 	}
@@ -200,5 +203,35 @@ func writeDiagnostic(stderr io.Writer, message string) {
 }
 
 func writeUsage(output io.Writer) {
-	fmt.Fprintln(output, "Usage: agent-runtime-proof <inspect|verify|doctor> [options]")
+	fmt.Fprintln(output, "Usage: agent-runtime-proof <inspect|verify|doctor|mcp> [options]")
+}
+
+type digestList []string
+
+func (values *digestList) String() string { return strings.Join(*values, ",") }
+
+func (values *digestList) Set(value string) error {
+	*values = append(*values, value)
+	return nil
+}
+
+func (values digestList) valid() bool {
+	for _, value := range values {
+		decoded, err := hex.DecodeString(value)
+		if err != nil || len(decoded) != 32 || value != strings.ToLower(value) {
+			return false
+		}
+	}
+	return true
+}
+
+func (values digestList) set() map[string]bool {
+	if len(values) == 0 {
+		return nil
+	}
+	result := make(map[string]bool, len(values))
+	for _, value := range values {
+		result[value] = true
+	}
+	return result
 }

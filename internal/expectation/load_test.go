@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/fantasyce/agent-runtime-proof/internal/model"
@@ -34,6 +35,30 @@ func TestLoadResolvesRelativeRootInsideAllowedRoot(t *testing.T) {
 	}
 	if resolved.ManifestPath != wantManifest {
 		t.Fatalf("manifest path = %q", resolved.ManifestPath)
+	}
+}
+
+func TestResolveInlineRequiresUnambiguousAbsoluteRoots(t *testing.T) {
+	root := t.TempDir()
+	root, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	value := model.Expectation{
+		SchemaVersion: "agent-runtime-expectation/1.0",
+		Subject:       model.Subject{ID: "inline", DisplayName: "Inline", Version: "1.0.0"},
+		Launch:        model.LaunchExpectation{Kind: "native", Entrypoint: "runtime", ArgumentFingerprints: []model.ArgumentFingerprint{}},
+		Artifact:      model.ArtifactExpectation{Root: root, Include: []string{"**"}, Exclude: []string{}, SHA256: strings.Repeat("a", 64), MaxFiles: 1, MaxBytes: 1, MaxDurationMS: 1},
+		Policy:        model.ExpectationPolicy{AllowedRoots: []string{root}},
+		Source:        model.ExpectationSource{Kind: "user-file", LocatorHash: strings.Repeat("0", 64), Trust: "declared"},
+	}
+	resolved, err := ResolveInline(value)
+	if err != nil || resolved.ArtifactRoot != root || resolved.ManifestPath != "" {
+		t.Fatalf("resolved=%#v err=%v", resolved, err)
+	}
+	value.Artifact.Root = "relative"
+	if _, err := ResolveInline(value); err == nil {
+		t.Fatal("relative inline root was accepted")
 	}
 }
 
