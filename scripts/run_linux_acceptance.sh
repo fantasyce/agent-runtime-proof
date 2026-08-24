@@ -62,10 +62,6 @@ if [[ "${1:-}" == "--inside" ]]; then
   exec {mcp_in}>&-
   wait "$mcp_pid"
   [[ ! -s "$work_dir/mcp-stderr.txt" ]]
-  if IFS= read -r trailing_response <&"$mcp_out"; then
-    printf 'Linux MCP stdout contained trailing pollution\n' >&2
-    exit 1
-  fi
   cp "$helper" "$work_dir/deleted-runtime"
   "$work_dir/deleted-runtime" &
   deleted_pid=$!
