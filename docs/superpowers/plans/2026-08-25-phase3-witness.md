@@ -60,15 +60,15 @@
 - Create: `sdk/witness/witness_test.go`
 
 **Interfaces:**
-- Produces: `sdk/witness.Controller`, `sdk/witness.Request{Command []string, ExpectationPath string, Home string}`, `Controller.PrepareLaunch(context.Context, Request) (*PreparedLaunch, error)`, and `PreparedLaunch.Spawned(context.Context, pid int) (sdkmodel.LaunchReceipt, error)`; `Spawned` obtains and revalidates PID-plus-creation-time evidence through the controller's observer.
+- Produces: `sdk/witness.Controller`, `sdk/witness.Config{Home string, Tool sdkmodel.ToolInfo}`, `sdk/witness.Request{Command []string, ExpectationPath string}`, `Controller.PrepareLaunch(context.Context, Request) (*PreparedLaunch, error)`, and `PreparedLaunch.Spawned(context.Context, pid int) (sdkmodel.LaunchReceipt, error)`; `Spawned` obtains and revalidates PID-plus-creation-time evidence through the controller's observer.
 - `PreparedLaunch.Command() (string, []string)` returns a defensive copy of the already-resolved direct executable and arguments for a host launcher.
 
-- [ ] **Step 1: Write failing preparation tests** proving empty/NUL command rejection, no shell expansion, PATH resolution to an executable, hashed positional arguments, expectation load/digest before spawn, expected artifact mismatch rejection, native/interpreter entrypoint binding, and no raw secret-bearing argv in JSON or errors.
-- [ ] **Step 2: Run `go test ./internal/witness ./sdk/witness`** and verify failure because the APIs are absent.
-- [ ] **Step 3: Implement preparation** by composing existing expectation and artifact services, resolving the executable once, checking declared entrypoint/argument fingerprints, and retaining raw argv only in the non-serializable in-memory prepared value.
-- [ ] **Step 4: Implement `Spawned`** to require a complete PID/creation-time candidate, build one receipt, and publish it under the resolved ARP home.
-- [ ] **Step 5: Run focused tests** and verify pass, including `go test -race ./internal/witness ./sdk/witness`.
-- [ ] **Step 6: Commit `feat: add witness embedding interface`**.
+- [x] **Step 1: Write failing preparation tests** proving empty/NUL command rejection, no shell expansion, PATH resolution to an executable, hashed positional arguments, expectation load/digest before spawn, expected artifact mismatch rejection, native/interpreter entrypoint binding, and no raw secret-bearing argv in JSON or errors.
+- [x] **Step 2: Run `go test ./internal/witness ./sdk/witness`** and verify failure because the APIs are absent.
+- [x] **Step 3: Implement preparation** by composing existing expectation and artifact services, resolving the executable once, checking declared entrypoint/argument fingerprints, and retaining raw argv only in the non-serializable in-memory prepared value.
+- [x] **Step 4: Implement `Spawned`** to require a complete PID/creation-time candidate, build one receipt, and publish it under the resolved ARP home.
+- [x] **Step 5: Run focused tests** and verify pass, including `go test -race ./internal/witness ./sdk/witness`.
+- [x] **Step 6: Commit `feat: add witness embedding interface`**.
 
 ### Task 3: Implement owned cross-platform process-tree lifecycle
 
