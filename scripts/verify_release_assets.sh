@@ -70,11 +70,16 @@ source_listing="$(tar -tzf "$source_archive")"
 awk -v prefix="$prefix" 'index($0,prefix)!=1 {exit 1}' <<<"$source_listing"
 if grep -Eq '(^|/)(\.git|\.DS_Store|__pycache__|node_modules|\.venv)(/|$)' <<<"$source_listing"; then exit 1; fi
 
-darwin_archive="$dist/agent-runtime-proof_${version}_darwin_arm64.tar.gz"
+case "$(uname -s)/$(uname -m)" in
+  Darwin/arm64) native_target=darwin_arm64 ;;
+  Linux/x86_64|Linux/amd64) native_target=linux_amd64 ;;
+  *) echo "native version smoke unavailable on $(uname -s)/$(uname -m)" >&2; exit 69 ;;
+esac
+native_archive="$dist/agent-runtime-proof_${version}_${native_target}.tar.gz"
 native_root="$scan_root/native"
 mkdir -p "$native_root"
-tar -xzf "$darwin_archive" -C "$native_root"
-native_binary="$native_root/agent-runtime-proof_${version}_darwin_arm64/agent-runtime-proof"
+tar -xzf "$native_archive" -C "$native_root"
+native_binary="$native_root/agent-runtime-proof_${version}_${native_target}/agent-runtime-proof"
 [[ "$("$native_binary" --version)" == "agent-runtime-proof $version ($commit)" ]]
 
 echo 'release assets verified'

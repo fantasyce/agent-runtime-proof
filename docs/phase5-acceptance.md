@@ -121,6 +121,10 @@ rebuilds from the final merged tag commit, so the GitHub Release's own
   Arguments remain Host binding evidence, but are no longer mistaken for
   process identity during revalidation; 100 repeated race checks and the full
   macOS/Linux acceptance sequence passed after the correction.
+- The Linux asset gate then showed that the verifier always tried to execute
+  the Darwin archive. Native version smoke now selects Darwin arm64 on macOS
+  and Linux amd64 on the Linux release runner; non-native archives continue
+  through checksum, SBOM, allowlist, and content verification.
 
 The macOS observer and Linux launcher defects predated Phase 5 and were exposed
 by the expanded final regression. The release verifier, version-gate, and
