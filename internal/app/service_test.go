@@ -2,13 +2,20 @@ package app
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/fantasyce/agent-runtime-proof/internal/artifact"
 	"github.com/fantasyce/agent-runtime-proof/internal/expectation"
+	"github.com/fantasyce/agent-runtime-proof/internal/hostprofile"
 	"github.com/fantasyce/agent-runtime-proof/internal/model"
 	processobserver "github.com/fantasyce/agent-runtime-proof/internal/process"
 )
@@ -101,6 +108,99 @@ func TestVerifyReturnsNotRunningProofAndRejectsMissingExpectation(t *testing.T) 
 	}
 }
 
+func TestInspectAndVerifyByBindingPreserveAttributionAndRevalidate(t *testing.T) {
+	binding := testBinding(t)
+	observer := &fakeObserver{candidates: map[int]model.Candidate{42: candidate(42)}}
+	service := testService(observer)
+	service.HostProfiles = fakeHostProfiles{binding: binding}
+	inspected, err := service.Inspect(context.Background(), InspectRequest{BindingID: binding.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(inspected.Proofs) != 1 || inspected.Proofs[0].HostAttribution == nil || inspected.Proofs[0].HostAttribution.HostID != "cursor" || observer.revalidated != 1 {
+		t.Fatalf("inspect = %#v, revalidated=%d", inspected, observer.revalidated)
+	}
+	service.LoadExpectation = func(string) (expectation.Resolved, error) { return resolvedExpectation(), nil }
+	service.DigestArtifact = func(context.Context, expectation.Resolved, artifact.Clock) (model.ArtifactObservation, error) {
+		return model.ArtifactObservation{SHA256: strings.Repeat("b", 64), FileCount: 1, ByteCount: 10, EntrypointFileIdentity: "dev:1"}, nil
+	}
+	verified, err := service.Verify(context.Background(), VerifyRequest{BindingID: binding.ID, ExpectationPath: "expectation.json"})
+	if err != nil || verified.Proof.Verdict != "MATCHED" || verified.Proof.HostAttribution == nil {
+		t.Fatalf("verify = %#v, %v", verified, err)
+	}
+}
+
+func TestBindingFailureBecomesSafeDomainProofAndPIDFallbackStillWorks(t *testing.T) {
+	observer := &fakeObserver{candidates: map[int]model.Candidate{42: candidate(42)}}
+	service := testService(observer)
+	service.HostProfiles = fakeHostProfiles{err: &hostprofile.Error{Code: "HOST_CONFIG_INVALID"}}
+	result, err := service.Inspect(context.Background(), InspectRequest{BindingID: "cursor.arp"})
+	if err != nil || result.Proofs[0].Verdict != "UNKNOWN" || !containsReason(result.Proofs[0].ReasonCodes, "HOST_CONFIG_INVALID") {
+		t.Fatalf("binding failure = %#v, %v", result, err)
+	}
+	pIDResult, err := service.Inspect(context.Background(), InspectRequest{PID: 42})
+	if err != nil || pIDResult.Proofs[0].Observation.Process.PID != 42 {
+		t.Fatalf("PID fallback = %#v, %v", pIDResult, err)
+	}
+	encoded, _ := json.Marshal(result)
+	if strings.Contains(string(encoded), "/Users/private") || strings.Contains(string(encoded), "token-secret") {
+		t.Fatalf("unsafe result: %s", encoded)
+	}
+}
+
+func TestBindingNotRunningRetainsSafeAttribution(t *testing.T) {
+	binding := testBinding(t)
+	service := testService(&fakeObserver{candidates: map[int]model.Candidate{}})
+	service.HostProfiles = fakeHostProfiles{binding: binding}
+	result, err := service.Inspect(context.Background(), InspectRequest{BindingID: binding.ID})
+	if err != nil || result.Proofs[0].HostAttribution == nil || result.Proofs[0].HostAttribution.BindingID != binding.ID || !containsReason(result.Proofs[0].ReasonCodes, "PROCESS_NOT_FOUND") {
+		t.Fatalf("not-running binding = %#v, %v", result, err)
+	}
+}
+
+func TestInspectHostListsAttributedBindingsFromOneBoundedInventory(t *testing.T) {
+	binding := testBinding(t)
+	observer := &fakeObserver{candidates: map[int]model.Candidate{42: candidate(42)}}
+	service := testService(observer)
+	service.HostProfiles = fakeHostProfiles{binding: binding}
+	result, err := service.Inspect(context.Background(), InspectRequest{All: true, HostID: "cursor", Limit: 7})
+	if err != nil || len(result.Proofs) != 1 || result.Proofs[0].HostAttribution == nil || result.Proofs[0].HostAttribution.BindingID != binding.ID || observer.listLimit != 7 {
+		t.Fatalf("host inventory = %#v, err=%v, limit=%d", result, err, observer.listLimit)
+	}
+}
+
+type fakeHostProfiles struct {
+	binding hostprofile.Binding
+	err     error
+}
+
+func (fake fakeHostProfiles) Binding(context.Context, string) (hostprofile.Binding, error) {
+	return fake.binding, fake.err
+}
+func (fake fakeHostProfiles) Bindings(context.Context, string) ([]hostprofile.Binding, error) {
+	if fake.err != nil {
+		return nil, fake.err
+	}
+	return []hostprofile.Binding{fake.binding}, nil
+}
+
+func testBinding(t *testing.T) hostprofile.Binding {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "mcp.json")
+	config, err := json.Marshal(map[string]any{"mcpServers": map[string]any{"arp": map[string]any{"command": testRuntimePath(), "args": []string{"mcp"}}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, config, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	result, err := hostprofile.Discover(context.Background(), hostprofile.Request{HostID: "cursor", Platform: runtime.GOOS, ExplicitConfigPath: path})
+	if err != nil || len(result.Bindings) != 1 {
+		t.Fatalf("binding fixture = %#v, %v", result, err)
+	}
+	return result.Bindings[0]
+}
+
 type fakeObserver struct {
 	candidates    map[int]model.Candidate
 	snapshotErr   error
@@ -152,19 +252,32 @@ func testService(observer processobserver.Observer) *Service {
 }
 
 func candidate(pid int) model.Candidate {
-	root := "/fixture/runtime"
+	root := testRuntimePath()
 	return model.Candidate{
-		Platform:               model.Platform{OS: "darwin", Arch: "arm64"},
+		Platform:               model.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH},
 		Process:                model.ProcessIdentity{PID: pid, CreatedAtUnixNano: "100", BootIDHash: "sha256:" + strings.Repeat("c", 64)},
 		Executable:             model.ExecutableObservation{Basename: "runtime", PathHash: "sha256:" + strings.Repeat("d", 64)},
 		DeclaredExecutablePath: root,
 		ExecutableFileIdentity: "dev:1",
+		ArgumentFingerprints:   []model.ArgumentFingerprint{{Position: 1, SHA256: testArgumentHash("mcp")}},
 	}
 }
 
+func testRuntimePath() string {
+	if runtime.GOOS == "windows" {
+		return `C:\fixture\runtime.exe`
+	}
+	return "/fixture/runtime"
+}
+
+func testArgumentHash(value string) string {
+	digest := sha256.Sum256([]byte("arp:host-argument:v1\x00" + value))
+	return "sha256:" + hex.EncodeToString(digest[:])
+}
+
 func resolvedExpectation() expectation.Resolved {
-	root := "/fixture"
-	resolved := expectation.Resolved{ArtifactRoot: "/fixture/runtime", AllowedRoots: []string{root}}
+	runtimePath := testRuntimePath()
+	resolved := expectation.Resolved{ArtifactRoot: runtimePath, AllowedRoots: []string{filepath.Dir(runtimePath)}}
 	resolved.Value.Subject = model.Subject{ID: "example", DisplayName: "Example", Version: "1.0.0"}
 	resolved.Value.Source = model.ExpectationSource{Kind: "user-file", LocatorHash: strings.Repeat("a", 64), Trust: "declared"}
 	resolved.Value.Artifact.SHA256 = strings.Repeat("b", 64)

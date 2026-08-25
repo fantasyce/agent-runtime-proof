@@ -30,6 +30,8 @@ type ListCandidatesInput struct {
 }
 
 type CandidateSummary struct {
+	HostID             string                       `json:"host_id,omitempty"`
+	BindingID          string                       `json:"binding_id,omitempty"`
 	Platform           model.Platform               `json:"platform"`
 	Process            *model.ProcessIdentity       `json:"process"`
 	Executable         *model.ExecutableObservation `json:"executable"`
@@ -52,7 +54,7 @@ type InspectRuntimesOutput struct {
 }
 
 type VerifyRuntimeInput struct {
-	PID               int                `json:"pid" jsonschema:"positive local process identifier"`
+	PID               int                `json:"pid,omitempty" jsonschema:"optional positive local process identifier"`
 	BindingID         string             `json:"binding_id,omitempty" jsonschema:"optional host binding identifier"`
 	ExpectationPath   string             `json:"expectation_path,omitempty" jsonschema:"local expectation JSON file"`
 	Expectation       *model.Expectation `json:"expectation,omitempty" jsonschema:"inline expectation with absolute or home-relative roots"`
@@ -72,16 +74,25 @@ func New(runtime Runtime, version string) *mcp.Server {
 	mcp.AddTool(server, &mcp.Tool{
 		Name: "list_local_runtime_candidates", Description: "List safe local runtime candidate summaries without expensive artifact hashing.", Annotations: annotations,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, input ListCandidatesInput) (*mcp.CallToolResult, ListCandidatesOutput, error) {
-		if input.HostID != "" || input.BindingID != "" || input.Limit < 0 || input.Limit > maximumInventoryLimit {
+		if (input.HostID != "" && input.BindingID != "") || input.Limit < 0 || input.Limit > maximumInventoryLimit || (input.BindingID != "" && input.Limit != 0) {
 			return nil, ListCandidatesOutput{}, errInvalidInput
 		}
-		result, err := runtime.Inspect(ctx, app.InspectRequest{All: true, Limit: input.Limit})
+		request := app.InspectRequest{All: true, HostID: input.HostID, Limit: input.Limit}
+		if input.BindingID != "" {
+			request = app.InspectRequest{BindingID: input.BindingID}
+		}
+		result, err := runtime.Inspect(ctx, request)
 		if err != nil {
 			return nil, ListCandidatesOutput{}, safeError(err)
 		}
 		output := ListCandidatesOutput{Candidates: make([]CandidateSummary, 0, len(result.Proofs))}
 		for _, value := range result.Proofs {
+			hostID, bindingID := "", ""
+			if value.HostAttribution != nil {
+				hostID, bindingID = value.HostAttribution.HostID, value.HostAttribution.BindingID
+			}
 			output.Candidates = append(output.Candidates, CandidateSummary{
+				HostID: hostID, BindingID: bindingID,
 				Platform: value.Platform, Process: value.Observation.Process, Executable: value.Observation.Executable,
 				InaccessibleFields: append([]string{}, value.Observation.InaccessibleFields...),
 			})
@@ -91,10 +102,10 @@ func New(runtime Runtime, version string) *mcp.Server {
 	mcp.AddTool(server, &mcp.Tool{
 		Name: "inspect_local_runtimes", Description: "Inspect an explicit local PID or a bounded current-user inventory and return observation Proofs.", Annotations: safeAnnotations(),
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, input InspectRuntimesInput) (*mcp.CallToolResult, InspectRuntimesOutput, error) {
-		if input.BindingID != "" || (input.PID > 0) == input.All || input.PID < 0 || input.Limit < 0 || input.Limit > maximumInventoryLimit || (!input.All && input.Limit != 0) {
+		if boolInt(input.PID > 0)+boolInt(input.BindingID != "")+boolInt(input.All) != 1 || input.PID < 0 || input.Limit < 0 || input.Limit > maximumInventoryLimit || (!input.All && input.Limit != 0) {
 			return nil, InspectRuntimesOutput{}, errInvalidInput
 		}
-		result, err := runtime.Inspect(ctx, app.InspectRequest{PID: input.PID, All: input.All, Limit: input.Limit})
+		result, err := runtime.Inspect(ctx, app.InspectRequest{PID: input.PID, BindingID: input.BindingID, All: input.All, Limit: input.Limit})
 		if err != nil {
 			return nil, InspectRuntimesOutput{}, safeError(err)
 		}
@@ -103,20 +114,27 @@ func New(runtime Runtime, version string) *mcp.Server {
 	mcp.AddTool(server, &mcp.Tool{
 		Name: "verify_local_runtime", Description: "Verify an explicit local PID against a trusted local expectation file and return a complete Proof.", Annotations: safeAnnotations(),
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, input VerifyRuntimeInput) (*mcp.CallToolResult, VerifyRuntimeOutput, error) {
-		if input.PID <= 0 || input.BindingID != "" || (input.ExpectationPath == "") == (input.Expectation == nil) || !validDigests(input.KnownPriorDigests) {
+		if boolInt(input.PID > 0)+boolInt(input.BindingID != "") != 1 || input.PID < 0 || (input.ExpectationPath == "") == (input.Expectation == nil) || !validDigests(input.KnownPriorDigests) {
 			return nil, VerifyRuntimeOutput{}, errInvalidInput
 		}
 		known := make(map[string]bool, len(input.KnownPriorDigests))
 		for _, digest := range input.KnownPriorDigests {
 			known[digest] = true
 		}
-		result, err := runtime.Verify(ctx, app.VerifyRequest{PID: input.PID, ExpectationPath: input.ExpectationPath, Expectation: input.Expectation, KnownPriorDigests: known})
+		result, err := runtime.Verify(ctx, app.VerifyRequest{PID: input.PID, BindingID: input.BindingID, ExpectationPath: input.ExpectationPath, Expectation: input.Expectation, KnownPriorDigests: known})
 		if err != nil {
 			return nil, VerifyRuntimeOutput{}, safeError(err)
 		}
 		return nil, VerifyRuntimeOutput{Proof: result.Proof}, nil
 	})
 	return server
+}
+
+func boolInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
 }
 
 func safeAnnotations() *mcp.ToolAnnotations {

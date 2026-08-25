@@ -1,0 +1,15 @@
+{
+  "schema_version": "agent-runtime-host-profile/1.0",
+  "host_id": "deepseek-harness",
+  "display_name": "DeepSeek Harness",
+  "fixture_version": "1",
+  "platforms": ["darwin", "windows", "linux"],
+  "process_matchers": [{"basenames": ["dsh", "dsh.exe", "node", "node.exe"]}],
+  "config_sources": [{
+    "source_id": "dsh-cordis-patch",
+    "platforms": ["darwin", "windows", "linux"],
+    "candidate_paths": ["${WORKSPACE}/.dsh/cordis.patch.yml", "${HOME}/.dsh/cordis.patch.yml", "${HOME}/.dsh/profiles/${PROFILE}/cordis.patch.yml"],
+    "format": "yaml", "dialect": "dsh-cordis", "maximum_bytes": 1048576,
+    "secret_fields": ["env", "headers"]
+  }]
+}

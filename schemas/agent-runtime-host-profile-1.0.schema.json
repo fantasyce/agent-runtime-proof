@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-runtime-proof.dev/schemas/agent-runtime-host-profile-1.0.schema.json",
+  "title": "Agent Runtime Host Profile 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "host_id", "display_name", "fixture_version", "platforms", "process_matchers", "config_sources"],
+  "properties": {
+    "schema_version": {"const": "agent-runtime-host-profile/1.0"},
+    "host_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"},
+    "display_name": {"type": "string", "minLength": 1, "maxLength": 128},
+    "fixture_version": {"type": "string", "pattern": "^[1-9][0-9]{0,8}$"},
+    "platforms": {
+      "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true,
+      "items": {"enum": ["darwin", "windows", "linux"]}
+    },
+    "process_matchers": {
+      "type": "array", "maxItems": 16,
+      "items": {"$ref": "#/$defs/processMatcher"}
+    },
+    "config_sources": {
+      "type": "array", "maxItems": 16,
+      "items": {"$ref": "#/$defs/configSource"}
+    }
+  },
+  "$defs": {
+    "safeName": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "processMatcher": {
+      "type": "object", "additionalProperties": false,
+      "required": ["basenames"],
+      "properties": {
+        "basenames": {"type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^/]+$"}},
+        "bundle_ids": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/safeName"}},
+        "publisher_names": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 128}}
+      }
+    },
+    "configSource": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_id", "platforms", "candidate_paths", "format", "dialect", "maximum_bytes", "secret_fields"],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/safeName"},
+        "platforms": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"enum": ["darwin", "windows", "linux"]}},
+        "candidate_paths": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 512}},
+        "format": {"enum": ["json", "jsonc", "toml", "yaml"]},
+        "dialect": {"enum": ["mcp-servers", "vscode-servers", "opencode-v2", "codex-toml", "dsh-cordis", "generic-only"]},
+        "maximum_bytes": {"type": "integer", "minimum": 1, "maximum": 1048576},
+        "secret_fields": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"$ref": "#/$defs/safeName"}}
+      }
+    }
+  }
+}

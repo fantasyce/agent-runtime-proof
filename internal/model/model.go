@@ -89,6 +89,7 @@ type Candidate struct {
 	DeclaredExecutablePath string                `json:"-"`
 	ExecutableFileIdentity string                `json:"-"`
 	ExecutableDeleted      bool                  `json:"-"`
+	ArgumentFingerprints   []ArgumentFingerprint `json:"-"`
 	Inaccessible           []string              `json:"inaccessible_fields"`
 }
 
@@ -102,6 +103,7 @@ type ExpectationProjection struct {
 
 type HostAttribution struct {
 	HostID           string `json:"host_id"`
+	BindingID        string `json:"binding_id,omitempty"`
 	ConfigSourceHash string `json:"config_source_hash"`
 	Confidence       string `json:"confidence"`
 }

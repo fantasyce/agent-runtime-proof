@@ -1,0 +1,44 @@
+{
+  "schema_version": "agent-runtime-proof-host-matrix-evidence/1.0",
+  "recorded_at": "2026-08-26T00:03:03+08:00",
+  "platform": "windows-amd64",
+  "candidate_commit": "75a121a41d07",
+  "matrix_status": "passed",
+  "native_product": {
+    "generic_fixture": "passed",
+    "profile_fixture": "passed",
+    "full_go_suite": "passed",
+    "go_version": "1.27.0",
+    "cleanup": "passed"
+  },
+  "real_hosts": [
+    {
+      "host_id": "codex",
+      "host_version": "0.149.0-alpha.4.3",
+      "distribution": "installed-app",
+      "status": "passed",
+      "verdict": "MATCHED",
+      "proof_id": "sha256:1750e2cc0e76def105fd200433c8f46c9c4b59bb62fdf2fe053343f0de0436ac",
+      "binding_id": "codex.agent-runtime-proof",
+      "proxy_handling": "task-scoped-loopback",
+      "cleanup": "passed"
+    },
+    {
+      "host_id": "cursor",
+      "status": "deferred_by_owner",
+      "reason": "not_installed; no_install_requested"
+    },
+    {
+      "host_id": "opencode",
+      "status": "deferred_by_owner",
+      "reason": "not_installed; no_install_requested"
+    },
+    {
+      "host_id": "deepseek-harness",
+      "status": "not_installed_by_design",
+      "reason": "real_macos_host_passed; optional_windows_install_not_needed"
+    }
+  ],
+  "required_real_agent_hosts": 1,
+  "passed_real_agent_hosts": 1
+}

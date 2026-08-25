@@ -1,0 +1,10 @@
+- insert:
+    - id: mcp-agent-runtime-proof
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: agent-runtime-proof
+        transport: stdio
+        command: /opt/arp/agent-runtime-proof
+        args: [mcp]
+        env:
+          FAKE_TOKEN: test-secret-must-not-leak

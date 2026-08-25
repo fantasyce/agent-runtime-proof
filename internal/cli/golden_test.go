@@ -23,7 +23,7 @@ func TestHumanOutputIsStableAndPathFree(t *testing.T) {
 		{[]string{"doctor"}, "STATUS  PLATFORM      CAPABILITIES\nok      darwin/arm64  process-observation\n\nLimitations:\n- host-profiles unavailable in Phase 1A\n"},
 	} {
 		var stdout, stderr bytes.Buffer
-		if code := Run(context.Background(), test.args, &stdout, &stderr, service); code != ExitOK {
+		if code := Run(context.Background(), test.args, strings.NewReader(""), &stdout, &stderr, service); code != ExitOK {
 			t.Fatalf("code = %d, stderr=%q", code, stderr.String())
 		}
 		if stdout.String() != test.want {

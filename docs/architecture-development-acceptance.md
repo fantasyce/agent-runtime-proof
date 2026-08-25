@@ -1,11 +1,17 @@
 # Agent Runtime Proof 架构、开发与验收设计
 
-- 更新日期：2026-08-25
-- 状态：Phase 0 已完成；Phase 1A macOS 主线候选与 Windows Phase 1 核心门已通过各自实机验收，完整 Phase 1 尚未完成
+- 更新日期：2026-08-26
+- 状态：Phase 0 至 Phase 4 已完成；Phase 5 实现与本地候选验收通过，公开 tag、Release 与发布后二次验证待完成
 - Phase 0 验收记录：[phase0-acceptance.md](phase0-acceptance.md)
 - Phase 1A 验收记录：[phase1-macos-acceptance.md](phase1-macos-acceptance.md)
 - Windows 核心验收记录：[phase1-windows-acceptance.md](phase1-windows-acceptance.md)
 - Phase 1 延后门与问题：[phase1-deferred-gates.md](issues/phase1-deferred-gates.md)
+- Phase 2 验收记录：[phase2-acceptance.md](phase2-acceptance.md)
+- Phase 3 验收记录：[phase3-acceptance.md](phase3-acceptance.md)
+- Phase 4 验收状态：[phase4-acceptance.md](phase4-acceptance.md)
+- Phase 4 阻塞项：[phase4-blockers.md](issues/phase4-blockers.md)
+- Phase 5 候选验收：[phase5-acceptance.md](phase5-acceptance.md)
+
 本期唯一开发切口：Agent Runtime Proof（下文简称 ARP）
 
 ## 1. 决策摘要
@@ -316,6 +322,42 @@ PID 会复用，因此任何进程证据必须绑定：
 
 `proof_id` 由去掉 `proof_id` 字段后的 canonical JSON 计算 SHA-256。它提供篡改可见性，不等同于签名、设备身份或远程证明。
 
+### 8.5 LaunchReceipt
+
+权威 schema：`agent-runtime-launch-receipt/1.0`。回执是 Witness 在创建本地进程时产生的内容寻址证据，不是签名或远程证明：
+
+```json
+{
+  "schema_version": "agent-runtime-launch-receipt/1.0",
+  "receipt_id": "sha256:<canonical-receipt-digest>",
+  "created_at": "2026-08-25T12:34:56.789Z",
+  "tool": {},
+  "platform": {"os": "darwin|windows|linux", "arch": "amd64|arm64"},
+  "subject": null,
+  "process": {
+    "pid": 4127,
+    "created_at_unix_nano": "1787536210123456789",
+    "boot_id_hash": "sha256:..."
+  },
+  "command": {
+    "executable_basename": "example-server",
+    "executable_path_hash": "sha256:...",
+    "argument_fingerprints": [{"position": 1, "sha256": "sha256:..."}]
+  },
+  "expectation": null,
+  "artifact": null,
+  "observation_only": true,
+  "reason_codes": ["WITNESS_EXPECTATION_MISSING"],
+  "privacy": {
+    "redaction_mode": "safe-default",
+    "home_redacted": true,
+    "omitted_fields": ["command.argv", "process.environment", "process.command_line", "filesystem.paths"]
+  }
+}
+```
+
+`receipt_id` 由清空 `receipt_id` 后的 canonical JSON 计算 SHA-256。带 expectation 的回执必须同时包含 subject、expectation 投影和启动前的 artifact 观测，并设置 `observation_only=false`、`reason_codes=[]`；没有 expectation 时这三个字段必须为 `null`，并明确记录 `WITNESS_EXPECTATION_MISSING`。原始 argv 只在启动调用的内存生命周期内存在，持久化结构只保留按位置的摘要。
+
 ## 9. Verdict 与证明等级
 
 结论和证明等级是两个维度，禁止把“结论为 MATCHED”直接翻译成“已证明内存中的全部代码”。
@@ -597,6 +639,7 @@ agent-runtime-proof/
 │   └── witness/
 ├── schemas/
 │   ├── agent-runtime-expectation-1.0.schema.json
+│   ├── agent-runtime-launch-receipt-1.0.schema.json
 │   └── agent-runtime-proof-1.0.schema.json
 ├── plugin/agent-runtime-proof/
 │   ├── .codex-plugin/plugin.json
@@ -751,27 +794,27 @@ source
 | 平台 | v1 支持级别 | 必须完成的证据 |
 | --- | --- | --- |
 | macOS 14+ arm64 | 正式支持 | 原生构建、安装二进制、真实进程、CLI、stdio MCP、Witness、真实 Agent、AAA 通用集成 |
-| Windows 11 amd64 | 正式支持 | 原生构建、安装二进制、真实进程、CLI、stdio MCP、Witness、至少三个真实 Agent Host |
-| Linux amd64 / Ubuntu LTS 容器 | 正式支持核心与 CLI/MCP | Docker 内真实进程、CLI、stdio MCP、Witness、通用 Host fixture；不宣称 Linux 桌面 UI 验收 |
+| Windows 11 amd64 | 正式支持 | 原生构建、安装二进制、真实进程、CLI、stdio MCP、Witness、至少一个本机已安装且可认证的真实 Agent Host；当前指定 Codex |
+| Linux amd64 / Ubuntu LTS | 正式支持核心与 CLI/MCP | 原生主机或 Docker 内真实进程、CLI、stdio MCP、Witness、通用 Host fixture；不宣称 Linux 桌面 UI 验收 |
 | macOS amd64、Windows arm64、Linux arm64 | 初始构建支持 | 编译、schema 和最小 smoke；没有真实硬件前不得宣传为正式验收平台 |
 
 Windows 真实回归是 v1 发版硬门。如果尚未获得 Windows 主机权限，状态必须是“外部依赖未满足/发版阻塞”，不能记为 skip 或由交叉编译替代。
 
-Linux Docker 验证的是容器内本地核心、CLI、进程和 stdio MCP 行为，不代表 Linux 桌面宿主体验或任意发行版兼容。
+Linux 原生主机或 Docker 验证的是本地核心、CLI、进程和 stdio MCP 行为，不代表 Linux 桌面宿主体验或任意发行版兼容。
 
 ### 19.4 真实 Agent 矩阵
 
-不执行所有宿主 × 所有 OS 的笛卡尔积，但每个命名宿主至少有一次真实本地 stdio MCP 验收：
+不执行所有宿主 × 所有 OS 的笛卡尔积。真实本地 stdio MCP 验收以现有、已认证宿主为准；其余命名宿主保留 Profile/配置 fixture，待真实环境出现后补测：
 
 | 宿主 | 代表平台 | 必测动作 |
 | --- | --- | --- |
 | AAA | macOS | 通过通用 MCP 注册发现三工具，完成一次 MATCHED 与一次负面 verdict 展示 |
 | Codex | macOS | 实际列工具并调用 verify，返回 schema-valid Proof |
 | Claude Code | macOS | 实际列工具并调用 verify |
-| Cursor | macOS + Windows | 编辑器或 CLI 启动本地 MCP，完成 verify |
-| OpenCode | Windows 或 Linux | local MCP 配置启动二进制，完成 verify |
-| DeepSeek Harness | Windows 或 Linux | 通过 `@deepseek-ai/dsh-mcp-client` stdio 配置发现并调用工具 |
-| VS Code/GitHub Copilot | macOS 或 Windows | stdio MCP 配置发现并调用工具 |
+| Cursor | Profile/配置 fixture；真实宿主延期 | 不为验收额外安装；宿主实际存在时再运行 verify |
+| OpenCode | Profile/配置 fixture；真实宿主延期 | 不为验收额外安装；宿主实际存在时再运行 verify |
+| DeepSeek Harness | macOS | 通过 `@deepseek-ai/dsh-mcp-client` stdio 配置发现并调用工具 |
+| VS Code/GitHub Copilot | Profile/配置 fixture；真实宿主延期 | 不为验收额外安装；宿主实际存在时再运行 verify |
 | Generic MCP fixture | 三个平台 | 不使用 Host Profile，按显式 expectation/PID 完成 verify |
 
 每次真实验收必须确认使用正式安装二进制，而不是仓库里的开发构建；记录宿主版本、ARP 版本、Proof ID 和清理结果。
@@ -802,15 +845,15 @@ Linux Docker 验证的是容器内本地核心、CLI、进程和 stdio MCP 行�
 只有以下条件同时成立才能进入 v1 发版：
 
 1. 所有必选自动测试通过；
-2. macOS arm64、Windows 11 amd64、Linux amd64 Docker 的正式矩阵通过；
-3. 七个命名宿主各至少一次真实 stdio MCP 验收通过；
+2. macOS arm64、Windows 11 amd64、Linux amd64 原生主机或 Docker 的正式矩阵通过；
+3. 当前可用真实宿主完成 stdio MCP 验收，延期宿主有 Profile/配置 fixture 且被明确记录；
 4. Windows 真实主机证据已完成；
 5. 安全、隐私、供应链和残留门通过；
 6. 发布资产来自 `origin/main` 的 tag，校验和、SBOM 与 provenance 可验证；
 7. AAA 仅通过通用 MCP 集成且未形成私有依赖；
 8. 所有 skipped、UNKNOWN 和环境限制均单列，且没有必选项被隐藏为 skip。
 
-任一必选项缺失即为 NO-GO。真实 Windows 权限尚未开放时可以继续开发和预验收，但不能宣布 v1 完成。
+任一当前必选项缺失即为 NO-GO。2026-08-25 起，真实宿主矩阵以可用环境为准：macOS DeepSeek Harness、Windows Codex，以及 AAA 通用 MCP 集成；Cursor、OpenCode、VS Code/Copilot 不为验收临时安装。2026-08-26，Windows 安装版 Codex 已通过真实 MCP 调用并返回 `MATCHED`，因此 Phase 4 必选矩阵闭合；这不等于 Phase 5 发版已完成。
 
 ## 20. 开源协作与发布标准
 

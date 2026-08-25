@@ -1,0 +1,15 @@
+{
+  "schema_version": "agent-runtime-host-profile/1.0",
+  "host_id": "codex",
+  "display_name": "Codex",
+  "fixture_version": "1",
+  "platforms": ["darwin", "windows", "linux"],
+  "process_matchers": [{"basenames": ["codex", "codex.exe"]}],
+  "config_sources": [{
+    "source_id": "codex-config",
+    "platforms": ["darwin", "windows", "linux"],
+    "candidate_paths": ["${WORKSPACE}/.codex/config.toml", "${HOME}/.codex/config.toml"],
+    "format": "toml", "dialect": "codex-toml", "maximum_bytes": 1048576,
+    "secret_fields": ["env", "bearer_token_env_var", "http_headers"]
+  }]
+}

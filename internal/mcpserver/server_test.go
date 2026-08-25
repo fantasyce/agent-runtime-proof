@@ -92,6 +92,27 @@ func TestInvalidAndInternalFailuresAreSafeToolErrors(t *testing.T) {
 	}
 }
 
+func TestToolsAcceptExplicitHostAndBindingSelectors(t *testing.T) {
+	runtime := &fakeRuntime{inspect: app.InspectResult{Proofs: []model.Proof{{HostAttribution: &model.HostAttribution{HostID: "cursor", BindingID: "cursor.arp"}}}}, verify: app.VerifyResult{Proof: model.Proof{Verdict: "MATCHED"}}}
+	session := connect(t, New(runtime, "test"))
+	listed, err := session.CallTool(context.Background(), &mcp.CallToolParams{Name: "list_local_runtime_candidates", Arguments: map[string]any{"host_id": "cursor", "limit": 9}})
+	if err != nil || listed.IsError || runtime.lastInspect != (app.InspectRequest{All: true, HostID: "cursor", Limit: 9}) {
+		t.Fatalf("host list=%#v err=%v request=%#v", listed, err, runtime.lastInspect)
+	}
+	row := listed.StructuredContent.(map[string]any)["candidates"].([]any)[0].(map[string]any)
+	if row["host_id"] != "cursor" || row["binding_id"] != "cursor.arp" {
+		t.Fatalf("candidate row = %#v", row)
+	}
+	inspected, err := session.CallTool(context.Background(), &mcp.CallToolParams{Name: "inspect_local_runtimes", Arguments: map[string]any{"binding_id": "cursor.arp"}})
+	if err != nil || inspected.IsError || runtime.lastInspect.BindingID != "cursor.arp" {
+		t.Fatalf("binding inspect=%#v err=%v request=%#v", inspected, err, runtime.lastInspect)
+	}
+	verified, err := session.CallTool(context.Background(), &mcp.CallToolParams{Name: "verify_local_runtime", Arguments: map[string]any{"binding_id": "cursor.arp", "expectation_path": "expectation.json"}})
+	if err != nil || verified.IsError || runtime.lastVerify.BindingID != "cursor.arp" {
+		t.Fatalf("binding verify=%#v err=%v request=%#v", verified, err, runtime.lastVerify)
+	}
+}
+
 func TestConcurrentCallsAreIndependentAndCancellationReachesRuntime(t *testing.T) {
 	runtime := &concurrentRuntime{started: make(chan struct{}, 1), cancelled: make(chan struct{})}
 	session := connect(t, New(runtime, "test"))

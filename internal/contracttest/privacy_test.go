@@ -34,7 +34,11 @@ type threatRegistry struct {
 
 func TestPrivacyClassificationIsExhaustive(t *testing.T) {
 	documents := loadContractSchemas(t)
-	wantFields := []string{}
+	wantFields := []string{
+		"binding.id", "binding.host_id", "binding.server_name", "binding.command_basename",
+		"binding.command_path_hash", "binding.argument_fingerprints[].position",
+		"binding.argument_fingerprints[].sha256", "binding.config_source_hash", "binding.confidence",
+	}
 	for _, root := range []struct {
 		name string
 		id   string

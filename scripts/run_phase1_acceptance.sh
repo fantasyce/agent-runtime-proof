@@ -102,13 +102,13 @@ jq -e '.verdict == "UNKNOWN" and (.reason_codes | index("PLATFORM_EVIDENCE_UNAVA
 jq -e '.proofs | length == 1' "$run_dir/inspect.json" >/dev/null
 jq -e '.status == "ok"' "$run_dir/doctor.json" >/dev/null
 
-if rg -n 'token-secret|/Users/|process\.argv[^\"]*:' \
+if grep -En 'token-secret|/Users/|process\.argv[^\"]*:' \
   "$matched_json" "$run_dir/leaked.json" "$run_dir/not-running.json" "$run_dir/limit.json" \
   "$run_dir/tree.json" "$run_dir/stale.json" "$run_dir/replaced-loaded-image.json" "$run_dir/inspect.json" "$run_dir/doctor.json"; then
   printf 'privacy scan found prohibited output\n' >&2
   exit 1
 fi
-if strings "$install_dir/agent-runtime-proof" | rg -F "$repo_dir"; then
+if strings "$install_dir/agent-runtime-proof" | grep -F "$repo_dir"; then
   printf 'trimmed binary contains source path\n' >&2
   exit 1
 fi

@@ -1,0 +1,72 @@
+{
+  "schema_version": "agent-runtime-proof-host-matrix-evidence/1.0",
+  "recorded_at": "2026-08-25T16:43:35+08:00",
+  "platform": "darwin-arm64",
+  "candidate_commit": "75a121a41d07",
+  "matrix_status": "passed",
+  "generic_fixture": {
+    "status": "passed",
+    "tool_count": 3,
+    "matched_verdict": "MATCHED",
+    "negative_verdict": "UNKNOWN",
+    "cleanup": "passed"
+  },
+  "real_hosts": [
+    {
+      "host_id": "codex",
+      "host_version": "0.149.1",
+      "status": "passed",
+      "proof_id": "sha256:c095a0985dc8452af6928d897c8300cf451c5e349b8ce10ef9fba902caf9d142",
+      "binding_id": "codex.agent-runtime-proof",
+      "cleanup": "passed"
+    },
+    {
+      "host_id": "claude-code",
+      "host_version": "2.1.235",
+      "status": "passed",
+      "proof_id": "sha256:d8d4d942ed5c5678ca5a38f61f73e9c3800d259720ef5507cdc97dab640bb78b",
+      "binding_id": "claude-code.agent-runtime-proof",
+      "cleanup": "passed"
+    },
+    {
+      "host_id": "deepseek-harness",
+      "host_version": "0.1.1-rc.2",
+      "status": "passed",
+      "proof_id": "sha256:e8f88a126eac60f3dd97a88701c8160d51091371ce0413d3bb3e403bcf669dac",
+      "binding_id": "deepseek-harness.agent-runtime-proof",
+      "credential_handling": "existing_user_state_referenced_read_only",
+      "cleanup": "passed"
+    },
+    {
+      "host_id": "cursor",
+      "status": "deferred_by_owner",
+      "reason": "not_installed_on_acceptance_host"
+    },
+    {
+      "host_id": "vscode-copilot",
+      "status": "deferred_by_owner",
+      "reason": "not_installed_on_acceptance_host"
+    },
+    {
+      "host_id": "aaa",
+      "host_version": "0.14.3",
+      "status": "passed",
+      "discovered_tool_count": 3,
+      "tool_policy": "low-risk_read-only_approval-free",
+      "matched_verdict": "MATCHED",
+      "matched_proof_id": "sha256:756b0e993b551d2b0dfc4d1cafb67077274c32e0e220be582d52481d39ef3b44",
+      "negative_verdict": "UNKNOWN",
+      "negative_proof_id": "sha256:4a91f259aa5e7d030ef1ae488953864ef7a4f131a2cbbd7aad32ae00bb3511a6",
+      "aaa_fix_commit": "081d29099cabe22720b1e9909b7527ea3f9394a6",
+      "cleanup": "passed"
+    }
+  ],
+  "reference_limits": {
+    "mcp_startup_iterations": 20,
+    "mcp_startup_p95_ms": 43,
+    "peak_rss_bytes": 19382272,
+    "candidate_inventory_p95_us": 331,
+    "bounded_20000_file_case_ms": 3964,
+    "status": "passed"
+  }
+}

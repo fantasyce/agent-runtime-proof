@@ -1,0 +1,9 @@
+{
+  "schema_version": "agent-runtime-host-profile/1.0",
+  "host_id": "aaa",
+  "display_name": "Across Agents Assistant",
+  "fixture_version": "1",
+  "platforms": ["darwin"],
+  "process_matchers": [{"basenames": ["Across Agents Assistant"]}],
+  "config_sources": []
+}

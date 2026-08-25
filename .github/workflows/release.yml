@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, attest, and publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: 1.27.x
+          cache-dependency-path: go.sum
+
+      - name: Verify tag and default-branch identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          version="$(tr -d '\r\n' < VERSION)"
+          test "$GITHUB_REF_NAME" = "v$version"
+          test "$(git rev-list -n 1 "$GITHUB_REF_NAME")" = "$(git rev-parse origin/main)"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+
+      - name: Install pinned CycloneDX generator
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          GOBIN="$RUNNER_TEMP/bin" go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@v1.12.0
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Run release gates
+        shell: bash
+        run: |
+          bash scripts/check.sh
+          bash scripts/verify_release_metadata.sh
+          bash scripts/verify_host_profiles.sh
+          bash scripts/verify_release_workflow.sh
+
+      - name: Build and verify release assets
+        shell: bash
+        run: |
+          bash scripts/build_release_assets.sh "$RUNNER_TEMP/release-dist"
+          bash scripts/verify_release_assets.sh "$RUNNER_TEMP/release-dist" "$(cat VERSION)" "$(git rev-parse HEAD)"
+          mv "$RUNNER_TEMP/release-dist" dist
+
+      - name: Attest release assets
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: 'dist/*'
+
+      - name: Preserve release assets
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: agent-runtime-proof-${{ github.ref_name }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "Agent Runtime Proof $(cat VERSION)" --generate-notes

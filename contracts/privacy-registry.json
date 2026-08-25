@@ -1,6 +1,10 @@
 {
   "schema_version": "agent-runtime-privacy-registry/1.0",
   "rules": [
+    {"field_pattern": "^binding\\.(id|host_id|server_name|command_basename|confidence)$", "class": "SAFE_IDENTIFIER", "projection": "emit bounded binding identifiers, safe basename, and evidence confidence", "threat_ids": ["T-SECRET-DISCLOSURE", "T-FORGED-EXPECTATION"]},
+    {"field_pattern": "^binding\\.(command_path_hash|config_source_hash)$", "class": "HASH_ONLY", "projection": "emit domain-separated prefixed SHA-256 only", "threat_ids": ["T-SECRET-DISCLOSURE", "T-FORGED-EXPECTATION"]},
+    {"field_pattern": "^binding\\.argument_fingerprints\\[\\]\\.position$", "class": "PUBLIC", "projection": "emit bounded numeric argument position", "threat_ids": ["T-SECRET-DISCLOSURE"]},
+    {"field_pattern": "^binding\\.argument_fingerprints\\[\\]\\.sha256$", "class": "HASH_ONLY", "projection": "emit domain-separated prefixed SHA-256 only", "threat_ids": ["T-SECRET-DISCLOSURE", "T-PROOF-TAMPERING"]},
     {"field_pattern": "^(expectation|fixture\\.expectation)\\.schema_version$", "class": "PUBLIC", "projection": "emit exact schema version", "threat_ids": ["T-PROOF-TAMPERING"]},
     {"field_pattern": "^(expectation|fixture\\.expectation)\\.subject\\.(id|display_name|version)$", "class": "SAFE_IDENTIFIER", "projection": "emit bounded declared identity", "threat_ids": ["T-SECRET-DISCLOSURE", "T-FORGED-EXPECTATION"]},
     {"field_pattern": "^(expectation|fixture\\.expectation)\\.launch\\.kind$", "class": "PUBLIC", "projection": "emit enum", "threat_ids": ["T-CONFIG-EXECUTION"]},
@@ -48,7 +52,7 @@
     {"field_pattern": "^proof\\.observation\\.artifact\\.(file_count|byte_count|duration_ms)$", "class": "PUBLIC", "projection": "emit bounded aggregate", "threat_ids": ["T-RESOURCE-EXHAUSTION", "T-TOCTOU"]},
     {"field_pattern": "^proof\\.observation\\.artifact\\.sha256$", "class": "HASH_ONLY", "projection": "emit lowercase SHA-256", "threat_ids": ["T-TOCTOU", "T-PROOF-TAMPERING"]},
     {"field_pattern": "^proof\\.observation\\.inaccessible_fields\\[\\]$", "class": "PUBLIC", "projection": "emit bounded field identifier", "threat_ids": ["T-PRIVILEGE-ESCALATION"]},
-    {"field_pattern": "^proof\\.host_attribution\\.(host_id|confidence)$", "class": "SAFE_IDENTIFIER", "projection": "emit bounded host identity or enum", "threat_ids": ["T-FORGED-EXPECTATION"]},
+    {"field_pattern": "^proof\\.host_attribution\\.(host_id|binding_id|confidence)$", "class": "SAFE_IDENTIFIER", "projection": "emit bounded host or binding identity or enum", "threat_ids": ["T-FORGED-EXPECTATION"]},
     {"field_pattern": "^proof\\.host_attribution\\.config_source_hash$", "class": "HASH_ONLY", "projection": "emit prefixed SHA-256", "threat_ids": ["T-SECRET-DISCLOSURE", "T-FORGED-EXPECTATION"]},
     {"field_pattern": "^proof\\.evidence\\[\\]\\.(type|observed_at)$", "class": "PUBLIC", "projection": "emit evidence type and UTC observation time", "threat_ids": ["T-PROOF-TAMPERING", "T-TOCTOU"]},
     {"field_pattern": "^proof\\.evidence\\[\\]\\.digest$", "class": "HASH_ONLY", "projection": "emit prefixed SHA-256", "threat_ids": ["T-PROOF-TAMPERING"]},

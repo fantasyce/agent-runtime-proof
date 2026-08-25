@@ -38,6 +38,19 @@ function Assert-Condition([bool]$Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }
 }
 
+function Remove-TaskRoot([string]$Path) {
+    $deadline = [DateTime]::UtcNow.AddSeconds(5)
+    do {
+        try {
+            Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop
+            return
+        } catch [System.IO.IOException], [System.UnauthorizedAccessException] {
+            if ([DateTime]::UtcNow -ge $deadline) { throw }
+            Start-Sleep -Milliseconds 100
+        }
+    } while (Test-Path -LiteralPath $Path)
+}
+
 function Write-Expectation([string]$Path, [string]$Digest) {
     $document = [ordered]@{
         schema_version = 'agent-runtime-expectation/1.0'
@@ -233,13 +246,15 @@ try {
         $current = Get-Process -Id $helperProcess.Id -ErrorAction SilentlyContinue
         if ($null -ne $current -and $current.ProcessName -eq 'helper' -and $current.StartTime -eq $helperStartTime) {
             Stop-Process -Id $helperProcess.Id -Force
-            Wait-Process -Id $helperProcess.Id -ErrorAction SilentlyContinue
+            Assert-Condition ($helperProcess.WaitForExit(5000)) 'helper process did not exit during cleanup'
         }
+        $helperProcess.Dispose()
+        $helperProcess = $null
     }
     if (Test-Path -LiteralPath $RunRoot) {
         $actualMarker = Get-Content -LiteralPath $marker -Raw -ErrorAction SilentlyContinue
         if ($actualMarker.Trim() -eq [System.IO.Path]::GetFileName($RunRoot)) {
-            Remove-Item -LiteralPath $RunRoot -Recurse -Force
+            Remove-TaskRoot $RunRoot
         } else {
             Write-Warning "refusing to clean run root with invalid marker: $RunRoot"
         }

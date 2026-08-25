@@ -32,6 +32,16 @@ The server publishes exactly three tools:
   absolute or home-relative so host working-directory changes cannot retarget
   them.
 
+The versioned Host Profiles can discover safe bindings from task- or
+project-scoped Codex, Claude Code, Cursor, OpenCode, DeepSeek Harness, and VS
+Code/GitHub Copilot configuration. Profiles are optional: they add attribution
+and candidate selection, while the expectation and artifact evidence still
+decide the verdict. AAA and unknown hosts use the same generic MCP path.
+
+Use `doctor --host HOST_ID`, `inspect --binding HOST_ID.SERVER`, or
+`verify --binding HOST_ID.SERVER --expectation FILE`. Host identity is always
+an explicit selector; MCP `clientInfo` is never accepted as identity.
+
 `UNKNOWN`, `STALE`, `LEAKED`, `CONFLICT`, and `NOT_RUNNING` are successful MCP
 tool results with domain verdicts. Inspect `reason_codes` and `limitations`;
 do not treat these verdicts as transport failures.
@@ -44,9 +54,14 @@ software, open a network port, or persist ordinary MCP calls. MCP output never
 offers the CLI's local-path display exception and omits raw argv, environment
 values, command lines, file contents, credentials, and transcripts.
 
-Host and binding selectors are reserved for later versioned Host Profiles. In
-Phase 2, use an explicit PID. A non-empty unsupported selector is rejected
-instead of being guessed.
+Configuration is parsed as bounded data. Discovery does not execute commands,
+shell interpolation, YAML tags, includes, plugins, or imports. Raw config
+bytes, paths, argv, environment values, headers, credentials, and transcripts
+are never returned. Malformed or inaccessible Profile configuration does not
+disable explicit PID verification.
+
+Host-specific task-owned examples are under `docs/hosts/`. Agent Runtime Proof
+never creates, edits, or deletes host configuration.
 
 ## Lifecycle and troubleshooting
 

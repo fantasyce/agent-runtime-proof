@@ -4,9 +4,21 @@ Agent Runtime Proof is an independent Across ecosystem project for verifying
 which local runtime an Agent actually launched and whether the observable
 runtime matches a declared expectation.
 
-Current development includes the Phase 1 read-only CLI core and the Phase 2
-local `stdio` MCP surface. The same application layer drives both interfaces;
-MCP does not maintain a second verdict model or open a network listener.
+Imagine updating an Agent at noon while yesterday's process quietly keeps
+running. The file on disk says “new,” but the process doing the work is still
+old. Agent Runtime Proof binds the live process identity to an explicit local
+artifact expectation so an Agent reports that uncertainty instead of
+mistaking a replaced file for the loaded runtime.
+
+Version 1 includes the Phase 1 read-only CLI core, the Phase 2 local
+`stdio` MCP surface, the Phase 3 launch Witness, and the Phase 4 data-only Host
+Profiles. The same contracts and application layer drive every interface; MCP
+and Witness do not open a network listener or maintain a second verdict model.
+Phase 4 is accepted across the owner-selected real-host matrix; see the
+[Phase 4 acceptance record](docs/phase4-acceptance.md).
+The Phase 5 release implementation and local candidate gates are recorded in
+[the Phase 5 acceptance record](docs/phase5-acceptance.md); GitHub Release
+assets remain the authority for whether publication has actually completed.
 
 The v1 boundary is intentionally narrow:
 
@@ -33,8 +45,26 @@ bash scripts/check.sh
 The [Phase 0 acceptance record](docs/phase0-acceptance.md),
 [Phase 1A macOS record](docs/phase1-macos-acceptance.md), and
 [Windows core record](docs/phase1-windows-acceptance.md) state the platform
-core evidence. The [Phase 2 acceptance record](docs/phase2-acceptance.md)
-captures the stdio MCP, native platform, CI, and real Codex-host results.
+core evidence. The [Phase 2 record](docs/phase2-acceptance.md) captures stdio
+MCP and real-host results. The [Phase 3 record](docs/phase3-acceptance.md)
+captures the cross-platform Witness, launch receipts, lifecycle, SDK, and
+installed-binary evidence.
+
+## Install and verify
+
+The current release is
+[v1.0.0](https://github.com/fantasyce/agent-runtime-proof/releases/tag/v1.0.0).
+Download the archive for your platform, verify it against `SHA256SUMS`, and
+follow the clean install, upgrade, downgrade, and uninstall instructions in
+[docs/install.md](docs/install.md). Release assets include CycloneDX SBOMs and
+GitHub artifact attestations.
+
+Maintainers can exercise the isolated install, same-version repair, upgrade,
+downgrade, MCP smoke, uninstall, and residue contract with:
+
+```bash
+bash scripts/test_install_lifecycle.sh
+```
 
 ## CLI
 
@@ -83,8 +113,33 @@ and `verify_local_runtime`. All three are read-only and closed-world. See the
 [generic host configuration guide](docs/host-configuration.md) and the thin
 wrapper in `plugin/agent-runtime-proof`.
 
-The current phases deliberately do not include Witness, host Profiles, a
-daemon, network listeners, persistence, repair actions, or Agent configuration writes.
-Interpreter-script and declared-tree expectations remain `UNKNOWN` until the
-launch argument binding required to identify the active entrypoint can be
-observed safely; an artifact digest alone is never reported as a runtime match.
+## Launch Witness
+
+Run a local command through the byte-transparent Witness:
+
+```bash
+agent-runtime-proof witness --expectation expectation.json -- command arg
+```
+
+The Witness binds the declared artifact and argument fingerprints before
+launch, creates the child without a shell, records PID plus creation-time
+identity, atomically stores a content-addressed launch receipt, and proxies
+stdin/stdout without rewriting protocol bytes. Diagnostics and the receipt ID
+use stderr only. Without an expectation it emits an explicitly
+observation-only receipt and never upgrades that evidence to `MATCHED`.
+
+Unix uses an owned process group and parent-death guardian; Linux also reaps
+adopted descendants. Windows creates the child inside a kill-on-close Job
+Object at process creation. EOF, cancellation, and termination are bounded and
+escalate only against the process tree created by this Witness.
+
+Hosts that already own process creation can embed the same contract through
+`sdk/witness`: call `PrepareLaunch`, start the exact returned command and argv,
+then call `Spawned` with the child PID.
+
+The Phase 4 named-host matrix is complete. Remote attestation, a daemon,
+network listeners, repair actions, and Agent configuration writes remain
+outside v1. Passive inspection of
+interpreter and declared-tree runtimes remains conservative when the active
+entrypoint cannot be observed; an on-disk digest alone is never reported as a
+loaded-runtime match.

@@ -1,0 +1,16 @@
+{
+  "schema_version": "agent-runtime-proof-host-evidence/1.0",
+  "host_id": "codex",
+  "host_version": "0.149.1",
+  "platform": "darwin-arm64",
+  "arp_commit": "75a121a41d07",
+  "tool_names": [
+    "inspect_local_runtimes",
+    "list_local_runtime_candidates",
+    "verify_local_runtime"
+  ],
+  "verdict": "MATCHED",
+  "proof_id": "sha256:c095a0985dc8452af6928d897c8300cf451c5e349b8ce10ef9fba902caf9d142",
+  "binding_id": "codex.agent-runtime-proof",
+  "cleanup": "task-owned"
+}

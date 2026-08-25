@@ -1,0 +1,15 @@
+{
+  "schema_version": "agent-runtime-host-profile/1.0",
+  "host_id": "vscode-copilot",
+  "display_name": "VS Code and GitHub Copilot",
+  "fixture_version": "1",
+  "platforms": ["darwin", "windows", "linux"],
+  "process_matchers": [{"basenames": ["code", "code.exe", "copilot", "copilot.exe"]}],
+  "config_sources": [{
+    "source_id": "copilot-agent-mcp",
+    "platforms": ["darwin", "windows", "linux"],
+    "candidate_paths": ["${WORKSPACE}/.mcp.json", "${WORKSPACE}/.vscode/mcp.json", "${HOME}/.copilot/mcp-config.json"],
+    "format": "json", "dialect": "vscode-servers", "maximum_bytes": 1048576,
+    "secret_fields": ["env", "headers", "inputs"]
+  }]
+}

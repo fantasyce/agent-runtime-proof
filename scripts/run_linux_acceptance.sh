@@ -8,6 +8,13 @@ if [[ "${1:-}" == "--inside" ]]; then
   work_dir="$2"
   binary="$work_dir/agent-runtime-proof"
   helper="$work_dir/token-secret/payload/bin/fixture-runtime"
+  helper_pid=""
+  mcp_pid=""
+  cleanup_inside() {
+    if [[ -n "$mcp_pid" ]] && kill -0 "$mcp_pid" 2>/dev/null; then kill "$mcp_pid" 2>/dev/null || true; wait "$mcp_pid" 2>/dev/null || true; fi
+    if [[ -n "$helper_pid" ]] && kill -0 "$helper_pid" 2>/dev/null; then kill "$helper_pid" 2>/dev/null || true; wait "$helper_pid" 2>/dev/null || true; fi
+  }
+  trap cleanup_inside EXIT INT TERM
   cp "$work_dir/new-runtime" "$work_dir/replacement-runtime"
   mv "$work_dir/replacement-runtime" "$helper"
   file_digest="$(sha256sum "$helper" | awk '{print $1}')"
@@ -17,7 +24,6 @@ if [[ "${1:-}" == "--inside" ]]; then
   cp "$work_dir/old-runtime" "$helper"
   "$helper" &
   helper_pid=$!
-  trap 'kill "$helper_pid" 2>/dev/null || true; wait "$helper_pid" 2>/dev/null || true' EXIT INT TERM
   sleep 1
   cp "$work_dir/new-runtime" "$work_dir/replacement-runtime"
   mv "$work_dir/replacement-runtime" "$helper"
@@ -45,22 +51,25 @@ if [[ "${1:-}" == "--inside" ]]; then
     printf 'Linux verification leaked a local path\n' >&2
     exit 1
   fi
-  coproc ARP_MCP { "$binary" mcp 2>"$work_dir/mcp-stderr.txt"; }
-  mcp_in="${ARP_MCP[1]}"
-  mcp_out="${ARP_MCP[0]}"
-  mcp_pid="$ARP_MCP_PID"
-  printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"linux-native-fixture","version":"1"}}}' >&"$mcp_in"
-  IFS= read -r initialize_response <&"$mcp_out"
+  mkfifo "$work_dir/mcp.stdin" "$work_dir/mcp.stdout"
+  "$binary" mcp < "$work_dir/mcp.stdin" > "$work_dir/mcp.stdout" 2>"$work_dir/mcp-stderr.txt" &
+  mcp_pid=$!
+  exec 8>"$work_dir/mcp.stdin"
+  exec 9<"$work_dir/mcp.stdout"
+  printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"linux-native-fixture","version":"1"}}}' >&8
+  IFS= read -r initialize_response <&9
   grep -q '"protocolVersion":"2025-06-18"' <<<"$initialize_response"
-  printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}' >&"$mcp_in"
-  printf '%s\n' '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' >&"$mcp_in"
-  IFS= read -r tools_response <&"$mcp_out"
+  printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}' >&8
+  printf '%s\n' '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' >&8
+  IFS= read -r tools_response <&9
   [[ "$(grep -o '"name":"[^"]*"' <<<"$tools_response" | grep -c '_local_runtime\|local_runtime_')" -eq 3 ]]
-  printf '%s\n' "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"inspect_local_runtimes\",\"arguments\":{\"pid\":$helper_pid}}}" >&"$mcp_in"
-  IFS= read -r call_response <&"$mcp_out"
+  printf '%s\n' "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"inspect_local_runtimes\",\"arguments\":{\"pid\":$helper_pid}}}" >&8
+  IFS= read -r call_response <&9
   grep -q '"structuredContent":{"proofs":' <<<"$call_response"
-  exec {mcp_in}>&-
+  exec 8>&-
+  exec 9<&-
   wait "$mcp_pid"
+  mcp_pid=""
   [[ ! -s "$work_dir/mcp-stderr.txt" ]]
   cp "$helper" "$work_dir/deleted-runtime"
   "$work_dir/deleted-runtime" &

@@ -1,0 +1,21 @@
+{
+  "schema_version": "agent-runtime-host-profile/1.0",
+  "host_id": "opencode",
+  "display_name": "OpenCode",
+  "fixture_version": "1",
+  "platforms": ["darwin", "windows", "linux"],
+  "process_matchers": [{"basenames": ["opencode", "opencode.exe"]}],
+  "config_sources": [{
+    "source_id": "opencode-project-jsonc",
+    "platforms": ["darwin", "windows", "linux"],
+    "candidate_paths": ["${WORKSPACE}/opencode.jsonc", "${HOME}/.config/opencode/opencode.jsonc"],
+    "format": "jsonc", "dialect": "opencode-v2", "maximum_bytes": 1048576,
+    "secret_fields": ["environment", "headers"]
+  }, {
+    "source_id": "opencode-project-json",
+    "platforms": ["darwin", "windows", "linux"],
+    "candidate_paths": ["${WORKSPACE}/opencode.json", "${HOME}/.config/opencode/opencode.json"],
+    "format": "json", "dialect": "opencode-v2", "maximum_bytes": 1048576,
+    "secret_fields": ["environment", "headers"]
+  }]
+}

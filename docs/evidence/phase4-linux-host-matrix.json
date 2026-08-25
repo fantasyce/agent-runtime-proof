@@ -1,0 +1,36 @@
+{
+  "schema_version": "agent-runtime-proof-host-matrix-evidence/1.0",
+  "recorded_at": "2026-08-25T14:11:00+08:00",
+  "candidate_commit": "75a121a41d07",
+  "matrix_status": "passed",
+  "platform_rows": [
+    {
+      "platform": "linux-arm64-container",
+      "support_level": "build-only",
+      "generic_fixture": "passed",
+      "profile_fixture": "passed",
+      "cleanup": "passed"
+    },
+    {
+      "platform": "linux-amd64-native-vps",
+      "support_level": "required",
+      "distribution": "Ubuntu 24.04",
+      "generic_fixture": "passed",
+      "profile_fixture": "passed",
+      "service_baseline": "unchanged",
+      "cleanup": "passed"
+    }
+  ],
+  "real_hosts": [
+    {
+      "host_id": "opencode",
+      "status": "deferred_by_owner",
+      "reason": "not_installed_on_acceptance_host"
+    },
+    {
+      "host_id": "deepseek-harness",
+      "status": "covered_on_macos",
+      "reason": "real_macos_host_passed; no_linux_install_requested"
+    }
+  ]
+}
