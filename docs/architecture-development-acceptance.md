@@ -1,6 +1,6 @@
 # Agent Runtime Proof 架构、开发与验收设计
 
-- 更新日期：2026-08-25
+- 更新日期：2026-08-26
 - 状态：Phase 0、Phase 1、Phase 2、Phase 3 与 Phase 4 已完成；Phase 5 开源发版尚未开始
 - Phase 0 验收记录：[phase0-acceptance.md](phase0-acceptance.md)
 - Phase 1A 验收记录：[phase1-macos-acceptance.md](phase1-macos-acceptance.md)

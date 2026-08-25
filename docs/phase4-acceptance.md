@@ -109,6 +109,6 @@ Codex run passed.
 
 ## Decision boundary
 
-Phase 4 may be integrated as complete after the final branch regression and
-clean-worktree check. This PASS does not claim that Phase 5 packaging, public
+Phase 4 is complete on the feature branch and is ready for an explicit
+integration decision. This PASS does not claim that Phase 5 packaging, public
 release, tags, GitHub publication, or v1 distribution has occurred.

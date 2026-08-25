@@ -246,12 +246,12 @@
 **Interfaces:**
 - The final acceptance record distinguishes automated tests, installed artifacts, OS-native evidence, real Agent calls, AAA integration, performance results, skipped/external gates, and Phase 5 release work.
 
-- [ ] **Step 1: Run the complete Go 1.26/1.27 local gate, race suite, Profile guard, macOS installed/generic/real-host gates, native Linux amd64 and container gates, Windows cross-builds, and native Windows gate on the final code candidate.**
-- [ ] **Step 2: Run source/binary/archive scans for credentials, home/source paths, caches, test content, and private fixture data; validate Proof IDs and every evidence JSON.**
-- [ ] **Step 3: Confirm zero marked processes/directories and unchanged proxy, DNS, default route, VPN, firewall, and network-extension baselines after remote testing.**
+- [x] **Step 1: Run the complete Go 1.26/1.27 local gate, race suite, Profile guard, macOS installed/generic/real-host gates, native Linux amd64 and container gates, Windows cross-builds, and native Windows gate on the final code candidate.** The final harness-only Windows changes were rerun against the installed Codex host; the complete local race gate passed afterward.
+- [x] **Step 2: Run source/binary/archive scans for credentials, home/source paths, caches, test content, and private fixture data; validate Proof IDs and every evidence JSON.** Source, trimpath binary, archive structure, sensitive filename, Profile guard, and evidence validation passed.
+- [x] **Step 3: Confirm zero marked processes/directories and unchanged proxy, DNS, default route, VPN, firewall, and network-extension baselines after remote testing.** Windows marked roots and ARP processes are zero; the existing loopback system proxy remains unchanged, and no persistent network or VPS setting was modified.
 - [x] **Step 4: Review every Phase 4 requirement line-by-line.** Any missing named host is a Phase 4 NO-GO, not a skip; preserve it in the blocker register and continue all independent work.
 - [x] **Step 5: Perform an independent code/security review of parser execution risks, path traversal, secret projection, binding ambiguity, process matching, and lifecycle cleanup; fix findings through failing regression tests.**
 - [x] **Step 6: Update README and the authoritative design only if all mandatory Phase 4 gates pass; otherwise keep the status as incomplete and name exact blockers.** All mandatory Phase 4 gates now pass.
-- [ ] **Step 7: Commit `docs: accept Phase 4 host matrix` only when there are no unresolved Phase 4 defects or mandatory external gates.**
-- [ ] **Step 8: Rerun `./scripts/check.sh` on the final commit and verify a clean worktree.**
+- [x] **Step 7: Commit `docs: accept Phase 4 host matrix` only when there are no unresolved Phase 4 defects or mandatory external gates.** Commit `04f20dc` closes the Windows row and records Phase 4 PASS.
+- [x] **Step 8: Rerun `./scripts/check.sh` on the final commit and verify a clean worktree.**
 - [ ] **Step 9: Use `superpowers:finishing-a-development-branch` to present integration options; do not merge, push, publish, or begin Phase 5 without the corresponding authorized branch decision and release gates.**
