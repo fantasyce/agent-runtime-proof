@@ -10,10 +10,13 @@ for term in SHA256SUMS SBOM attestation macOS Linux Windows upgrade downgrade un
   grep -Eqi "$term" "$guide" || { echo "install guide is missing: $term" >&2; exit 1; }
 done
 
-test_root="$(mktemp -d /private/tmp/agent-runtime-proof-install-test.XXXXXX)"
+task_base="${TMPDIR:-/tmp}"
+task_base="${task_base%/}"
+[[ -d "$task_base" ]] || { echo 'temporary directory is unavailable' >&2; exit 69; }
+test_root="$(mktemp -d "$task_base/agent-runtime-proof-install-test.XXXXXX")"
 cleanup() {
   case "$test_root" in
-    /private/tmp/agent-runtime-proof-install-test.*) find "$test_root" -depth -delete 2>/dev/null || true ;;
+    "$task_base"/agent-runtime-proof-install-test.*) find "$test_root" -depth -delete 2>/dev/null || true ;;
     *) echo 'refusing unexpected cleanup path' >&2; return 1 ;;
   esac
 }

@@ -112,6 +112,10 @@ rebuilds from the final merged tag commit, so the GitHub Release's own
 - The first PR run showed that release/Profile gates depended on the local
   `rg` utility, which is not part of the GitHub macOS runner contract. Public
   gates now use platform-provided `grep` and remain dependency-free.
+- The second PR run showed that the new release scripts assumed macOS
+  `/private/tmp`; Linux has no such directory. All release build, verification,
+  asset, and lifecycle scripts now honor the system temporary-directory
+  contract and retain marked-path cleanup guards.
 
 The macOS observer and Linux launcher defects predated Phase 5 and were exposed
 by the expanded final regression. The release verifier, version-gate, and

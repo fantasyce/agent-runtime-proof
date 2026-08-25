@@ -27,7 +27,10 @@ cyclonedx="${CYCLONEDX_GOMOD:-cyclonedx-gomod}"
 command -v "$cyclonedx" >/dev/null || { echo 'cyclonedx-gomod is required' >&2; exit 69; }
 command -v python3 >/dev/null || { echo 'python3 is required for deterministic packaging' >&2; exit 69; }
 
-build_root="$(mktemp -d /private/tmp/agent-runtime-proof-release-build.XXXXXX)"
+task_base="${TMPDIR:-/tmp}"
+task_base="${task_base%/}"
+[[ -d "$task_base" ]] || { echo 'temporary directory is unavailable' >&2; exit 69; }
+build_root="$(mktemp -d "$task_base/agent-runtime-proof-release-build.XXXXXX")"
 cleanup() { rm -rf "$build_root"; }
 trap cleanup EXIT
 

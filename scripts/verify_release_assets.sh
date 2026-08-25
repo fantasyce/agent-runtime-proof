@@ -37,7 +37,10 @@ for target in darwin_arm64 linux_amd64 windows_amd64; do
   ' "$dist/agent-runtime-proof_${version}_${target}.cdx.json" >/dev/null
 done
 
-scan_root="$(mktemp -d /private/tmp/agent-runtime-proof-release-scan.XXXXXX)"
+task_base="${TMPDIR:-/tmp}"
+task_base="${task_base%/}"
+[[ -d "$task_base" ]] || { echo 'temporary directory is unavailable' >&2; exit 69; }
+scan_root="$(mktemp -d "$task_base/agent-runtime-proof-release-scan.XXXXXX")"
 cleanup() { rm -rf "$scan_root"; }
 trap cleanup EXIT
 

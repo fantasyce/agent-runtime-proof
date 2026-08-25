@@ -3,8 +3,16 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 repo_dir="$(cd "$script_dir/.." && pwd -P)"
-test_root="$(mktemp -d /private/tmp/agent-runtime-proof-release-test.XXXXXX)"
-cleanup() { rm -rf "$test_root"; }
+task_base="${TMPDIR:-/tmp}"
+task_base="${task_base%/}"
+[[ -d "$task_base" ]] || { echo 'temporary directory is unavailable' >&2; exit 69; }
+test_root="$(mktemp -d "$task_base/agent-runtime-proof-release-test.XXXXXX")"
+cleanup() {
+  case "$test_root" in
+    "$task_base"/agent-runtime-proof-release-test.*) find "$test_root" -depth -delete 2>/dev/null || true ;;
+    *) echo 'refusing unexpected cleanup path' >&2; return 1 ;;
+  esac
+}
 trap cleanup EXIT
 
 git clone --quiet --no-hardlinks "$repo_dir" "$test_root/repo"
