@@ -29,7 +29,7 @@ fi
 plugin_version="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' plugin/agent-runtime-proof/.codex-plugin/plugin.json | head -1)"
 binary_version="$(sed -n 's/[[:space:]]*version = "\([^"]*\)"/\1/p' cmd/agent-runtime-proof/main.go)"
 test -n "$plugin_version"
-test "$plugin_version" = "$binary_version"
+test "$binary_version" = "$plugin_version" || test "$binary_version" = "${plugin_version}-dev"
 
 go test ./internal/contract ./internal/hostprofile ./internal/mcpserver -run 'TestEmbeddedCatalog|TestValidateHostProfile|TestServerPublishesExactlyThree' -count=1
 

@@ -27,10 +27,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: go.sum
@@ -40,6 +40,12 @@ jobs:
 
       - name: Verify Phase 4 Host Profiles and guidance
         run: bash scripts/verify_host_profiles.sh
+
+      - name: Verify release contracts
+        if: matrix.go-version == '1.27.x'
+        run: |
+          bash scripts/verify_release_metadata.sh
+          bash scripts/verify_release_workflow.sh
 
       - name: Run macOS Phase 1 acceptance
         if: matrix.go-version == '1.27.x'
@@ -56,10 +62,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: 1.27.x
           cache-dependency-path: go.sum
@@ -69,6 +75,12 @@ jobs:
 
       - name: Verify Phase 4 Host Profiles and guidance
         run: bash scripts/verify_host_profiles.sh
+
+      - name: Verify reproducible release contracts
+        run: |
+          bash scripts/verify_release_metadata.sh
+          bash scripts/verify_release_workflow.sh
+          bash scripts/test_release_assets.sh
 
       - name: Run Linux container CLI and MCP acceptance
         run: bash scripts/run_linux_acceptance.sh
@@ -83,10 +95,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: 1.27.x
           cache-dependency-path: go.sum
