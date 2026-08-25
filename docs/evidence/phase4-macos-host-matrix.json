@@ -1,0 +1,58 @@
+{
+  "schema_version": "agent-runtime-proof-host-matrix-evidence/1.0",
+  "recorded_at": "2026-08-25T13:30:00+08:00",
+  "platform": "darwin-arm64",
+  "candidate_commit": "75a121a41d07",
+  "matrix_status": "blocked",
+  "generic_fixture": {
+    "status": "passed",
+    "tool_count": 3,
+    "matched_verdict": "MATCHED",
+    "negative_verdict": "UNKNOWN",
+    "cleanup": "passed"
+  },
+  "real_hosts": [
+    {
+      "host_id": "codex",
+      "host_version": "0.149.1",
+      "status": "passed",
+      "proof_id": "sha256:c095a0985dc8452af6928d897c8300cf451c5e349b8ce10ef9fba902caf9d142",
+      "binding_id": "codex.agent-runtime-proof",
+      "cleanup": "passed"
+    },
+    {
+      "host_id": "claude-code",
+      "host_version": "2.1.235",
+      "status": "passed",
+      "proof_id": "sha256:d8d4d942ed5c5678ca5a38f61f73e9c3800d259720ef5507cdc97dab640bb78b",
+      "binding_id": "claude-code.agent-runtime-proof",
+      "cleanup": "passed"
+    },
+    {
+      "host_id": "cursor",
+      "host_version": "2026.08.11-e8db854",
+      "status": "blocked",
+      "blocker": "P4-EXT-CURSOR-AUTH"
+    },
+    {
+      "host_id": "vscode-copilot",
+      "status": "blocked",
+      "blocker": "P4-EXT-VSCODE-HOST"
+    },
+    {
+      "host_id": "aaa",
+      "host_version": "0.14.3",
+      "status": "blocked",
+      "discovered_tool_count": 3,
+      "blocker": "P4-HOST-AAA-TOOL-BRIDGE"
+    }
+  ],
+  "reference_limits": {
+    "mcp_startup_iterations": 20,
+    "mcp_startup_p95_ms": 43,
+    "peak_rss_bytes": 19382272,
+    "candidate_inventory_p95_us": 331,
+    "bounded_20000_file_case_ms": 3964,
+    "status": "passed"
+  }
+}

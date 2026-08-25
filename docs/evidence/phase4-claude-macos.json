@@ -1,0 +1,16 @@
+{
+  "schema_version": "agent-runtime-proof-host-evidence/1.0",
+  "host_id": "claude-code",
+  "host_version": "2.1.235",
+  "platform": "darwin-arm64",
+  "arp_commit": "75a121a41d07",
+  "tool_names": [
+    "inspect_local_runtimes",
+    "list_local_runtime_candidates",
+    "verify_local_runtime"
+  ],
+  "verdict": "MATCHED",
+  "proof_id": "sha256:d8d4d942ed5c5678ca5a38f61f73e9c3800d259720ef5507cdc97dab640bb78b",
+  "binding_id": "claude-code.agent-runtime-proof",
+  "cleanup": "task-owned"
+}

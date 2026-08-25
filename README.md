@@ -5,9 +5,11 @@ which local runtime an Agent actually launched and whether the observable
 runtime matches a declared expectation.
 
 Current development includes the Phase 1 read-only CLI core, the Phase 2 local
-`stdio` MCP surface, and the Phase 3 launch Witness. The same contracts and
-application layer drive every interface; MCP and Witness do not open a network
-listener or maintain a second verdict model.
+`stdio` MCP surface, the Phase 3 launch Witness, and the Phase 4 data-only Host
+Profiles. The same contracts and application layer drive every interface; MCP
+and Witness do not open a network listener or maintain a second verdict model.
+Phase 4 is not accepted yet because mandatory named-host and Linux amd64 rows
+remain blocked; see the [current Phase 4 decision](docs/phase4-acceptance.md).
 
 The v1 boundary is intentionally narrow:
 
@@ -110,9 +112,9 @@ Hosts that already own process creation can embed the same contract through
 `sdk/witness`: call `PrepareLaunch`, start the exact returned command and argv,
 then call `Spawned` with the child PID.
 
-Phase 4 host Profiles and the full named-host matrix, Phase 5 release assets,
-remote attestation, a daemon, network listeners, repair actions, and Agent
-configuration writes remain outside the completed Phase 1–3 surface. Passive
-inspection of interpreter and declared-tree runtimes remains conservative when
-the active entrypoint cannot be observed; an on-disk digest alone is never
-reported as a loaded-runtime match.
+The complete Phase 4 named-host matrix and Phase 5 release assets remain
+unfinished. Remote attestation, a daemon, network listeners, repair actions,
+and Agent configuration writes remain outside v1. Passive inspection of
+interpreter and declared-tree runtimes remains conservative when the active
+entrypoint cannot be observed; an on-disk digest alone is never reported as a
+loaded-runtime match.

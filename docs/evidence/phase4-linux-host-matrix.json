@@ -1,0 +1,33 @@
+{
+  "schema_version": "agent-runtime-proof-host-matrix-evidence/1.0",
+  "recorded_at": "2026-08-25T13:30:00+08:00",
+  "candidate_commit": "75a121a41d07",
+  "matrix_status": "blocked",
+  "platform_rows": [
+    {
+      "platform": "linux-arm64-container",
+      "support_level": "build-only",
+      "generic_fixture": "passed",
+      "profile_fixture": "passed",
+      "cleanup": "passed"
+    },
+    {
+      "platform": "linux-amd64-container",
+      "support_level": "required",
+      "generic_fixture": "blocked",
+      "blocker": "P4-EXT-LINUX-AMD64"
+    }
+  ],
+  "real_hosts": [
+    {
+      "host_id": "opencode",
+      "status": "blocked",
+      "blocker": "P4-EXT-OPENCODE-HOST"
+    },
+    {
+      "host_id": "deepseek-harness",
+      "status": "blocked",
+      "blocker": "P4-EXT-DSH-HOST"
+    }
+  ]
+}

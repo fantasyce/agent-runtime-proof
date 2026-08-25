@@ -207,13 +207,13 @@
 **Interfaces:**
 - Evidence JSON stores only versions, platform, ARP commit, safe host/binding IDs, verdicts, Proof IDs, timestamps, and cleanup results. It never stores prompts, responses, transcripts, config paths, account identifiers, or credentials.
 
-- [ ] **Step 1: Verify host availability and official stdio capability immediately before each run.** Use current official docs and installed `--version` output; task-own any new CLI installation and disable its updater where supported.
-- [ ] **Step 2: Run Codex on macOS with a command-line/task-scoped MCP override; list the three tools and call binding-based verify.** Preserve the existing Codex account state without reading or copying authentication files.
-- [ ] **Step 3: Run Claude Code with task-owned `--mcp-config` and explicit `--allowedTools mcp__agent-runtime-proof`; list tools and call verify.** If authentication is unavailable, record the exact external gate and continue other hosts without substituting Claude Desktop.
-- [ ] **Step 4: Run Cursor CLI from a task-owned install/home; use project `.cursor/mcp.json`, `mcp list-tools`, and non-interactive read-only prompt to call verify.** Do not write the real `~/.cursor` config.
-- [ ] **Step 5: Run VS Code/GitHub Copilot Agent Host from a task-owned portable install/profile using workspace `.mcp.json`; discover tools and call verify.** Do not modify the user's VS Code/Copilot profile.
-- [ ] **Step 6: Run the formal installed AAA app as a generic MCP consumer.** Register the installed ARP candidate through AAA's generic MCP manager using task-owned acceptance state, discover exactly three tools, call one `MATCHED` and one negative verdict, verify visible evidence, then remove the server and all task-owned state. Do not add an ARP-specific AAA API, page, or model.
-- [ ] **Step 7: Validate the macOS evidence JSON against the acceptance assertions and confirm no host/server/helper process or task directory remains.**
+- [x] **Step 1: Verify host availability and official stdio capability immediately before each run.** Use current official docs and installed `--version` output; task-own any new CLI installation and disable its updater where supported.
+- [x] **Step 2: Run Codex on macOS with a command-line/task-scoped MCP override; list the three tools and call binding-based verify.** Preserve the existing Codex account state without reading or copying authentication files.
+- [x] **Step 3: Run Claude Code with task-owned `--mcp-config` and explicit `--allowedTools mcp__agent-runtime-proof`; list tools and call verify.** If authentication is unavailable, record the exact external gate and continue other hosts without substituting Claude Desktop.
+- [ ] **Step 4: Run Cursor CLI from a task-owned install/home; use project `.cursor/mcp.json`, `mcp list-tools`, and non-interactive read-only prompt to call verify.** Blocked by `P4-EXT-CURSOR-AUTH`; the task-owned install was removed.
+- [ ] **Step 5: Run VS Code/GitHub Copilot Agent Host from a task-owned portable install/profile using workspace `.mcp.json`; discover tools and call verify.** Blocked by `P4-EXT-VSCODE-HOST`.
+- [ ] **Step 6: Run the formal installed AAA app as a generic MCP consumer.** Tool discovery passed, but real calls are blocked by `P4-HOST-AAA-TOOL-BRIDGE`; the registration and task-owned runtime were removed.
+- [x] **Step 7: Validate the macOS evidence JSON against the acceptance assertions and confirm no host/server/helper process or task directory remains.** The failed formal AAA task record is retained as rejected evidence; no runtime or temporary directory remains.
 - [ ] **Step 8: Commit `test: record macOS Phase 4 host matrix` only when every non-external macOS gate passes.**
 
 ### Task 8: Execute Linux/Windows real hosts and close the named matrix
@@ -230,7 +230,7 @@
 - [ ] **Step 2: Run DeepSeek Harness with the official `@deepseek-ai/dsh-mcp-client` stdio row in a task-owned Cordis overlay; wait for `mcp__agent-runtime-proof__*` registration, invoke verify through the real host, dispose the plugin, and prove child cleanup.**
 - [ ] **Step 3: Run Cursor on Windows in addition to macOS as required by the frozen matrix.** Use a task-owned CLI/config and the same installed ARP asset; record native host and Profile evidence.
 - [ ] **Step 4: Ensure at least three genuine Windows Agent hosts have passed.** Use Cursor plus any two of Claude Code, OpenCode, VS Code/Copilot, Codex, or DeepSeek Harness that officially support the installed Windows environment; do not relabel the generic fixture as an Agent host.
-- [ ] **Step 5: Run the Windows generic MCP/Profile harness, native full Go suite, installed ARP candidate, and cleanup gate.** Do not change firewall, SSH, accounts, services, registry, PATH, proxy, DNS, power, or Agent configuration.
+- [x] **Step 5: Run the Windows generic MCP/Profile harness, native full Go suite, installed ARP candidate, and cleanup gate.** Do not change firewall, SSH, accounts, services, registry, PATH, proxy, DNS, power, or Agent configuration.
 - [ ] **Step 6: Run Linux amd64 and Windows evidence validation; remove marked toolchains, vendor/source archives, configs, homes, caches, helpers, MCP children, and transfer roots after confirming ownership and no live process.**
 - [ ] **Step 7: Commit `test: record Linux and Windows Phase 4 host matrix` only when every required named host has a real call or remains explicitly external-blocked.**
 
@@ -249,9 +249,9 @@
 - [ ] **Step 1: Run the complete Go 1.26/1.27 local gate, race suite, Profile guard, macOS installed/generic/real-host gates, native Linux amd64 and container gates, Windows cross-builds, and native Windows gate on the final code candidate.**
 - [ ] **Step 2: Run source/binary/archive scans for credentials, home/source paths, caches, test content, and private fixture data; validate Proof IDs and every evidence JSON.**
 - [ ] **Step 3: Confirm zero marked processes/directories and unchanged proxy, DNS, default route, VPN, firewall, and network-extension baselines after remote testing.**
-- [ ] **Step 4: Review every Phase 4 requirement line-by-line.** Any missing named host is a Phase 4 NO-GO, not a skip; preserve it in the blocker register and continue all independent work.
-- [ ] **Step 5: Perform an independent code/security review of parser execution risks, path traversal, secret projection, binding ambiguity, process matching, and lifecycle cleanup; fix findings through failing regression tests.**
-- [ ] **Step 6: Update README and the authoritative design only if all mandatory Phase 4 gates pass; otherwise keep the status as incomplete and name exact blockers.**
+- [x] **Step 4: Review every Phase 4 requirement line-by-line.** Any missing named host is a Phase 4 NO-GO, not a skip; preserve it in the blocker register and continue all independent work.
+- [x] **Step 5: Perform an independent code/security review of parser execution risks, path traversal, secret projection, binding ambiguity, process matching, and lifecycle cleanup; fix findings through failing regression tests.**
+- [x] **Step 6: Update README and the authoritative design only if all mandatory Phase 4 gates pass; otherwise keep the status as incomplete and name exact blockers.** Status remains incomplete and exact blockers are recorded.
 - [ ] **Step 7: Commit `docs: accept Phase 4 host matrix` only when there are no unresolved Phase 4 defects or mandatory external gates.**
 - [ ] **Step 8: Rerun `./scripts/check.sh` on the final commit and verify a clean worktree.**
 - [ ] **Step 9: Use `superpowers:finishing-a-development-branch` to present integration options; do not merge, push, publish, or begin Phase 5 without the corresponding authorized branch decision and release gates.**

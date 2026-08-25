@@ -1,0 +1,40 @@
+{
+  "schema_version": "agent-runtime-proof-host-matrix-evidence/1.0",
+  "recorded_at": "2026-08-25T13:30:00+08:00",
+  "platform": "windows-amd64",
+  "candidate_commit": "75a121a41d07",
+  "matrix_status": "blocked",
+  "native_product": {
+    "generic_fixture": "passed",
+    "profile_fixture": "passed",
+    "full_go_suite": "passed",
+    "go_version": "1.27.0",
+    "cleanup": "passed"
+  },
+  "real_hosts": [
+    {
+      "host_id": "codex",
+      "host_version": "0.149.1",
+      "status": "blocked",
+      "blocker": "P4-EXT-WINDOWS-CODEX",
+      "observed_boundary": "mcp_child_started_no_host_events"
+    },
+    {
+      "host_id": "cursor",
+      "status": "blocked",
+      "blocker": "P4-EXT-WINDOWS-WSL"
+    },
+    {
+      "host_id": "opencode",
+      "status": "blocked",
+      "blocker": "P4-EXT-OPENCODE-HOST"
+    },
+    {
+      "host_id": "deepseek-harness",
+      "status": "blocked",
+      "blocker": "P4-EXT-DSH-HOST"
+    }
+  ],
+  "required_real_agent_hosts": 3,
+  "passed_real_agent_hosts": 0
+}
