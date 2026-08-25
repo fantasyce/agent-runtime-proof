@@ -52,13 +52,21 @@ for target in "${targets[@]}"; do
     archive_format='zip'
     archive_name="$base.zip"
   fi
-  GOOS="$target_os" GOARCH="$target_arch" CGO_ENABLED=0 \
+  cgo_enabled=0
+  if [[ "$target_os/$target_arch" == darwin/arm64 ]]; then
+    [[ "$(uname -s)/$(uname -m)" == Darwin/arm64 ]] || {
+      echo 'darwin/arm64 release assets require a native macOS arm64 builder' >&2
+      exit 69
+    }
+    cgo_enabled=1
+  fi
+  GOOS="$target_os" GOARCH="$target_arch" CGO_ENABLED="$cgo_enabled" \
     go build -C "$repo_dir" -trimpath -buildvcs=true \
       -ldflags "-s -w -X main.version=$version -X main.commit=$commit" \
       -o "$stage/$binary_name" ./cmd/agent-runtime-proof
   cp "$repo_dir/LICENSE" "$repo_dir/README.md" "$repo_dir/SECURITY.md" "$repo_dir/CHANGELOG.md" "$stage/"
   cp -R "$repo_dir/plugin/agent-runtime-proof" "$stage/plugin/"
-  GOOS="$target_os" GOARCH="$target_arch" CGO_ENABLED=0 \
+  GOOS="$target_os" GOARCH="$target_arch" CGO_ENABLED="$cgo_enabled" \
     "$cyclonedx" app -json -output-version 1.6 -noserial -notimestamp \
       -output "$output_dir/$base.cdx.json" -main cmd/agent-runtime-proof "$repo_dir"
   python3 "$script_dir/package_release_asset.py" \

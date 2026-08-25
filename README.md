@@ -53,7 +53,7 @@ installed-binary evidence.
 ## Install and verify
 
 The current release is
-[v1.0.0](https://github.com/fantasyce/agent-runtime-proof/releases/tag/v1.0.0).
+[v1.0.1](https://github.com/fantasyce/agent-runtime-proof/releases/tag/v1.0.1).
 Download the archive for your platform, verify it against `SHA256SUMS`, and
 follow the clean install, upgrade, downgrade, and uninstall instructions in
 [docs/install.md](docs/install.md). Release assets include CycloneDX SBOMs and

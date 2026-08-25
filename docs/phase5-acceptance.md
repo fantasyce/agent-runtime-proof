@@ -14,6 +14,20 @@ repository must be public, the tag must resolve to the exact merged
 `origin/main`, the tag workflow must succeed, and the published assets and
 attestations must be downloaded and reverified before v1 is called released.
 
+## Post-publication erratum
+
+Released-host verification on 2026-08-26 found that the `v1.0.0` macOS archive
+had been cross-built by the Linux release job with `CGO_ENABLED=0`. The source
+candidate and native macOS acceptance were valid, but that public binary could
+not include the cgo-backed Darwin process observer and therefore returned
+`UNKNOWN/PROCESS_INACCESSIBLE` for otherwise verifiable local processes.
+
+`v1.0.1` supersedes that macOS asset. Its release job runs on native macOS,
+requires `CGO_ENABLED=1` in the packaged Darwin binary, and runs the complete
+generic/Profile acceptance against the extracted release binary before
+publication. Linux and Windows remain `CGO_ENABLED=0` and unchanged in runtime
+semantics.
+
 ## Delivered release surface
 
 - Canonical `VERSION`, Apache-2.0 license, security policy, changelog, and
