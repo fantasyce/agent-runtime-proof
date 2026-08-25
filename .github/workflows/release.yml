@@ -17,7 +17,7 @@ concurrency:
 jobs:
   publish:
     name: Build, attest, and publish
-    runs-on: ubuntu-24.04
+    runs-on: macos-14
     timeout-minutes: 20
 
     steps:

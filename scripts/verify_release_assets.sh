@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+repo_dir="$(cd "$script_dir/.." && pwd -P)"
+
 if (($# != 3)); then
   echo 'usage: verify_release_assets.sh DIST VERSION COMMIT' >&2
   exit 64
@@ -55,6 +58,11 @@ for target in darwin_arm64 linux_amd64; do
   tar -xzf "$archive" -C "$target_root"
   if grep -ERa '/Users/[^/]+/|[A-Za-z]:\\Users\\|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY' "$target_root"; then exit 1; fi
 done
+darwin_binary="$scan_root/darwin_arm64/agent-runtime-proof_${version}_darwin_arm64/agent-runtime-proof"
+go version -m "$darwin_binary" | grep -Eq '^[[:space:]]*build[[:space:]]+CGO_ENABLED=1$' || {
+  echo 'Darwin release binary must use the native cgo process observer' >&2
+  exit 1
+}
 windows_archive="$dist/agent-runtime-proof_${version}_windows_amd64.zip"
 windows_listing="$(unzip -Z1 "$windows_archive")"
 grep -Eq '/agent-runtime-proof\.exe$' <<<"$windows_listing"
@@ -81,5 +89,13 @@ mkdir -p "$native_root"
 tar -xzf "$native_archive" -C "$native_root"
 native_binary="$native_root/agent-runtime-proof_${version}_${native_target}/agent-runtime-proof"
 [[ "$("$native_binary" --version)" == "agent-runtime-proof $version ($commit)" ]]
+
+if [[ "$native_target" == darwin_arm64 ]]; then
+  prebuilt_root="$scan_root/darwin-native-acceptance"
+  mkdir -p "$prebuilt_root"
+  cp "$native_binary" "$prebuilt_root/agent-runtime-proof"
+  go build -C "$repo_dir" -trimpath -o "$prebuilt_root/phase4-helper" ./testdata/phase4-helper
+  bash "$script_dir/run_phase4_acceptance.sh" --prebuilt "$prebuilt_root"
+fi
 
 echo 'release assets verified'
