@@ -157,7 +157,7 @@ try {
     $echoStderr = $echo.StandardError.ReadToEnd()
     Wait-TaskProcess $echo 5000
     Assert-Condition ($echo.ExitCode -eq 0) "byte-transparent Witness exit = $($echo.ExitCode)"
-    Assert-Condition ([System.Linq.Enumerable]::SequenceEqual[byte]($payload, $echoOutput.ToArray())) 'Witness changed binary payload bytes'
+    Assert-Condition ([Convert]::ToBase64String($payload) -ceq [Convert]::ToBase64String($echoOutput.ToArray())) 'Witness changed binary payload bytes'
     Assert-Condition ($echoStderr.Contains('child-stderr')) 'child stderr was not preserved'
     $primaryReceipt = Get-ReceiptPath $echoStderr
     $primaryValidation = Assert-Receipt $primaryReceipt
