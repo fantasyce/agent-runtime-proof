@@ -109,11 +109,14 @@ rebuilds from the final merged tag commit, so the GitHub Release's own
 - The existing Linux launcher contained named `coproc` syntax that macOS Bash
   3.2 could not parse before starting Docker. It now uses portable FIFOs and
   cleans up both the MCP process and helper on every terminal path.
+- The first PR run showed that release/Profile gates depended on the local
+  `rg` utility, which is not part of the GitHub macOS runner contract. Public
+  gates now use platform-provided `grep` and remain dependency-free.
 
 The macOS observer and Linux launcher defects predated Phase 5 and were exposed
-by the expanded final regression. The release verifier and version-gate defects
-were introduced in the new Phase 5 release layer. All four are fixed; there is
-no unresolved candidate defect.
+by the expanded final regression. The release verifier, version-gate, and
+local-tool dependency defects were introduced in the new Phase 5 release
+layer. All are fixed; there is no unresolved candidate defect.
 
 ## Prior platform and real-host evidence retained
 

@@ -7,7 +7,7 @@ guide="$repo_dir/docs/install.md"
 [[ -f "$guide" ]] || { echo 'install guide is missing' >&2; exit 1; }
 
 for term in SHA256SUMS SBOM attestation macOS Linux Windows upgrade downgrade uninstall; do
-  rg -qi "$term" "$guide" || { echo "install guide is missing: $term" >&2; exit 1; }
+  grep -Eqi "$term" "$guide" || { echo "install guide is missing: $term" >&2; exit 1; }
 done
 
 test_root="$(mktemp -d /private/tmp/agent-runtime-proof-install-test.XXXXXX)"

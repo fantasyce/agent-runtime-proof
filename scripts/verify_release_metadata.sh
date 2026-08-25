@@ -16,7 +16,7 @@ grep -Fq '## [1.0.0] - 2026-08-26' CHANGELOG.md
 grep -Fq 'releases/tag/v1.0.0' README.md
 grep -Fq 'docs/install.md' README.md
 
-if rg -n '0\.4\.0-(dev|phase4)' cmd plugin README.md; then
+if grep -ERn '0\.4\.0-(dev|phase4)' cmd plugin README.md; then
   echo 'Phase development version remains in a public version surface' >&2
   exit 1
 fi

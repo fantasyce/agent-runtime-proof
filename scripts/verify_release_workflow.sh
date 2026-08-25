@@ -10,7 +10,7 @@ workflow="$repo_dir/.github/workflows/release.yml"
 require() {
   local pattern="$1"
   local message="$2"
-  rg -q -- "$pattern" "$workflow" || { echo "$message" >&2; exit 1; }
+  grep -Eq -- "$pattern" "$workflow" || { echo "$message" >&2; exit 1; }
 }
 
 require '^  push:$' 'release workflow must use a push trigger'

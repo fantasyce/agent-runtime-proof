@@ -46,26 +46,26 @@ for target in darwin_arm64 linux_amd64; do
   listing="$(tar -tzf "$archive")"
   grep -Eq "/agent-runtime-proof$" <<<"$listing"
   grep -Eq '/LICENSE$' <<<"$listing"
-  if rg '(^|/)(testdata|\.git|\.DS_Store|__pycache__|node_modules|\.venv)(/|$)' <<<"$listing"; then exit 1; fi
+  if grep -Eq '(^|/)(testdata|\.git|\.DS_Store|__pycache__|node_modules|\.venv)(/|$)' <<<"$listing"; then exit 1; fi
   target_root="$scan_root/$target"
   mkdir -p "$target_root"
   tar -xzf "$archive" -C "$target_root"
-  if rg -a '/Users/[^/]+/|[A-Za-z]:\\Users\\|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY' "$target_root"; then exit 1; fi
+  if grep -ERa '/Users/[^/]+/|[A-Za-z]:\\Users\\|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY' "$target_root"; then exit 1; fi
 done
 windows_archive="$dist/agent-runtime-proof_${version}_windows_amd64.zip"
 windows_listing="$(unzip -Z1 "$windows_archive")"
 grep -Eq '/agent-runtime-proof\.exe$' <<<"$windows_listing"
 grep -Eq '/LICENSE$' <<<"$windows_listing"
-if rg '(^|/)(testdata|\.git|\.DS_Store|__pycache__|node_modules|\.venv)(/|$)' <<<"$windows_listing"; then exit 1; fi
+if grep -Eq '(^|/)(testdata|\.git|\.DS_Store|__pycache__|node_modules|\.venv)(/|$)' <<<"$windows_listing"; then exit 1; fi
 mkdir -p "$scan_root/windows_amd64"
 unzip -q "$windows_archive" -d "$scan_root/windows_amd64"
-if rg -a '/Users/[^/]+/|[A-Za-z]:\\Users\\|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY' "$scan_root/windows_amd64"; then exit 1; fi
+if grep -ERa '/Users/[^/]+/|[A-Za-z]:\\Users\\|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY' "$scan_root/windows_amd64"; then exit 1; fi
 
 source_archive="$dist/agent-runtime-proof_${version}_source.tar.gz"
 prefix="agent-runtime-proof-${version}/"
 source_listing="$(tar -tzf "$source_archive")"
 awk -v prefix="$prefix" 'index($0,prefix)!=1 {exit 1}' <<<"$source_listing"
-if rg '(^|/)(\.git|\.DS_Store|__pycache__|node_modules|\.venv)(/|$)' <<<"$source_listing"; then exit 1; fi
+if grep -Eq '(^|/)(\.git|\.DS_Store|__pycache__|node_modules|\.venv)(/|$)' <<<"$source_listing"; then exit 1; fi
 
 darwin_archive="$dist/agent-runtime-proof_${version}_darwin_arm64.tar.gz"
 native_root="$scan_root/native"
