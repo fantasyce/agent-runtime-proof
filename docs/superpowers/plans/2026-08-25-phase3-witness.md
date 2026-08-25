@@ -83,14 +83,14 @@
 **Interfaces:**
 - Produces: `newSupervisor(command string, args []string, streams Streams) (supervisor, error)` with `Start()`, `PID()`, `Wait()`, `GracefulStop()`, and `ForceStop()`; the implementation owns all process handles until `Wait` completes.
 
-- [ ] **Step 1: Write failing Unix lifecycle tests** proving a dedicated process group, normal and non-zero exit propagation, TERM forwarding, TERM-ignore escalation to KILL after a literal short grace period, and descendant disappearance after every terminal path.
-- [ ] **Step 2: Run the focused Unix tests** and verify failure because the supervisor is absent.
-- [ ] **Step 3: Implement Unix supervision** with `Setpgid`, negative-PGID signaling, idempotent stop operations, mandatory wait/reap, and no signal outside the owned group.
-- [ ] **Step 4: Run the Unix lifecycle tests with `-race -count=5`** and verify pass without leaked helpers.
-- [ ] **Step 5: Write Windows tests** for command-line fidelity, inheritable stdio handle scoping, Job creation with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, creation-time job membership, explicit tree termination, and handle cleanup.
-- [ ] **Step 6: Implement Windows 11 supervision** with an unnamed Job Object passed through `PROC_THREAD_ATTRIBUTE_JOB_LIST` at `CreateProcessW` time, `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, scoped inheritable stdio handles, no breakaway flag, and process-tree termination through the owned Job.
-- [ ] **Step 7: Run `GOOS=windows GOARCH=amd64 go test -c ./internal/witness` and `GOOS=windows GOARCH=arm64 go test -c ./internal/witness`** into a task-owned temporary directory; remove it after verification.
-- [ ] **Step 8: Commit `feat: supervise witness process trees`**.
+- [x] **Step 1: Write failing Unix lifecycle tests** proving a dedicated process group, normal and non-zero exit propagation, TERM forwarding, TERM-ignore escalation to KILL after a literal short grace period, and descendant disappearance after every terminal path.
+- [x] **Step 2: Run the focused Unix tests** and verify failure because the supervisor is absent.
+- [x] **Step 3: Implement Unix supervision** with `Setpgid`, negative-PGID signaling, idempotent stop operations, mandatory wait/reap, and no signal outside the owned group. A pipe-owned guardian additionally closes the parent-kill gap without putting raw target argv in the guardian command line.
+- [x] **Step 4: Run the Unix lifecycle tests with `-race -count=5`** and verify pass without leaked helpers.
+- [x] **Step 5: Write Windows tests** for command-line fidelity, inheritable stdio handle scoping, Job creation with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, creation-time job membership, explicit tree termination, and handle cleanup.
+- [x] **Step 6: Implement Windows 11 supervision** with an unnamed Job Object passed through `PROC_THREAD_ATTRIBUTE_JOB_LIST` at `CreateProcessW` time, `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, scoped inheritable stdio handles, no breakaway flag, and process-tree termination through the owned Job.
+- [x] **Step 7: Run `GOOS=windows GOARCH=amd64 go test -c ./internal/witness` and `GOOS=windows GOARCH=arm64 go test -c ./internal/witness`** into a task-owned temporary directory; remove it after verification.
+- [x] **Step 8: Commit `feat: supervise witness process trees`**.
 
 ### Task 4: Add the transparent proxy and CLI command
 

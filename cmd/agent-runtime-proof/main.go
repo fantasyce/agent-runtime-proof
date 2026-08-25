@@ -11,6 +11,7 @@ import (
 	"github.com/fantasyce/agent-runtime-proof/internal/mcpserver"
 	"github.com/fantasyce/agent-runtime-proof/internal/model"
 	processobserver "github.com/fantasyce/agent-runtime-proof/internal/process"
+	"github.com/fantasyce/agent-runtime-proof/internal/witness"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -20,6 +21,9 @@ var (
 )
 
 func main() {
+	if guarded, code := witness.RunGuardianIfRequested(); guarded {
+		os.Exit(code)
+	}
 	tool := model.ToolInfo{Name: "agent-runtime-proof", Version: version, Commit: commit, Toolchain: runtime.Version()}
 	service := app.NewService(processobserver.NewObserver(), tool)
 	if len(os.Args) == 2 && os.Args[1] == "mcp" {
