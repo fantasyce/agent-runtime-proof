@@ -125,6 +125,11 @@ rebuilds from the final merged tag commit, so the GitHub Release's own
   the Darwin archive. Native version smoke now selects Darwin arm64 on macOS
   and Linux amd64 on the Linux release runner; non-native archives continue
   through checksum, SBOM, allowlist, and content verification.
+- The Linux Phase 3 gate exposed a real Witness startup signal race: a fast
+  child could report readiness while receipt binding was still running, before
+  the owner registered its termination handler. Signal registration now occurs
+  before the child can start. The race suite passed 20 repetitions and the
+  native Linux Phase 3 lifecycle passed 10 consecutive repetitions.
 
 The macOS observer and Linux launcher defects predated Phase 5 and were exposed
 by the expanded final regression. The release verifier, version-gate, and

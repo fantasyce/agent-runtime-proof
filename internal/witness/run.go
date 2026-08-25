@@ -55,6 +55,12 @@ func Run(ctx context.Context, controller *Controller, request RunRequest) (Resul
 	if err != nil {
 		return Result{}, errors.New("witness process supervisor is unavailable")
 	}
+	// Register before Start: a fast child can become externally visible while
+	// receipt binding is still in progress, and the owner must not briefly fall
+	// back to the operating system's default termination behavior.
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, terminationSignals()...)
+	defer signal.Stop(signalChannel)
 	if err := managed.Start(); err != nil {
 		return Result{}, errors.New("witness process could not be started")
 	}
@@ -75,9 +81,6 @@ func Run(ctx context.Context, controller *Controller, request RunRequest) (Resul
 	}()
 	waitDone := make(chan error, 1)
 	go func() { waitDone <- managed.Wait() }()
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, terminationSignals()...)
-	defer signal.Stop(signalChannel)
 	result := Result{ReceiptID: receiptValue.ReceiptID, PID: pid}
 	contextDone := ctx.Done()
 	var timer *time.Timer
