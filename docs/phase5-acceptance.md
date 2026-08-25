@@ -116,6 +116,11 @@ rebuilds from the final merged tag commit, so the GitHub Release's own
   `/private/tmp`; Linux has no such directory. All release build, verification,
   asset, and lifecycle scripts now honor the system temporary-directory
   contract and retain marked-path cleanup guards.
+- A later macOS 1.26 race run showed that process argument visibility can
+  change while PID, creation identity, and loaded file identity remain stable.
+  Arguments remain Host binding evidence, but are no longer mistaken for
+  process identity during revalidation; 100 repeated race checks and the full
+  macOS/Linux acceptance sequence passed after the correction.
 
 The macOS observer and Linux launcher defects predated Phase 5 and were exposed
 by the expanded final regression. The release verifier, version-gate, and

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"slices"
 
 	"github.com/fantasyce/agent-runtime-proof/internal/model"
 	gopsprocess "github.com/shirou/gopsutil/v4/process"
@@ -18,9 +17,6 @@ type Observer interface {
 
 func SameIdentity(left, right model.Candidate) bool {
 	if left.Process != right.Process {
-		return false
-	}
-	if !slices.Equal(left.ArgumentFingerprints, right.ArgumentFingerprints) {
 		return false
 	}
 	if left.Executable.FileIDHash != "" || right.Executable.FileIDHash != "" {

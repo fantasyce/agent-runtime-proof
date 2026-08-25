@@ -65,8 +65,15 @@ func TestDarwinObserverRevalidatesControlledHelper(t *testing.T) {
 	if strings.Contains(encoded, "fake-token-secret") || strings.Contains(encoded, "must-not-appear") {
 		t.Fatalf("candidate leaked command data: %s", encoded)
 	}
-	if err := observer.Revalidate(context.Background(), candidate); err != nil {
-		t.Fatal(err)
+	for range 20 {
+		actual, snapshotErr := observer.Snapshot(context.Background(), command.Process.Pid)
+		if snapshotErr != nil {
+			t.Fatal(snapshotErr)
+		}
+		if !SameIdentity(candidate, actual) {
+			t.Fatalf("identity drift: process=%v/%v file=%q/%q args=%v/%v", candidate.Process, actual.Process,
+				candidate.Executable.FileIDHash, actual.Executable.FileIDHash, candidate.ArgumentFingerprints, actual.ArgumentFingerprints)
+		}
 	}
 
 	mutated := candidate

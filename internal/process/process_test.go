@@ -44,3 +44,16 @@ func TestSameIdentityRejectsPIDReuseAndExecutableReplacement(t *testing.T) {
 		}
 	}
 }
+
+func TestSameIdentityTreatsArgumentsAsBindingEvidenceNotProcessIdentity(t *testing.T) {
+	base := model.Candidate{
+		Process:              model.ProcessIdentity{PID: 42, CreatedAtUnixNano: "100", BootIDHash: "sha256:" + strings.Repeat("0", 64)},
+		Executable:           model.ExecutableObservation{FileIDHash: "sha256:" + strings.Repeat("2", 64)},
+		ArgumentFingerprints: []model.ArgumentFingerprint{{Position: 1, SHA256: "sha256:" + strings.Repeat("3", 64)}},
+	}
+	changed := base
+	changed.ArgumentFingerprints = nil
+	if !SameIdentity(base, changed) {
+		t.Fatal("argument visibility changed the identity of the same loaded process")
+	}
+}
