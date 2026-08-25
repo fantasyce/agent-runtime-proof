@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"os"
@@ -253,7 +255,13 @@ func candidate(pid int) model.Candidate {
 		Executable:             model.ExecutableObservation{Basename: "runtime", PathHash: "sha256:" + strings.Repeat("d", 64)},
 		DeclaredExecutablePath: root,
 		ExecutableFileIdentity: "dev:1",
+		ArgumentFingerprints:   []model.ArgumentFingerprint{{Position: 1, SHA256: testArgumentHash("mcp")}},
 	}
+}
+
+func testArgumentHash(value string) string {
+	digest := sha256.Sum256([]byte("arp:host-argument:v1\x00" + value))
+	return "sha256:" + hex.EncodeToString(digest[:])
 }
 
 func resolvedExpectation() expectation.Resolved {

@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"golang.org/x/sys/unix"
@@ -19,10 +20,10 @@ func readPinnedConfig(ctx context.Context, path string, maximum int64) ([]byte, 
 	if !filepath.IsAbs(cleaned) || maximum <= 0 {
 		return nil, errors.New("invalid configuration path")
 	}
-	if runtimePathPrefix(cleaned, "/var/") {
+	if runtime.GOOS == "darwin" && runtimePathPrefix(cleaned, "/var/") {
 		cleaned = "/private" + cleaned
 	}
-	if runtimePathPrefix(cleaned, "/tmp/") {
+	if runtime.GOOS == "darwin" && runtimePathPrefix(cleaned, "/tmp/") {
 		cleaned = "/private" + cleaned
 	}
 	current, err := unix.Open("/", unix.O_RDONLY|unix.O_CLOEXEC|unix.O_DIRECTORY, 0)

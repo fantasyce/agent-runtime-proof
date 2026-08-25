@@ -190,13 +190,13 @@
 - Host runners receive only task-owned `ARP_CANDIDATE`, `ARP_EXPECTATION`, `ARP_HELPER_PID`, `ARP_HOST_HOME`, and `ARP_WORKSPACE` paths/IDs; they emit a bounded result row containing host, host version, platform, ARP commit, tool names, verdict, Proof ID, and residue status.
 - Acceptance never prints or persists host authentication state. A proprietary host may use an already authenticated installed session, but the harness neither copies nor inspects its credentials.
 
-- [ ] **Step 1: Write acceptance assertions before running any host.** Require installed-path provenance, three exact tools, one `MATCHED`, one negative verdict, schema-valid/self-verifying Proof, host attribution when a Profile is selected, child exit after EOF, and zero marked residue.
-- [ ] **Step 2: Build a versioned `0.4.0-phase4` installed candidate and controlled helper in a task-owned root; generate current and negative expectations without repository paths.**
-- [ ] **Step 3: Add the generic MCP fixture for macOS, native Linux amd64, Linux arm64 container, and Windows 11 amd64; confirm explicit PID/expectation remains Profile-independent.**
-- [ ] **Step 4: Add reference-runner performance checks.** Measure 20 MCP startups for p95, a synthetic immutable 1,000-candidate inventory for app-layer p95, a bounded 20,000-file/256 MiB declaration case, cancellation within one second, and peak RSS below 150 MiB; record hardware/OS and never generalize results.
-- [ ] **Step 5: Run the macOS generic/Profile gates and performance harness; fix every product defect through a failing regression test.**
-- [ ] **Step 6: Run native/container Linux gates and Windows cross-builds; keep Windows real-host execution for Task 8.**
-- [ ] **Step 7: Commit `test: add Phase 4 host acceptance harnesses`.**
+- [x] **Step 1: Write acceptance assertions before running any host.** Require installed-path provenance, three exact tools, one `MATCHED`, one negative verdict, schema-valid/self-verifying Proof, host attribution when a Profile is selected, child exit after EOF, and zero marked residue.
+- [x] **Step 2: Build a versioned `0.4.0-phase4` installed candidate and controlled helper in a task-owned root; generate current and negative expectations without repository paths.**
+- [ ] **Step 3: Add the generic MCP fixture for macOS, native Linux amd64, Linux arm64 container, and Windows 11 amd64; confirm explicit PID/expectation remains Profile-independent.** macOS arm64 and Linux arm64 pass; native Linux amd64 and Windows execution remain for Task 8 because Apple Silicon Rosetta evidence is deliberately invalid.
+- [x] **Step 4: Add reference-runner performance checks.** Measure 20 MCP startups for p95, a synthetic immutable 1,000-candidate inventory for app-layer p95, a bounded 20,000-file/256 MiB declaration case, cancellation within one second, and peak RSS below 150 MiB; record hardware/OS and never generalize results.
+- [x] **Step 5: Run the macOS generic/Profile gates and performance harness; fix every product defect through a failing regression test.**
+- [ ] **Step 6: Run native/container Linux gates and Windows cross-builds; keep Windows real-host execution for Task 8.** Linux arm64 and Windows cross-builds pass; native Linux amd64 remains for Task 8.
+- [x] **Step 7: Commit `test: add Phase 4 host acceptance harnesses`.**
 
 ### Task 7: Execute macOS real hosts and AAA generic integration
 

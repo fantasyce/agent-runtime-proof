@@ -89,6 +89,7 @@ type Candidate struct {
 	DeclaredExecutablePath string                `json:"-"`
 	ExecutableFileIdentity string                `json:"-"`
 	ExecutableDeleted      bool                  `json:"-"`
+	ArgumentFingerprints   []ArgumentFingerprint `json:"-"`
 	Inaccessible           []string              `json:"inaccessible_fields"`
 }
 

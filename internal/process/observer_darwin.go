@@ -110,6 +110,7 @@ func (observer *nativeObserver) Snapshot(ctx context.Context, pid int) (model.Ca
 		PathHash:   hashIdentifier("arp:path:v1", path),
 		FileIDHash: hashIdentifier("arp:file-id:v1", identity),
 	}
+	observeArguments(ctx, pid, &candidate)
 	return candidate, nil
 }
 
