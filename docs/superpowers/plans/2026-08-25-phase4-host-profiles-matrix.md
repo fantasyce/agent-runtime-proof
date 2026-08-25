@@ -229,10 +229,10 @@
 - [ ] **Step 1: Run OpenCode on native Linux amd64 or Windows from a task-owned install/config; confirm local MCP status, tool discovery, and a real verify call.** Owner-deferred because OpenCode is not installed.
 - [x] **Step 2: Run DeepSeek Harness with the official `@deepseek-ai/dsh-mcp-client` stdio row in a task-owned Cordis overlay; wait for `mcp__agent-runtime-proof__*` registration, invoke verify through the real host, dispose the plugin, and prove child cleanup.** Passed on the real authenticated macOS installation without changing user state.
 - [ ] **Step 3: Run Cursor on Windows in addition to macOS.** Owner-deferred; do not install Cursor on Windows for acceptance.
-- [ ] **Step 4: Run the owner-selected genuine Windows Agent host.** Codex is the only required real Windows host; do not install Cursor, OpenCode, or VS Code/Copilot. A Windows DeepSeek Harness install is optional and unnecessary after the real macOS row passed.
+- [x] **Step 4: Run the owner-selected genuine Windows Agent host.** The installed Codex host made a real `verify_local_runtime` MCP call and returned `MATCHED`; no additional Windows Agent was installed.
 - [x] **Step 5: Run the Windows generic MCP/Profile harness, native full Go suite, installed ARP candidate, and cleanup gate.** Do not change firewall, SSH, accounts, services, registry, PATH, proxy, DNS, power, or Agent configuration.
-- [ ] **Step 6: Run Linux amd64 and Windows evidence validation; remove marked toolchains, vendor/source archives, configs, homes, caches, helpers, MCP children, and transfer roots after confirming ownership and no live process.**
-- [ ] **Step 7: Commit `test: record Linux and Windows Phase 4 host matrix` only when every required named host has a real call or remains explicitly external-blocked.**
+- [x] **Step 6: Run Linux amd64 and Windows evidence validation; remove marked toolchains, vendor/source archives, configs, homes, caches, helpers, MCP children, and transfer roots after confirming ownership and no live process.**
+- [x] **Step 7: Record Linux and Windows Phase 4 host evidence after every required named host has a real call.**
 
 ### Task 9: Final regression, review, and Phase 4 acceptance
 
@@ -251,7 +251,7 @@
 - [ ] **Step 3: Confirm zero marked processes/directories and unchanged proxy, DNS, default route, VPN, firewall, and network-extension baselines after remote testing.**
 - [x] **Step 4: Review every Phase 4 requirement line-by-line.** Any missing named host is a Phase 4 NO-GO, not a skip; preserve it in the blocker register and continue all independent work.
 - [x] **Step 5: Perform an independent code/security review of parser execution risks, path traversal, secret projection, binding ambiguity, process matching, and lifecycle cleanup; fix findings through failing regression tests.**
-- [x] **Step 6: Update README and the authoritative design only if all mandatory Phase 4 gates pass; otherwise keep the status as incomplete and name exact blockers.** Status remains incomplete and exact blockers are recorded.
+- [x] **Step 6: Update README and the authoritative design only if all mandatory Phase 4 gates pass; otherwise keep the status as incomplete and name exact blockers.** All mandatory Phase 4 gates now pass.
 - [ ] **Step 7: Commit `docs: accept Phase 4 host matrix` only when there are no unresolved Phase 4 defects or mandatory external gates.**
 - [ ] **Step 8: Rerun `./scripts/check.sh` on the final commit and verify a clean worktree.**
 - [ ] **Step 9: Use `superpowers:finishing-a-development-branch` to present integration options; do not merge, push, publish, or begin Phase 5 without the corresponding authorized branch decision and release gates.**

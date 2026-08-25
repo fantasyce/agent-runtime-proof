@@ -1,7 +1,7 @@
 # Agent Runtime Proof 架构、开发与验收设计
 
 - 更新日期：2026-08-25
-- 状态：Phase 0、Phase 1、Phase 2 与 Phase 3 已完成；Phase 4 宿主 Profile 已实现，但必选真实宿主/平台矩阵仍受阻，当前为 NO-GO
+- 状态：Phase 0、Phase 1、Phase 2、Phase 3 与 Phase 4 已完成；Phase 5 开源发版尚未开始
 - Phase 0 验收记录：[phase0-acceptance.md](phase0-acceptance.md)
 - Phase 1A 验收记录：[phase1-macos-acceptance.md](phase1-macos-acceptance.md)
 - Windows 核心验收记录：[phase1-windows-acceptance.md](phase1-windows-acceptance.md)
@@ -852,7 +852,7 @@ Linux 原生主机或 Docker 验证的是本地核心、CLI、进程和 stdio MC
 7. AAA 仅通过通用 MCP 集成且未形成私有依赖；
 8. 所有 skipped、UNKNOWN 和环境限制均单列，且没有必选项被隐藏为 skip。
 
-任一当前必选项缺失即为 NO-GO。2026-08-25 起，真实宿主矩阵以可用环境为准：macOS DeepSeek Harness、Windows Codex，以及 AAA 通用 MCP 集成；Cursor、OpenCode、VS Code/Copilot 不为验收临时安装。真实 Windows 权限或 Codex 调用不可用时可以继续开发和预验收，但不能宣布 v1 完成。
+任一当前必选项缺失即为 NO-GO。2026-08-25 起，真实宿主矩阵以可用环境为准：macOS DeepSeek Harness、Windows Codex，以及 AAA 通用 MCP 集成；Cursor、OpenCode、VS Code/Copilot 不为验收临时安装。2026-08-26，Windows 安装版 Codex 已通过真实 MCP 调用并返回 `MATCHED`，因此 Phase 4 必选矩阵闭合；这不等于 Phase 5 发版已完成。
 
 ## 20. 开源协作与发布标准
 

@@ -1,9 +1,9 @@
 {
   "schema_version": "agent-runtime-proof-host-matrix-evidence/1.0",
-  "recorded_at": "2026-08-25T16:43:35+08:00",
+  "recorded_at": "2026-08-26T00:03:03+08:00",
   "platform": "windows-amd64",
   "candidate_commit": "75a121a41d07",
-  "matrix_status": "blocked",
+  "matrix_status": "passed",
   "native_product": {
     "generic_fixture": "passed",
     "profile_fixture": "passed",
@@ -14,11 +14,14 @@
   "real_hosts": [
     {
       "host_id": "codex",
-      "host_version": "0.149.1",
-      "status": "blocked",
-      "blocker": "P4-EXT-WINDOWS-CODEX",
-      "observed_boundary": "mcp_child_started_no_host_events; current_host_offline_before_direct-call_artifacts_could_be_retrieved; repeated_icmp_and_ssh_timeout_at_2026-08-25T16:43:35+08:00",
-      "possible_task_residue": "marked_diagnostic_root_pending_host_reachability"
+      "host_version": "0.149.0-alpha.4.3",
+      "distribution": "installed-app",
+      "status": "passed",
+      "verdict": "MATCHED",
+      "proof_id": "sha256:1750e2cc0e76def105fd200433c8f46c9c4b59bb62fdf2fe053343f0de0436ac",
+      "binding_id": "codex.agent-runtime-proof",
+      "proxy_handling": "task-scoped-loopback",
+      "cleanup": "passed"
     },
     {
       "host_id": "cursor",
@@ -37,5 +40,5 @@
     }
   ],
   "required_real_agent_hosts": 1,
-  "passed_real_agent_hosts": 0
+  "passed_real_agent_hosts": 1
 }

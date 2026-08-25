@@ -8,8 +8,8 @@ Current development includes the Phase 1 read-only CLI core, the Phase 2 local
 `stdio` MCP surface, the Phase 3 launch Witness, and the Phase 4 data-only Host
 Profiles. The same contracts and application layer drive every interface; MCP
 and Witness do not open a network listener or maintain a second verdict model.
-Phase 4 is not accepted yet because the Windows Codex row remains externally
-blocked; see the [current Phase 4 decision](docs/phase4-acceptance.md).
+Phase 4 is accepted across the owner-selected real-host matrix; see the
+[Phase 4 acceptance record](docs/phase4-acceptance.md).
 
 The v1 boundary is intentionally narrow:
 
@@ -112,7 +112,7 @@ Hosts that already own process creation can embed the same contract through
 `sdk/witness`: call `PrepareLaunch`, start the exact returned command and argv,
 then call `Spawned` with the child PID.
 
-The complete Phase 4 named-host matrix and Phase 5 release assets remain
+The Phase 4 named-host matrix is complete. Phase 5 release assets remain
 unfinished. Remote attestation, a daemon, network listeners, repair actions,
 and Agent configuration writes remain outside v1. Passive inspection of
 interpreter and declared-tree runtimes remains conservative when the active
