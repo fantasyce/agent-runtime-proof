@@ -104,13 +104,13 @@
 - Binding IDs are deterministic `host_id.server_name` identifiers. If multiple readable sources define different bytes for that identifier, discovery returns a typed ambiguity rather than choosing by timestamp.
 - Produces `Binding.Match([]model.Candidate) (model.Candidate, error)` using a resolved direct executable path and safe positional fingerprints; zero candidates means not running, multiple candidates means ambiguous.
 
-- [ ] **Step 1: Add failing discovery tests.** Cover `${HOME}`/`${WORKSPACE}` expansion, Windows profile paths, missing optional files, explicit paths, symlink/junction rejection, no-follow reads, mutation during read, deterministic config hash, stable binding ID, same-content deduplication, conflicting-source ambiguity, unreadable config, and zero residue.
-- [ ] **Step 2: Add failing process-match tests.** Cover exact resolved path, basename-only hint that never becomes bound confidence, one candidate, zero candidates, duplicate candidates, interpreter/wrapper mismatch, and PID-creation-time revalidation.
-- [ ] **Step 3: Run focused tests and confirm failures because discovery/matching are absent.**
-- [ ] **Step 4: Implement pinned bounded reads, canonical config hashing, safe projections, typed errors, and deterministic binding aggregation.** Reuse existing path/privacy hashing domains; never serialize raw `Command` or `Args`.
-- [ ] **Step 5: Implement conservative process matching.** A binding is `bound` only with exact resolved executable evidence; basename matches remain `hint` and cannot produce `MATCHED` without expectation/artifact evidence.
-- [ ] **Step 6: Run `go test -race ./internal/hostprofile ./internal/contracttest -count=3` and Windows cross-builds; confirm pass.**
-- [ ] **Step 7: Commit `feat: discover safe host bindings`.**
+- [x] **Step 1: Add failing discovery tests.** Cover `${HOME}`/`${WORKSPACE}` expansion, Windows profile paths, missing optional files, explicit paths, symlink/junction rejection, no-follow reads, mutation during read, deterministic config hash, stable binding ID, same-content deduplication, conflicting-source ambiguity, unreadable config, and zero residue.
+- [x] **Step 2: Add failing process-match tests.** Cover exact resolved path, basename-only hint that never becomes bound confidence, one candidate, zero candidates, duplicate candidates, interpreter/wrapper mismatch, and PID-creation-time revalidation.
+- [x] **Step 3: Run focused tests and confirm failures because discovery/matching are absent.**
+- [x] **Step 4: Implement pinned bounded reads, canonical config hashing, safe projections, typed errors, and deterministic binding aggregation.** Reuse existing path/privacy hashing domains; never serialize raw `Command` or `Args`.
+- [x] **Step 5: Implement conservative process matching.** A binding is `bound` only with exact resolved executable evidence; basename matches remain `hint` and cannot produce `MATCHED` without expectation/artifact evidence.
+- [x] **Step 6: Run `go test -race ./internal/hostprofile ./internal/contracttest -count=3` and Windows cross-builds; confirm pass.**
+- [x] **Step 7: Commit `feat: discover safe host bindings`.**
 
 ### Task 4: Wire bindings through app, CLI, doctor, and MCP
 
