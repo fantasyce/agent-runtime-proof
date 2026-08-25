@@ -4,7 +4,13 @@ Agent Runtime Proof is an independent Across ecosystem project for verifying
 which local runtime an Agent actually launched and whether the observable
 runtime matches a declared expectation.
 
-Current development includes the Phase 1 read-only CLI core, the Phase 2 local
+Imagine updating an Agent at noon while yesterday's process quietly keeps
+running. The file on disk says “new,” but the process doing the work is still
+old. Agent Runtime Proof binds the live process identity to an explicit local
+artifact expectation so an Agent reports that uncertainty instead of
+mistaking a replaced file for the loaded runtime.
+
+Version 1 includes the Phase 1 read-only CLI core, the Phase 2 local
 `stdio` MCP surface, the Phase 3 launch Witness, and the Phase 4 data-only Host
 Profiles. The same contracts and application layer drive every interface; MCP
 and Witness do not open a network listener or maintain a second verdict model.
@@ -40,6 +46,15 @@ core evidence. The [Phase 2 record](docs/phase2-acceptance.md) captures stdio
 MCP and real-host results. The [Phase 3 record](docs/phase3-acceptance.md)
 captures the cross-platform Witness, launch receipts, lifecycle, SDK, and
 installed-binary evidence.
+
+## Install and verify
+
+The current release is
+[v1.0.0](https://github.com/fantasyce/agent-runtime-proof/releases/tag/v1.0.0).
+Download the archive for your platform, verify it against `SHA256SUMS`, and
+follow the clean install, upgrade, downgrade, and uninstall instructions in
+[docs/install.md](docs/install.md). Release assets include CycloneDX SBOMs and
+GitHub artifact attestations.
 
 ## CLI
 
@@ -112,9 +127,9 @@ Hosts that already own process creation can embed the same contract through
 `sdk/witness`: call `PrepareLaunch`, start the exact returned command and argv,
 then call `Spawned` with the child PID.
 
-The Phase 4 named-host matrix is complete. Phase 5 release assets remain
-unfinished. Remote attestation, a daemon, network listeners, repair actions,
-and Agent configuration writes remain outside v1. Passive inspection of
+The Phase 4 named-host matrix is complete. Remote attestation, a daemon,
+network listeners, repair actions, and Agent configuration writes remain
+outside v1. Passive inspection of
 interpreter and declared-tree runtimes remains conservative when the active
 entrypoint cannot be observed; an on-disk digest alone is never reported as a
 loaded-runtime match.
