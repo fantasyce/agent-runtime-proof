@@ -8,6 +8,7 @@ import (
 
 	"github.com/fantasyce/agent-runtime-proof/internal/artifact"
 	"github.com/fantasyce/agent-runtime-proof/internal/expectation"
+	"github.com/fantasyce/agent-runtime-proof/internal/hostprofile"
 	"github.com/fantasyce/agent-runtime-proof/internal/model"
 	processobserver "github.com/fantasyce/agent-runtime-proof/internal/process"
 )
@@ -18,6 +19,7 @@ type Input struct {
 	Artifact          *model.ArtifactObservation
 	ProcessError      error
 	ArtifactError     error
+	HostError         error
 	KnownPriorDigests map[string]bool
 }
 
@@ -31,10 +33,29 @@ type Decision struct {
 func Evaluate(input Input) Decision {
 	if input.Expectation == nil {
 		result := Decision{Verdict: "UNKNOWN", ProofLevel: "PROCESS_OBSERVED", ReasonCodes: []string{"EXPECTATION_MISSING"}, Limitations: []string{"EXPECTATION_MISSING"}}
+		if reason := hostReason(input.HostError); reason != "" {
+			result.ReasonCodes = append(result.ReasonCodes, reason)
+		}
 		if reason := processReason(input.ProcessError); reason != "" {
 			result.ReasonCodes = append(result.ReasonCodes, reason)
 		}
 		return result
+	}
+	if input.HostError != nil {
+		var hostError *hostprofile.Error
+		if errors.As(input.HostError, &hostError) {
+			switch hostError.Code {
+			case "HOST_PROCESS_NOT_RUNNING":
+				return decision("NOT_RUNNING", "CONFIG_BOUND", "PROCESS_NOT_FOUND")
+			case "HOST_PROCESS_AMBIGUOUS", "HOST_BINDING_AMBIGUOUS":
+				return decision("CONFLICT", "CONFIG_BOUND", "HOST_BINDING_AMBIGUOUS")
+			case "HOST_CONFIG_INVALID":
+				return decision("UNKNOWN", "CONFIG_BOUND", "HOST_CONFIG_INVALID")
+			case "HOST_CONFIG_INACCESSIBLE":
+				return decision("UNKNOWN", "CONFIG_BOUND", "HOST_CONFIG_INACCESSIBLE")
+			}
+		}
+		return decision("UNKNOWN", "CONFIG_BOUND", "HOST_CONFIG_INACCESSIBLE")
 	}
 	if input.ProcessError != nil {
 		var processError *processobserver.Error
@@ -102,6 +123,25 @@ func Evaluate(input Input) Decision {
 		result.Limitations = append(result.Limitations, "EXPECTATION_UNTRUSTED")
 	}
 	return result
+}
+
+func hostReason(value error) string {
+	var hostError *hostprofile.Error
+	if !errors.As(value, &hostError) {
+		return ""
+	}
+	switch hostError.Code {
+	case "HOST_PROCESS_NOT_RUNNING":
+		return "PROCESS_NOT_FOUND"
+	case "HOST_PROCESS_AMBIGUOUS", "HOST_BINDING_AMBIGUOUS":
+		return "HOST_BINDING_AMBIGUOUS"
+	case "HOST_CONFIG_INVALID":
+		return "HOST_CONFIG_INVALID"
+	case "HOST_CONFIG_INACCESSIBLE":
+		return "HOST_CONFIG_INACCESSIBLE"
+	default:
+		return ""
+	}
 }
 
 func processReason(value error) string {

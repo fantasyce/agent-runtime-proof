@@ -27,7 +27,7 @@ const (
 type Runtime interface {
 	Inspect(context.Context, app.InspectRequest) (app.InspectResult, error)
 	Verify(context.Context, app.VerifyRequest) (app.VerifyResult, error)
-	Doctor(context.Context) app.DoctorResult
+	Doctor(context.Context, app.DoctorRequest) app.DoctorResult
 }
 
 type WitnessRuntime interface {
@@ -110,19 +110,20 @@ func runWitness(ctx context.Context, args []string, stdin io.Reader, stdout, std
 
 func runInspect(ctx context.Context, args []string, stdout, stderr io.Writer, runtime Runtime) int {
 	if helpRequested(args) {
-		fmt.Fprintln(stdout, "Usage: agent-runtime-proof inspect (--pid PID | --all) [--limit N] [--format table|json]")
+		fmt.Fprintln(stdout, "Usage: agent-runtime-proof inspect (--pid PID | --binding ID | --all) [--limit N] [--format table|json]")
 		return ExitOK
 	}
 	flags := newFlagSet("inspect")
 	pid := flags.Int("pid", 0, "process ID")
+	bindingID := flags.String("binding", "", "host binding identifier")
 	all := flags.Bool("all", false, "inspect a bounded current-user inventory")
 	limit := flags.Int("limit", 0, "inventory limit")
 	format := flags.String("format", "table", "table or json")
-	if err := flags.Parse(args); err != nil || flags.NArg() != 0 || !validFormat(*format) || (*pid > 0) == *all || *pid < 0 || *limit < 0 || *limit > 4096 {
+	if err := flags.Parse(args); err != nil || flags.NArg() != 0 || !validFormat(*format) || boolInt(*pid > 0)+boolInt(*bindingID != "")+boolInt(*all) != 1 || *pid < 0 || *limit < 0 || *limit > 4096 || (!*all && *limit != 0) {
 		writeDiagnostic(stderr, "invalid inspect arguments")
 		return ExitInvalidInput
 	}
-	result, err := runtime.Inspect(ctx, app.InspectRequest{PID: *pid, All: *all, Limit: *limit})
+	result, err := runtime.Inspect(ctx, app.InspectRequest{PID: *pid, BindingID: *bindingID, All: *all, Limit: *limit})
 	if err != nil {
 		return handleError(stderr, err)
 	}
@@ -143,20 +144,21 @@ func runInspect(ctx context.Context, args []string, stdout, stderr io.Writer, ru
 
 func runVerify(ctx context.Context, args []string, stdout, stderr io.Writer, runtime Runtime) int {
 	if helpRequested(args) {
-		fmt.Fprintln(stdout, "Usage: agent-runtime-proof verify --expectation FILE --pid PID [--known-prior-digest SHA256] [--format table|json]")
+		fmt.Fprintln(stdout, "Usage: agent-runtime-proof verify --expectation FILE (--pid PID | --binding ID) [--known-prior-digest SHA256] [--format table|json]")
 		return ExitOK
 	}
 	flags := newFlagSet("verify")
 	pid := flags.Int("pid", 0, "process ID")
+	bindingID := flags.String("binding", "", "host binding identifier")
 	expectationPath := flags.String("expectation", "", "expectation file")
 	format := flags.String("format", "table", "table or json")
 	var knownPriorDigests digestList
 	flags.Var(&knownPriorDigests, "known-prior-digest", "directly known prior artifact SHA-256 (repeatable)")
-	if err := flags.Parse(args); err != nil || flags.NArg() != 0 || !validFormat(*format) || *pid <= 0 || *expectationPath == "" || !knownPriorDigests.valid() {
+	if err := flags.Parse(args); err != nil || flags.NArg() != 0 || !validFormat(*format) || boolInt(*pid > 0)+boolInt(*bindingID != "") != 1 || *pid < 0 || *expectationPath == "" || !knownPriorDigests.valid() {
 		writeDiagnostic(stderr, "invalid verify arguments")
 		return ExitInvalidInput
 	}
-	result, err := runtime.Verify(ctx, app.VerifyRequest{PID: *pid, ExpectationPath: *expectationPath, KnownPriorDigests: knownPriorDigests.set()})
+	result, err := runtime.Verify(ctx, app.VerifyRequest{PID: *pid, BindingID: *bindingID, ExpectationPath: *expectationPath, KnownPriorDigests: knownPriorDigests.set()})
 	if err != nil {
 		return handleError(stderr, err)
 	}
@@ -178,16 +180,17 @@ func runVerify(ctx context.Context, args []string, stdout, stderr io.Writer, run
 
 func runDoctor(ctx context.Context, args []string, stdout, stderr io.Writer, runtime Runtime) int {
 	if helpRequested(args) {
-		fmt.Fprintln(stdout, "Usage: agent-runtime-proof doctor [--format table|json]")
+		fmt.Fprintln(stdout, "Usage: agent-runtime-proof doctor [--host HOST_ID] [--format table|json]")
 		return ExitOK
 	}
 	flags := newFlagSet("doctor")
 	format := flags.String("format", "table", "table or json")
+	hostID := flags.String("host", "", "host profile identifier")
 	if err := flags.Parse(args); err != nil || flags.NArg() != 0 || !validFormat(*format) {
 		writeDiagnostic(stderr, "invalid doctor arguments")
 		return ExitInvalidInput
 	}
-	result := runtime.Doctor(ctx)
+	result := runtime.Doctor(ctx, app.DoctorRequest{HostID: *hostID})
 	if *format == "json" {
 		return writeJSON(stdout, stderr, result)
 	}
@@ -244,6 +247,13 @@ func verdictExit(verdict string) int {
 }
 
 func validFormat(value string) bool { return value == "table" || value == "json" }
+
+func boolInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
+}
 
 func helpRequested(args []string) bool {
 	return len(args) == 1 && (args[0] == "--help" || args[0] == "-h")

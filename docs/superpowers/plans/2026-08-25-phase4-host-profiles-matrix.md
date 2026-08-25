@@ -136,15 +136,15 @@
 - CLI accepts `inspect --binding ID`, `verify --binding ID`, and `doctor --host HOST_ID` as frozen by the architecture document.
 - MCP list results include safe `host_id` and `binding_id`; tool inputs accept explicit host/binding selectors without trusting `clientInfo`.
 
-- [ ] **Step 1: Add failing application tests.** Prove binding-selected inspect/verify, host attribution, missing/ambiguous binding verdicts, profile parse limitations, explicit PID fallback after Profile failure, and no raw config data in errors or Proof JSON.
-- [ ] **Step 2: Run application tests and confirm the new selector cases fail.**
-- [ ] **Step 3: Implement minimal resolver composition and host-attributed Proof building.** Do not change evaluator verdict rules or let a Profile override expectation/artifact evidence.
-- [ ] **Step 4: Add failing CLI tests and goldens for selector exclusivity, JSON output, doctor host checks, negative/unknown exit codes, and sanitized diagnostics.**
-- [ ] **Step 5: Implement CLI flags and update help text; run CLI tests until green.**
-- [ ] **Step 6: Add failing MCP tests for host candidate listing, binding inspect/verify, domain results vs transport errors, prior-client negotiation, cancellation, EOF, concurrency isolation, and untrusted `clientInfo`.**
-- [ ] **Step 7: Implement MCP binding inputs/outputs and runtime composition; run MCP tests with `-race -count=3`.**
-- [ ] **Step 8: Run `./scripts/check.sh`, all Windows cross-builds, and `git diff --check`; confirm pass.**
-- [ ] **Step 9: Commit `feat: expose host binding verification`.**
+- [x] **Step 1: Add failing application tests.** Prove binding-selected inspect/verify, host attribution, missing/ambiguous binding verdicts, profile parse limitations, explicit PID fallback after Profile failure, and no raw config data in errors or Proof JSON.
+- [x] **Step 2: Run application tests and confirm the new selector cases fail.**
+- [x] **Step 3: Implement minimal resolver composition and host-attributed Proof building.** Do not change evaluator verdict rules or let a Profile override expectation/artifact evidence.
+- [x] **Step 4: Add failing CLI tests and goldens for selector exclusivity, JSON output, doctor host checks, negative/unknown exit codes, and sanitized diagnostics.**
+- [x] **Step 5: Implement CLI flags and update help text; run CLI tests until green.**
+- [x] **Step 6: Add failing MCP tests for host candidate listing, binding inspect/verify, domain results vs transport errors, prior-client negotiation, cancellation, EOF, concurrency isolation, and untrusted `clientInfo`.**
+- [x] **Step 7: Implement MCP binding inputs/outputs and runtime composition; run MCP tests with `-race -count=3`.**
+- [x] **Step 8: Run `./scripts/check.sh`, all Windows cross-builds, and `git diff --check`; confirm pass.**
+- [x] **Step 9: Commit `feat: expose host binding verification`.**
 
 ### Task 5: Package Profiles, configuration fixtures, and host guidance
 

@@ -105,6 +105,40 @@ func TestRunInspectJSONIsOnePureValue(t *testing.T) {
 	}
 }
 
+func TestRunBindingSelectorsAndHostDoctor(t *testing.T) {
+	service := &fakeService{inspect: app.InspectResult{Proofs: []model.Proof{safeProof("UNKNOWN")}}, verify: app.VerifyResult{Proof: safeProof("MATCHED")}}
+	for _, test := range []struct {
+		args        []string
+		wantInspect string
+		wantVerify  string
+		wantHost    string
+	}{
+		{args: []string{"inspect", "--binding", "cursor.arp", "--format", "json"}, wantInspect: "cursor.arp"},
+		{args: []string{"verify", "--binding", "cursor.arp", "--expectation", "expectation.json", "--format", "json"}, wantVerify: "cursor.arp"},
+		{args: []string{"doctor", "--host", "cursor", "--format", "json"}, wantHost: "cursor"},
+	} {
+		var stdout, stderr bytes.Buffer
+		if code := Run(context.Background(), test.args, strings.NewReader(""), &stdout, &stderr, service); code != ExitOK || stderr.Len() != 0 || !json.Valid(stdout.Bytes()) {
+			t.Fatalf("args=%v code/output=%q/%q", test.args, stdout.String(), stderr.String())
+		}
+		if test.wantInspect != "" && service.lastInspect.BindingID != test.wantInspect {
+			t.Fatalf("inspect request = %#v", service.lastInspect)
+		}
+		if test.wantVerify != "" && service.lastVerify.BindingID != test.wantVerify {
+			t.Fatalf("verify request = %#v", service.lastVerify)
+		}
+		if test.wantHost != "" && service.lastDoctor.HostID != test.wantHost {
+			t.Fatalf("doctor request = %#v", service.lastDoctor)
+		}
+	}
+	for _, args := range [][]string{{"inspect", "--pid", "42", "--binding", "cursor.arp"}, {"verify", "--pid", "42", "--binding", "cursor.arp", "--expectation", "x"}} {
+		var stdout, stderr bytes.Buffer
+		if code := Run(context.Background(), args, strings.NewReader(""), &stdout, &stderr, service); code != ExitInvalidInput {
+			t.Fatalf("accepted conflicting selectors: %v", args)
+		}
+	}
+}
+
 func TestRunVerifyExitSeverity(t *testing.T) {
 	for _, test := range []struct {
 		verdict string
@@ -168,13 +202,16 @@ type fakeService struct {
 	doctor        app.DoctorResult
 	err           error
 	lastVerify    app.VerifyRequest
+	lastInspect   app.InspectRequest
+	lastDoctor    app.DoctorRequest
 	verifyCalls   int
 	witnessResult witness.Result
 	witnessErr    error
 	lastWitness   witness.RunRequest
 }
 
-func (fake *fakeService) Inspect(context.Context, app.InspectRequest) (app.InspectResult, error) {
+func (fake *fakeService) Inspect(_ context.Context, request app.InspectRequest) (app.InspectResult, error) {
+	fake.lastInspect = request
 	return fake.inspect, fake.err
 }
 
@@ -184,7 +221,10 @@ func (fake *fakeService) Verify(_ context.Context, request app.VerifyRequest) (a
 	return fake.verify, fake.err
 }
 
-func (fake *fakeService) Doctor(context.Context) app.DoctorResult { return fake.doctor }
+func (fake *fakeService) Doctor(_ context.Context, request app.DoctorRequest) app.DoctorResult {
+	fake.lastDoctor = request
+	return fake.doctor
+}
 
 func (fake *fakeService) RunWitness(_ context.Context, request witness.RunRequest) (witness.Result, error) {
 	fake.lastWitness = request

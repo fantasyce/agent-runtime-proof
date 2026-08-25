@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
@@ -25,11 +26,25 @@ type DoctorResult struct {
 	Limitations  []string       `json:"limitations"`
 }
 
-func (service *Service) Doctor(ctx context.Context) DoctorResult {
+type DoctorRequest struct{ HostID string }
+
+func (service *Service) Doctor(ctx context.Context, request DoctorRequest) DoctorResult {
 	result := DoctorResult{
 		Status: "ok", Platform: model.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH},
 		Checks: []DoctorCheck{}, Capabilities: []string{},
-		Limitations: []string{"host-profiles unavailable in Phase 1A", "MCP unavailable in Phase 1A", "Witness unavailable in Phase 1A"},
+		Limitations: []string{},
+	}
+	result.Capabilities = append(result.Capabilities, "host-profiles", "mcp", "witness")
+	if request.HostID != "" {
+		if service.HostProfiles == nil {
+			result.Status = "warning"
+			result.Checks = append(result.Checks, DoctorCheck{Name: "host-profile", Status: "warning", Detail: "host profile resolver is unavailable"})
+		} else if bindings, err := service.HostProfiles.Bindings(ctx, request.HostID); err != nil {
+			result.Status = "warning"
+			result.Checks = append(result.Checks, DoctorCheck{Name: "host-profile", Status: "warning", Detail: "host profile configuration could not be safely resolved"})
+		} else {
+			result.Checks = append(result.Checks, DoctorCheck{Name: "host-profile", Status: "ok", Detail: fmt.Sprintf("host profile is available with %d safe binding(s)", len(bindings))})
+		}
 	}
 	if artifact.ReadingSupported() {
 		result.Capabilities = append(result.Capabilities, "read-only-artifact-digest")

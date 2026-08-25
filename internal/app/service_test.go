@@ -2,13 +2,18 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/fantasyce/agent-runtime-proof/internal/artifact"
 	"github.com/fantasyce/agent-runtime-proof/internal/expectation"
+	"github.com/fantasyce/agent-runtime-proof/internal/hostprofile"
 	"github.com/fantasyce/agent-runtime-proof/internal/model"
 	processobserver "github.com/fantasyce/agent-runtime-proof/internal/process"
 )
@@ -99,6 +104,95 @@ func TestVerifyReturnsNotRunningProofAndRejectsMissingExpectation(t *testing.T) 
 	if _, err := service.Verify(context.Background(), VerifyRequest{PID: 42}); !errors.Is(err, ErrInvalidInput) {
 		t.Fatalf("missing expectation error = %v", err)
 	}
+}
+
+func TestInspectAndVerifyByBindingPreserveAttributionAndRevalidate(t *testing.T) {
+	binding := testBinding(t)
+	observer := &fakeObserver{candidates: map[int]model.Candidate{42: candidate(42)}}
+	service := testService(observer)
+	service.HostProfiles = fakeHostProfiles{binding: binding}
+	inspected, err := service.Inspect(context.Background(), InspectRequest{BindingID: binding.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(inspected.Proofs) != 1 || inspected.Proofs[0].HostAttribution == nil || inspected.Proofs[0].HostAttribution.HostID != "cursor" || observer.revalidated != 1 {
+		t.Fatalf("inspect = %#v, revalidated=%d", inspected, observer.revalidated)
+	}
+	service.LoadExpectation = func(string) (expectation.Resolved, error) { return resolvedExpectation(), nil }
+	service.DigestArtifact = func(context.Context, expectation.Resolved, artifact.Clock) (model.ArtifactObservation, error) {
+		return model.ArtifactObservation{SHA256: strings.Repeat("b", 64), FileCount: 1, ByteCount: 10, EntrypointFileIdentity: "dev:1"}, nil
+	}
+	verified, err := service.Verify(context.Background(), VerifyRequest{BindingID: binding.ID, ExpectationPath: "expectation.json"})
+	if err != nil || verified.Proof.Verdict != "MATCHED" || verified.Proof.HostAttribution == nil {
+		t.Fatalf("verify = %#v, %v", verified, err)
+	}
+}
+
+func TestBindingFailureBecomesSafeDomainProofAndPIDFallbackStillWorks(t *testing.T) {
+	observer := &fakeObserver{candidates: map[int]model.Candidate{42: candidate(42)}}
+	service := testService(observer)
+	service.HostProfiles = fakeHostProfiles{err: &hostprofile.Error{Code: "HOST_CONFIG_INVALID"}}
+	result, err := service.Inspect(context.Background(), InspectRequest{BindingID: "cursor.arp"})
+	if err != nil || result.Proofs[0].Verdict != "UNKNOWN" || !containsReason(result.Proofs[0].ReasonCodes, "HOST_CONFIG_INVALID") {
+		t.Fatalf("binding failure = %#v, %v", result, err)
+	}
+	pIDResult, err := service.Inspect(context.Background(), InspectRequest{PID: 42})
+	if err != nil || pIDResult.Proofs[0].Observation.Process.PID != 42 {
+		t.Fatalf("PID fallback = %#v, %v", pIDResult, err)
+	}
+	encoded, _ := json.Marshal(result)
+	if strings.Contains(string(encoded), "/Users/private") || strings.Contains(string(encoded), "token-secret") {
+		t.Fatalf("unsafe result: %s", encoded)
+	}
+}
+
+func TestBindingNotRunningRetainsSafeAttribution(t *testing.T) {
+	binding := testBinding(t)
+	service := testService(&fakeObserver{candidates: map[int]model.Candidate{}})
+	service.HostProfiles = fakeHostProfiles{binding: binding}
+	result, err := service.Inspect(context.Background(), InspectRequest{BindingID: binding.ID})
+	if err != nil || result.Proofs[0].HostAttribution == nil || result.Proofs[0].HostAttribution.BindingID != binding.ID || !containsReason(result.Proofs[0].ReasonCodes, "PROCESS_NOT_FOUND") {
+		t.Fatalf("not-running binding = %#v, %v", result, err)
+	}
+}
+
+func TestInspectHostListsAttributedBindingsFromOneBoundedInventory(t *testing.T) {
+	binding := testBinding(t)
+	observer := &fakeObserver{candidates: map[int]model.Candidate{42: candidate(42)}}
+	service := testService(observer)
+	service.HostProfiles = fakeHostProfiles{binding: binding}
+	result, err := service.Inspect(context.Background(), InspectRequest{All: true, HostID: "cursor", Limit: 7})
+	if err != nil || len(result.Proofs) != 1 || result.Proofs[0].HostAttribution == nil || result.Proofs[0].HostAttribution.BindingID != binding.ID || observer.listLimit != 7 {
+		t.Fatalf("host inventory = %#v, err=%v, limit=%d", result, err, observer.listLimit)
+	}
+}
+
+type fakeHostProfiles struct {
+	binding hostprofile.Binding
+	err     error
+}
+
+func (fake fakeHostProfiles) Binding(context.Context, string) (hostprofile.Binding, error) {
+	return fake.binding, fake.err
+}
+func (fake fakeHostProfiles) Bindings(context.Context, string) ([]hostprofile.Binding, error) {
+	if fake.err != nil {
+		return nil, fake.err
+	}
+	return []hostprofile.Binding{fake.binding}, nil
+}
+
+func testBinding(t *testing.T) hostprofile.Binding {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "mcp.json")
+	if err := os.WriteFile(path, []byte(`{"mcpServers":{"arp":{"command":"/fixture/runtime","args":["mcp"]}}}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	result, err := hostprofile.Discover(context.Background(), hostprofile.Request{HostID: "cursor", Platform: runtime.GOOS, ExplicitConfigPath: path})
+	if err != nil || len(result.Bindings) != 1 {
+		t.Fatalf("binding fixture = %#v, %v", result, err)
+	}
+	return result.Bindings[0]
 }
 
 type fakeObserver struct {

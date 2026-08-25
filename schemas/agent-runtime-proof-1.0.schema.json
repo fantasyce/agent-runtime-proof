@@ -118,6 +118,7 @@
       "required": ["host_id", "config_source_hash", "confidence"],
       "properties": {
         "host_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+        "binding_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
         "config_source_hash": {"$ref": "#/$defs/prefixedSha256"},
         "confidence": {"enum": ["hint", "correlated", "bound"]}
       }
