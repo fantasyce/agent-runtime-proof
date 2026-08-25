@@ -30,6 +30,9 @@ func RunGuardianIfRequested() (bool, int) {
 }
 
 func runGuardian() int {
+	if err := configureGuardianReaping(); err != nil {
+		return 70
+	}
 	owner := os.NewFile(3, "witness-owner")
 	configuration := os.NewFile(4, "witness-configuration")
 	status := os.NewFile(5, "witness-status")
@@ -84,10 +87,12 @@ func runGuardian() int {
 	select {
 	case waitErr := <-targetDone:
 		_ = syscall.Kill(-pid, syscall.SIGKILL)
+		reapGuardianChildren()
 		return guardianExitCode(waitErr)
 	case <-ownerDone:
 		_ = syscall.Kill(-pid, syscall.SIGKILL)
 		<-targetDone
+		reapGuardianChildren()
 		return 70
 	}
 }
