@@ -16,6 +16,9 @@ Profiles. The same contracts and application layer drive every interface; MCP
 and Witness do not open a network listener or maintain a second verdict model.
 Phase 4 is accepted across the owner-selected real-host matrix; see the
 [Phase 4 acceptance record](docs/phase4-acceptance.md).
+The Phase 5 release implementation and local candidate gates are recorded in
+[the Phase 5 acceptance record](docs/phase5-acceptance.md); GitHub Release
+assets remain the authority for whether publication has actually completed.
 
 The v1 boundary is intentionally narrow:
 

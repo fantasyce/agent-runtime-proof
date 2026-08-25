@@ -1,7 +1,7 @@
 # Agent Runtime Proof 架构、开发与验收设计
 
 - 更新日期：2026-08-26
-- 状态：Phase 0、Phase 1、Phase 2、Phase 3 与 Phase 4 已完成；Phase 5 开源发版尚未开始
+- 状态：Phase 0 至 Phase 4 已完成；Phase 5 实现与本地候选验收通过，公开 tag、Release 与发布后二次验证待完成
 - Phase 0 验收记录：[phase0-acceptance.md](phase0-acceptance.md)
 - Phase 1A 验收记录：[phase1-macos-acceptance.md](phase1-macos-acceptance.md)
 - Windows 核心验收记录：[phase1-windows-acceptance.md](phase1-windows-acceptance.md)
@@ -10,6 +10,7 @@
 - Phase 3 验收记录：[phase3-acceptance.md](phase3-acceptance.md)
 - Phase 4 验收状态：[phase4-acceptance.md](phase4-acceptance.md)
 - Phase 4 阻塞项：[phase4-blockers.md](issues/phase4-blockers.md)
+- Phase 5 候选验收：[phase5-acceptance.md](phase5-acceptance.md)
 
 本期唯一开发切口：Agent Runtime Proof（下文简称 ARP）
 
