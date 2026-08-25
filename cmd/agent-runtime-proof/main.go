@@ -20,6 +20,15 @@ var (
 	commit  = "0000000"
 )
 
+type localRuntime struct {
+	*app.Service
+	WitnessController *witness.Controller
+}
+
+func (value *localRuntime) RunWitness(ctx context.Context, request witness.RunRequest) (witness.Result, error) {
+	return witness.Run(ctx, value.WitnessController, request)
+}
+
 func main() {
 	if guarded, code := witness.RunGuardianIfRequested(); guarded {
 		os.Exit(code)
@@ -33,5 +42,6 @@ func main() {
 		}
 		return
 	}
-	os.Exit(cli.Run(context.Background(), os.Args[1:], os.Stdout, os.Stderr, service))
+	local := &localRuntime{Service: service, WitnessController: witness.NewController(witness.Dependencies{Tool: tool})}
+	os.Exit(cli.Run(context.Background(), os.Args[1:], os.Stdin, os.Stdout, os.Stderr, local))
 }

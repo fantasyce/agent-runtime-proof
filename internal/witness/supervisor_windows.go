@@ -222,6 +222,8 @@ func (value *windowsSupervisor) ForceStop() error {
 	return windows.TerminateJobObject(value.job, 1)
 }
 
+func (value *windowsSupervisor) ForwardSignal(os.Signal) error { return value.GracefulStop() }
+
 func copyAndClose(group *sync.WaitGroup, destination io.Writer, source *os.File) {
 	defer group.Done()
 	defer source.Close()

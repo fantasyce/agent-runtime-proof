@@ -28,6 +28,7 @@ type supervisor interface {
 	Wait() error
 	GracefulStop() error
 	ForceStop() error
+	ForwardSignal(os.Signal) error
 }
 
 func processExitCode(err error) int {

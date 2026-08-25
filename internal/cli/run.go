@@ -10,8 +10,10 @@ import (
 	"io"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/fantasyce/agent-runtime-proof/internal/app"
+	"github.com/fantasyce/agent-runtime-proof/internal/witness"
 )
 
 const (
@@ -28,7 +30,11 @@ type Runtime interface {
 	Doctor(context.Context) app.DoctorResult
 }
 
-func Run(ctx context.Context, args []string, stdout, stderr io.Writer, runtime Runtime) int {
+type WitnessRuntime interface {
+	RunWitness(context.Context, witness.RunRequest) (witness.Result, error)
+}
+
+func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.Writer, runtime Runtime) int {
 	if len(args) == 1 && (args[0] == "--help" || args[0] == "-h") {
 		writeUsage(stdout)
 		return ExitOK
@@ -44,10 +50,62 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer, runtime R
 		return runVerify(ctx, args[1:], stdout, stderr, runtime)
 	case "doctor":
 		return runDoctor(ctx, args[1:], stdout, stderr, runtime)
+	case "witness":
+		return runWitness(ctx, args[1:], stdin, stdout, stderr, runtime)
 	default:
 		writeDiagnostic(stderr, "unknown command")
 		return ExitInvalidInput
 	}
+}
+
+func runWitness(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.Writer, runtime Runtime) int {
+	if helpRequested(args) {
+		fmt.Fprintln(stdout, "Usage: agent-runtime-proof witness [--expectation FILE] [--grace-period DURATION] -- COMMAND [ARG...]")
+		return ExitOK
+	}
+	delimiter := -1
+	for index, value := range args {
+		if value == "--" {
+			delimiter = index
+			break
+		}
+	}
+	if delimiter < 0 || delimiter+1 >= len(args) {
+		writeDiagnostic(stderr, "invalid witness arguments")
+		return ExitInvalidInput
+	}
+	flags := newFlagSet("witness")
+	expectationPath := flags.String("expectation", "", "expectation file")
+	gracePeriod := flags.Duration("grace-period", 5*time.Second, "graceful shutdown period")
+	if err := flags.Parse(args[:delimiter]); err != nil || flags.NArg() != 0 || *gracePeriod <= 0 || *gracePeriod > time.Minute {
+		writeDiagnostic(stderr, "invalid witness arguments")
+		return ExitInvalidInput
+	}
+	witnessRuntime, ok := runtime.(WitnessRuntime)
+	if !ok {
+		writeDiagnostic(stderr, "witness runtime is unavailable")
+		return ExitInternal
+	}
+	result, err := witnessRuntime.RunWitness(ctx, witness.RunRequest{
+		Command: append([]string{}, args[delimiter+1:]...), ExpectationPath: *expectationPath,
+		Stdin: stdin, Stdout: stdout, Stderr: stderr, GracePeriod: *gracePeriod,
+	})
+	if err != nil {
+		if errors.Is(err, witness.ErrInvalidInput) {
+			writeDiagnostic(stderr, "invalid witness input")
+			return ExitInvalidInput
+		}
+		writeDiagnostic(stderr, "witness operation failed")
+		return ExitInternal
+	}
+	if result.ReceiptID != "" {
+		fmt.Fprintln(stderr, "\nagent-runtime-proof: launch receipt", result.ReceiptID)
+	}
+	if result.ExitCode < 0 {
+		writeDiagnostic(stderr, "witness child exit status is invalid")
+		return ExitInternal
+	}
+	return result.ExitCode
 }
 
 func runInspect(ctx context.Context, args []string, stdout, stderr io.Writer, runtime Runtime) int {
@@ -203,7 +261,7 @@ func writeDiagnostic(stderr io.Writer, message string) {
 }
 
 func writeUsage(output io.Writer) {
-	fmt.Fprintln(output, "Usage: agent-runtime-proof <inspect|verify|doctor|mcp> [options]")
+	fmt.Fprintln(output, "Usage: agent-runtime-proof <inspect|verify|witness|doctor|mcp> [options]")
 }
 
 type digestList []string

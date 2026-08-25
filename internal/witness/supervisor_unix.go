@@ -141,6 +141,14 @@ func (value *unixSupervisor) GracefulStop() error { return value.signalGroup(sys
 
 func (value *unixSupervisor) ForceStop() error { return value.signalGroup(syscall.SIGKILL) }
 
+func (value *unixSupervisor) ForwardSignal(signal os.Signal) error {
+	unixSignal, ok := signal.(syscall.Signal)
+	if !ok {
+		return errors.New("unsupported witness signal")
+	}
+	return value.signalGroup(unixSignal)
+}
+
 func (value *unixSupervisor) signalGroup(signal syscall.Signal) error {
 	value.mu.Lock()
 	if value.complete {

@@ -105,15 +105,15 @@
 - Produces: `witness.Run(context.Context, RunRequest) Result`; `Result` carries the child exit code and a safe receipt ID, never protocol bytes.
 - Extends CLI with `agent-runtime-proof witness [--expectation FILE] [--grace-period DURATION] -- COMMAND [ARG...]`.
 
-- [ ] **Step 1: Write failing runner integration tests** comparing binary stdout byte-for-byte with direct execution, passing child stderr unchanged only to parent stderr, writing no ARP diagnostic to stdout, closing child stdin on parent EOF, preserving non-zero exit status, and canceling/escalating without descendants.
-- [ ] **Step 2: Run `go test ./internal/witness`** and verify the runner tests fail because `Run` is absent.
-- [ ] **Step 3: Implement the proxy** with direct readers/writers, explicit stdin copy completion, receipt publication immediately after process identity observation, signal subscription only for Witness mode, bounded graceful shutdown, and guaranteed wait/cleanup.
-- [ ] **Step 4: Run focused runner tests with `-race -count=5`** and verify pass.
-- [ ] **Step 5: Write failing CLI tests** for `--` parsing, missing command, invalid expectation/grace period, exact child exit codes, protocol-pure stdout, and sanitized ARP-owned diagnostics.
-- [ ] **Step 6: Run `go test ./internal/cli`** and verify expected failure.
-- [ ] **Step 7: Wire the CLI and main composition** without extending the read-only application service interface or changing MCP behavior.
-- [ ] **Step 8: Run `go test ./internal/cli ./internal/witness ./internal/mcpserver`** and verify pass.
-- [ ] **Step 9: Commit `feat: add byte-transparent witness command`**.
+- [x] **Step 1: Write failing runner integration tests** comparing binary stdout byte-for-byte with direct execution, passing child stderr unchanged only to parent stderr, writing no ARP diagnostic to stdout, closing child stdin on parent EOF, preserving non-zero exit status, and canceling/escalating without descendants.
+- [x] **Step 2: Run `go test ./internal/witness`** and verify the runner tests fail because `Run` is absent.
+- [x] **Step 3: Implement the proxy** with direct readers/writers, explicit stdin copy completion, receipt publication immediately after process identity observation, signal subscription only for Witness mode, bounded graceful shutdown, and guaranteed wait/cleanup.
+- [x] **Step 4: Run focused runner tests with `-race -count=5`** and verify pass.
+- [x] **Step 5: Write failing CLI tests** for `--` parsing, missing command, invalid expectation/grace period, exact child exit codes, protocol-pure stdout, and sanitized ARP-owned diagnostics.
+- [x] **Step 6: Run `go test ./internal/cli`** and verify expected failure.
+- [x] **Step 7: Wire the CLI and main composition** without extending the read-only application service interface or changing MCP behavior.
+- [x] **Step 8: Run `go test ./internal/cli ./internal/witness ./internal/mcpserver`** and verify pass, plus an installed binary binary-payload smoke through `/bin/cat`.
+- [x] **Step 9: Commit `feat: add byte-transparent witness command`**.
 
 ### Task 5: Close macOS/Linux acceptance, then final Windows acceptance
 

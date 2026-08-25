@@ -25,6 +25,8 @@ import (
 
 const maximumCommandArguments = 256
 
+var ErrInvalidInput = errors.New("invalid witness input")
+
 type Clock interface {
 	Now() time.Time
 }
@@ -95,24 +97,24 @@ func (controller *Controller) PrepareLaunch(ctx context.Context, request Request
 		return nil, err
 	}
 	if len(request.Command) == 0 || len(request.Command) > maximumCommandArguments {
-		return nil, errors.New("invalid witness command")
+		return nil, invalidInput("command is invalid")
 	}
 	for _, value := range request.Command {
 		if value == "" || strings.ContainsRune(value, 0) {
-			return nil, errors.New("invalid witness command")
+			return nil, invalidInput("command is invalid")
 		}
 	}
 	resolvedExecutable, err := controller.dependencies.LookPath(request.Command[0])
 	if err != nil {
-		return nil, errors.New("witness executable is unavailable")
+		return nil, invalidInput("executable is unavailable")
 	}
 	resolvedExecutable, err = filepath.Abs(resolvedExecutable)
 	if err != nil {
-		return nil, errors.New("witness executable cannot be resolved")
+		return nil, invalidInput("executable cannot be resolved")
 	}
 	resolvedExecutable, err = controller.dependencies.EvalSymlinks(resolvedExecutable)
 	if err != nil {
-		return nil, errors.New("witness executable cannot be resolved")
+		return nil, invalidInput("executable cannot be resolved")
 	}
 	arguments := append([]string{}, request.Command[1:]...)
 	prepared := &PreparedLaunch{
@@ -124,7 +126,7 @@ func (controller *Controller) PrepareLaunch(ctx context.Context, request Request
 	}
 	resolvedExpectation, err := controller.dependencies.LoadExpectation(request.ExpectationPath)
 	if err != nil {
-		return nil, errors.New("witness expectation is invalid")
+		return nil, invalidInput("expectation is invalid")
 	}
 	if err := bindCommand(resolvedExpectation, resolvedExecutable, arguments, controller.dependencies.EvalSymlinks); err != nil {
 		return nil, err
@@ -134,7 +136,7 @@ func (controller *Controller) PrepareLaunch(ctx context.Context, request Request
 		return nil, errors.New("witness artifact cannot be observed")
 	}
 	if observedArtifact.SHA256 != resolvedExpectation.Value.Artifact.SHA256 {
-		return nil, errors.New("witness artifact does not match expectation")
+		return nil, invalidInput("artifact does not match expectation")
 	}
 	prepared.subject = &sdkmodel.Subject{
 		ID: resolvedExpectation.Value.Subject.ID, DisplayName: resolvedExpectation.Value.Subject.DisplayName, Version: resolvedExpectation.Value.Subject.Version,
@@ -210,36 +212,38 @@ func bindCommand(resolved expectation.Resolved, executable string, arguments []s
 	entrypoint := filepath.Join(resolved.ArtifactRoot, filepath.FromSlash(resolved.Value.Launch.Entrypoint))
 	entrypoint, err := evalSymlinks(entrypoint)
 	if err != nil {
-		return errors.New("witness entrypoint cannot be resolved")
+		return invalidInput("entrypoint cannot be resolved")
 	}
 	switch resolved.Value.Launch.Kind {
 	case "native", "declared-tree":
 		if !samePath(entrypoint, executable) {
-			return errors.New("witness command does not match expectation entrypoint")
+			return invalidInput("command does not match expectation entrypoint")
 		}
 	case "interpreter-script":
 		if len(arguments) == 0 {
-			return errors.New("witness command does not include expectation entrypoint")
+			return invalidInput("command does not include expectation entrypoint")
 		}
 		script, err := filepath.Abs(arguments[0])
 		if err != nil {
-			return errors.New("witness entrypoint argument cannot be resolved")
+			return invalidInput("entrypoint argument cannot be resolved")
 		}
 		script, err = evalSymlinks(script)
 		if err != nil || !samePath(entrypoint, script) {
-			return errors.New("witness command does not match expectation entrypoint")
+			return invalidInput("command does not match expectation entrypoint")
 		}
 	default:
-		return errors.New("witness expectation launch kind is invalid")
+		return invalidInput("expectation launch kind is invalid")
 	}
 	fullCommand := append([]string{executable}, arguments...)
 	for _, fingerprint := range resolved.Value.Launch.ArgumentFingerprints {
 		if fingerprint.Position >= len(fullCommand) || rawDigest(fullCommand[fingerprint.Position]) != fingerprint.SHA256 {
-			return errors.New("witness command arguments do not match expectation")
+			return invalidInput("command arguments do not match expectation")
 		}
 	}
 	return nil
 }
+
+func invalidInput(message string) error { return fmt.Errorf("%w: %s", ErrInvalidInput, message) }
 
 func commandProjection(executable string, arguments []string) sdkmodel.CommandObservation {
 	fingerprints := make([]sdkmodel.ArgumentFingerprint, len(arguments))
