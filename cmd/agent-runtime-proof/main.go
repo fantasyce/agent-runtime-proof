@@ -11,6 +11,7 @@ import (
 	"github.com/fantasyce/agent-runtime-proof/internal/mcpserver"
 	"github.com/fantasyce/agent-runtime-proof/internal/model"
 	processobserver "github.com/fantasyce/agent-runtime-proof/internal/process"
+	"github.com/fantasyce/agent-runtime-proof/internal/versioninfo"
 	"github.com/fantasyce/agent-runtime-proof/internal/witness"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -32,6 +33,10 @@ func (value *localRuntime) RunWitness(ctx context.Context, request witness.RunRe
 func main() {
 	if guarded, code := witness.RunGuardianIfRequested(); guarded {
 		os.Exit(code)
+	}
+	if len(os.Args) == 2 && os.Args[1] == "--version" {
+		fmt.Println(versioninfo.Format("agent-runtime-proof", version, commit))
+		return
 	}
 	tool := model.ToolInfo{Name: "agent-runtime-proof", Version: version, Commit: commit, Toolchain: runtime.Version()}
 	service := app.NewService(processobserver.NewObserver(), tool)
