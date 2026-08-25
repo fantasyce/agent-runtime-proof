@@ -1,6 +1,6 @@
 {
   "name": "agent-runtime-proof",
-  "version": "0.2.0",
+  "version": "0.4.0-dev",
   "description": "Read-only local runtime identity proof through stdio MCP",
   "author": {
     "name": "Agent Runtime Proof contributors"

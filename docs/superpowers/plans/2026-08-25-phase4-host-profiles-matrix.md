@@ -167,12 +167,12 @@
 - Every guide provides one task-owned/project-scoped stdio configuration using an absolute installed ARP path, a discovery command, a read-only verify prompt/action, cleanup, and a clear statement that ARP never writes host configuration.
 - `scripts/verify_host_profiles.sh` validates embedded Profiles, fixtures, documentation snippets, plugin manifest/MCP config consistency, no absolute developer paths, and cross-platform parse compatibility.
 
-- [ ] **Step 1: Write failing documentation/config consistency tests in `scripts/verify_host_profiles.sh`.** Verify seven guides/Profiles/fixtures, exactly three MCP tools, direct `mcp` argv, no shell wrapper, schema/catalog consistency, plugin version consistency, and absence of secrets or developer paths.
-- [ ] **Step 2: Run the guard and confirm failure for missing guides and stale plugin guidance.**
-- [ ] **Step 3: Write host-specific instructions from official public formats, update the thin plugin, and keep every snippet task/project scoped.** Do not include credentials, user paths, or automatic installers in product code.
-- [ ] **Step 4: Extend CI to run the Profile guard and Phase 3 gates on macOS/Linux/Windows without claiming authenticated real-host CI.**
-- [ ] **Step 5: Run the guard, `./scripts/check.sh`, and secret/path scans; confirm pass.**
-- [ ] **Step 6: Commit `docs: add host profile configuration guides`.**
+- [x] **Step 1: Write failing documentation/config consistency tests in `scripts/verify_host_profiles.sh`.** Verify seven guides/Profiles/fixtures, exactly three MCP tools, direct `mcp` argv, no shell wrapper, schema/catalog consistency, plugin version consistency, and absence of secrets or developer paths.
+- [x] **Step 2: Run the guard and confirm failure for missing guides and stale plugin guidance.**
+- [x] **Step 3: Write host-specific instructions from official public formats, update the thin plugin, and keep every snippet task/project scoped.** Do not include credentials, user paths, or automatic installers in product code.
+- [x] **Step 4: Extend CI to run the Profile guard and Phase 3 gates on macOS/Linux/Windows without claiming authenticated real-host CI.**
+- [x] **Step 5: Run the guard, `./scripts/check.sh`, and secret/path scans; confirm pass.**
+- [x] **Step 6: Commit `docs: add host profile configuration guides`.**
 
 ### Task 6: Build repeatable real-host and performance acceptance harnesses
 

@@ -38,9 +38,16 @@ jobs:
       - name: Verify contracts and Phase 1/2 core
         run: bash scripts/check.sh
 
+      - name: Verify Phase 4 Host Profiles and guidance
+        run: bash scripts/verify_host_profiles.sh
+
       - name: Run macOS Phase 1 acceptance
         if: matrix.go-version == '1.27.x'
         run: bash scripts/run_phase1_acceptance.sh
+
+      - name: Run macOS Phase 3 Witness acceptance
+        if: matrix.go-version == '1.27.x'
+        run: bash scripts/run_phase3_acceptance.sh
 
   linux-runtime:
     name: Linux runtime and container acceptance
@@ -60,8 +67,14 @@ jobs:
       - name: Verify Linux runtime and MCP core
         run: bash scripts/check.sh
 
+      - name: Verify Phase 4 Host Profiles and guidance
+        run: bash scripts/verify_host_profiles.sh
+
       - name: Run Linux container CLI and MCP acceptance
         run: bash scripts/run_linux_acceptance.sh
+
+      - name: Run Linux Phase 3 Witness acceptance
+        run: bash scripts/run_phase3_acceptance.sh
 
   windows-runtime:
     name: Windows runtime and candidate acceptance
@@ -84,6 +97,14 @@ jobs:
           go vet ./...
           go test -count=1 ./...
 
+      - name: Verify Phase 4 Host Profiles and guidance
+        shell: bash
+        run: bash scripts/verify_host_profiles.sh
+
       - name: Run Windows installed CLI and MCP acceptance
         shell: pwsh
         run: ./scripts/run_windows_phase1_acceptance.ps1 -CandidateCommit '${{ github.sha }}'
+
+      - name: Run Windows Phase 3 Witness acceptance
+        shell: pwsh
+        run: ./scripts/run_windows_phase3_acceptance.ps1 -CandidateCommit '${{ github.sha }}'
