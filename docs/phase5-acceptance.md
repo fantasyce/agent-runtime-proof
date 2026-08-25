@@ -135,6 +135,11 @@ rebuilds from the final merged tag commit, so the GitHub Release's own
   for the exact helper identity, disposes its process handle, and retries only
   the marked task root for a bounded five seconds; residue remains a hard
   failure after that bound.
+- A subsequent Linux Phase 3 run exposed a harness ordering race: the helper
+  published its target PID before the Witness had atomically committed the
+  matching receipt, so a slow runner could kill the owner too early. The
+  owner-death case now waits for durable receipt evidence before killing the
+  Witness and then proves full tree recovery.
 
 The macOS observer and Linux launcher defects predated Phase 5 and were exposed
 by the expanded final regression. The release verifier, version-gate, and

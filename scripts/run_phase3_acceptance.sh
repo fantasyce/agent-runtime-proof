@@ -68,6 +68,21 @@ wait_for_pattern() {
   return 1
 }
 
+wait_for_receipt_pid() {
+  local pid="$1"
+  local receipt_path=""
+  for _ in $(seq 1 200); do
+    receipt_path="$(grep -l "\"pid\":$pid" "$state_root"/launch-receipts/*.json 2>/dev/null | head -1 || true)"
+    if [[ -n "$receipt_path" ]]; then
+      printf '%s\n' "$receipt_path"
+      return 0
+    fi
+    sleep 0.025
+  done
+  printf 'timed out waiting for receipt for pid %s\n' "$pid" >&2
+  return 1
+}
+
 assert_process_gone() {
   local pid="$1"
   for _ in $(seq 1 200); do
@@ -103,6 +118,7 @@ send_mcp_requests() {
 }
 
 mkdir -p "$installed_dir"
+printf 'PHASE3_STAGE=build\n'
 if [[ "${1:-}" == "--prebuilt" ]]; then
   cp "$2/agent-runtime-proof" "$binary"
   cp "$2/witness-helper" "$helper"
@@ -120,10 +136,12 @@ secret_digest="$(printf '%s' "$secret" | sha256_text)"
 expectation="$run_dir/expectation.json"
 printf '%s\n' "{\"schema_version\":\"agent-runtime-expectation/1.0\",\"subject\":{\"id\":\"phase3.helper\",\"display_name\":\"Phase 3 Helper\",\"version\":\"1\"},\"launch\":{\"kind\":\"native\",\"entrypoint\":\"witness-helper\",\"argument_fingerprints\":[{\"position\":1,\"sha256\":\"$echo_digest\"},{\"position\":2,\"sha256\":\"$secret_digest\"}]},\"artifact\":{\"root\":\"$installed_dir\",\"include\":[\"witness-helper\"],\"exclude\":[],\"sha256\":\"$tree_digest\",\"max_files\":4,\"max_bytes\":134217728,\"max_duration_ms\":10000},\"policy\":{\"allowed_roots\":[\"$installed_dir\"],\"allow_symlinks\":false},\"source\":{\"kind\":\"user-file\",\"locator_hash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"trust\":\"declared\"}}" > "$expectation"
 "$helper" validate-expectation "$expectation"
+printf 'PHASE3_STAGE=sdk\n'
 "$helper" sdk-prepare "$state_root" "$expectation" "$helper" echo "$secret" | grep -q '^SDK_PREPARE=PASS$'
 "$helper" sdk-spawn "$state_root" "$expectation" "$helper" echo "$secret" | grep -q '^SDK_SPAWN=PASS$'
 
 printf '\000\377\n{}\000phase3' > "$run_dir/payload.bin"
+printf 'PHASE3_STAGE=primary\n'
 set +e
 AGENT_RUNTIME_PROOF_HOME="$state_root" "$binary" witness --expectation "$expectation" --grace-period 2s -- "$helper" echo "$secret" \
   < "$run_dir/payload.bin" > "$run_dir/proxied.bin" 2> "$run_dir/proxied.stderr"
@@ -144,6 +162,7 @@ if grep -Fq "$secret" "$run_dir/proxied.stderr" || grep -Fq "$run_dir" "$run_dir
   exit 1
 fi
 
+printf 'PHASE3_STAGE=exit-and-eof\n'
 set +e
 AGENT_RUNTIME_PROOF_HOME="$state_root" "$binary" witness --grace-period 2s -- "$helper" exit 7 \
   </dev/null > "$run_dir/exit.stdout" 2> "$run_dir/exit.stderr"
@@ -162,6 +181,7 @@ eof_validation="$(validate_receipt "$(receipt_path_from_stderr "$run_dir/eof.std
 eof_pid="$(sed -n 's/^RECEIPT_PID=//p' <<<"$eof_validation")"
 assert_process_gone "$eof_pid"
 
+printf 'PHASE3_STAGE=mcp\n'
 printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"phase3-fixture","version":"1"}}}' \
   '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
@@ -178,6 +198,7 @@ if grep -q 'agent-runtime-proof:' "$run_dir/mcp.witness"; then
   exit 1
 fi
 
+printf 'PHASE3_STAGE=signal\n'
 signal_fifo="$run_dir/signal.fifo"
 mkfifo "$signal_fifo"
 AGENT_RUNTIME_PROOF_HOME="$state_root" "$binary" witness --grace-period 2s -- "$helper" term \
@@ -195,6 +216,7 @@ signal_validation="$(validate_receipt "$(receipt_path_from_stderr "$run_dir/sign
 signal_target_pid="$(sed -n 's/^RECEIPT_PID=//p' <<<"$signal_validation")"
 assert_process_gone "$signal_target_pid"
 
+printf 'PHASE3_STAGE=owner-death\n'
 owner_fifo="$run_dir/owner.fifo"
 mkfifo "$owner_fifo"
 AGENT_RUNTIME_PROOF_HOME="$state_root" "$binary" witness --grace-period 2s -- "$helper" tree \
@@ -205,6 +227,7 @@ exec 8>"$owner_fifo"
 wait_for_pattern "$run_dir/owner.stdout" '^target_pid='
 target_pid="$(sed -n 's/^target_pid=\([0-9][0-9]*\).*/\1/p' "$run_dir/owner.stdout")"
 child_pid="$(sed -n 's/.*child_pid=\([0-9][0-9]*\).*/\1/p' "$run_dir/owner.stdout")"
+owner_receipt="$(wait_for_receipt_pid "$target_pid")"
 kill -KILL "$owner_witness_pid"
 set +e
 wait "$owner_witness_pid" 2>/dev/null
@@ -213,7 +236,6 @@ active_pids=()
 exec 8>&-
 assert_process_gone "$target_pid"
 assert_process_gone "$child_pid"
-owner_receipt="$(grep -l "\"pid\":$target_pid" "$state_root"/launch-receipts/*.json | head -1)"
 validate_receipt "$owner_receipt" >/dev/null
 
 if grep -R -F "$secret" "$state_root" "$run_dir"/*.stderr; then
