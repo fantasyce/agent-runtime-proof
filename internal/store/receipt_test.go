@@ -37,9 +37,7 @@ func TestWriteReceiptPublishesContentAddressedFileWithoutTemporaryResidue(t *tes
 	if len(entries) != 1 || entries[0].Name() != filepath.Base(path) {
 		t.Fatalf("receipt directory entries = %#v", entries)
 	}
-	if info, err := os.Stat(path); err != nil || info.Mode().Perm()&0o077 != 0 {
-		t.Fatalf("receipt mode = %v, err=%v", info.Mode(), err)
-	}
+	assertStoredReceiptPermissions(t, path)
 }
 
 func TestWriteReceiptIsIdempotentForIdenticalContent(t *testing.T) {

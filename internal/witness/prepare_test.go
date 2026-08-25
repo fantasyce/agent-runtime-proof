@@ -2,10 +2,13 @@ package witness
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -17,9 +20,13 @@ import (
 
 func TestPrepareLaunchKeepsDirectArgumentsOnlyInMemory(t *testing.T) {
 	const secret = "token-super-secret"
+	safePath, err := filepath.Abs(filepath.Join(string(filepath.Separator), "safe", executableFixtureName()))
+	if err != nil {
+		t.Fatal(err)
+	}
 	controller := NewController(Dependencies{
 		Tool: testTool(), Home: t.TempDir(),
-		LookPath:     func(string) (string, error) { return "/safe/helper", nil },
+		LookPath:     func(string) (string, error) { return safePath, nil },
 		EvalSymlinks: func(path string) (string, error) { return path, nil },
 	})
 	prepared, err := controller.PrepareLaunch(context.Background(), Request{Command: []string{"helper", "$(touch should-not-run)", secret}})
@@ -27,7 +34,7 @@ func TestPrepareLaunchKeepsDirectArgumentsOnlyInMemory(t *testing.T) {
 		t.Fatal(err)
 	}
 	command, arguments := prepared.Command()
-	if command != "/safe/helper" || len(arguments) != 2 || arguments[0] != "$(touch should-not-run)" || arguments[1] != secret {
+	if command != safePath || len(arguments) != 2 || arguments[0] != "$(touch should-not-run)" || arguments[1] != secret {
 		t.Fatalf("resolved command=%q arguments=%#v", command, arguments)
 	}
 	encoded, err := json.Marshal(prepared.safeCommand)
@@ -59,13 +66,14 @@ func TestPrepareLaunchRejectsInvalidCommandsWithoutEchoingThem(t *testing.T) {
 }
 
 func TestPrepareLaunchBindsNativeExpectationBeforeSpawn(t *testing.T) {
-	root, helper, manifest := writeNativeExpectation(t, "9a70c7154e4b5e5ac94301830029eee533227d98c04c50080e7359d3047477de")
+	wantDigest := nativeFixtureDigest()
+	root, helper, manifest := writeNativeExpectation(t, wantDigest)
 	controller := NewController(Dependencies{Tool: testTool(), Home: filepath.Join(root, "state")})
 	prepared, err := controller.PrepareLaunch(context.Background(), Request{Command: []string{helper, "serve"}, ExpectationPath: manifest})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if prepared.expectation == nil || prepared.artifact == nil || prepared.artifact.SHA256 != "9a70c7154e4b5e5ac94301830029eee533227d98c04c50080e7359d3047477de" {
+	if prepared.expectation == nil || prepared.artifact == nil || prepared.artifact.SHA256 != wantDigest {
 		t.Fatalf("prepared expectation=%#v artifact=%#v", prepared.expectation, prepared.artifact)
 	}
 	if prepared.observationOnly {
@@ -79,7 +87,7 @@ func TestPrepareLaunchRejectsArtifactOrArgumentMismatch(t *testing.T) {
 	if _, err := controller.PrepareLaunch(context.Background(), Request{Command: []string{helper, "serve"}, ExpectationPath: manifest}); err == nil {
 		t.Fatal("artifact mismatch accepted")
 	}
-	_, helper, manifest = writeNativeExpectation(t, "9a70c7154e4b5e5ac94301830029eee533227d98c04c50080e7359d3047477de")
+	_, helper, manifest = writeNativeExpectation(t, nativeFixtureDigest())
 	if _, err := controller.PrepareLaunch(context.Background(), Request{Command: []string{helper, "wrong"}, ExpectationPath: manifest}); err == nil {
 		t.Fatal("argument fingerprint mismatch accepted")
 	}
@@ -122,7 +130,10 @@ func TestPrepareLaunchBindsInterpreterEntrypointArgument(t *testing.T) {
 
 func TestSpawnedRevalidatesIdentityAndStoresSafeReceipt(t *testing.T) {
 	const secret = "token-super-secret"
-	path := "/safe/helper"
+	path, err := filepath.Abs(filepath.Join(string(filepath.Separator), "safe", executableFixtureName()))
+	if err != nil {
+		t.Fatal(err)
+	}
 	candidate := model.Candidate{
 		Platform:               model.Platform{OS: "linux", Arch: "amd64"},
 		Process:                model.ProcessIdentity{PID: 42, CreatedAtUnixNano: "1787536210123456789", BootIDHash: "sha256:" + strings.Repeat("a", 64)},
@@ -164,23 +175,40 @@ func writeNativeExpectation(t *testing.T, digest string) (string, string, string
 	if err := os.MkdirAll(filepath.Join(root, "bin"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	helper := filepath.Join(root, "bin", "helper")
+	helperName := executableFixtureName()
+	helper := filepath.Join(root, "bin", helperName)
 	if err := os.WriteFile(helper, []byte("helper bytes"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	manifest := filepath.Join(root, "expectation.json")
-	document := `{
+	entrypoint := filepath.ToSlash(filepath.Join("bin", helperName))
+	document := fmt.Sprintf(`{
 		"schema_version":"agent-runtime-expectation/1.0",
 		"subject":{"id":"example","display_name":"Example","version":"1.0.0"},
-		"launch":{"kind":"native","entrypoint":"bin/helper","argument_fingerprints":[{"position":1,"sha256":"24c458cfb46d9a456d314c7897601e51578e43c1f9dc007adf1a745bbc15e0f5"}]},
-		"artifact":{"root":".","include":["bin/helper"],"exclude":[],"sha256":"` + digest + `","max_files":10,"max_bytes":1024,"max_duration_ms":10000},
+		"launch":{"kind":"native","entrypoint":"%s","argument_fingerprints":[{"position":1,"sha256":"24c458cfb46d9a456d314c7897601e51578e43c1f9dc007adf1a745bbc15e0f5"}]},
+		"artifact":{"root":".","include":["%s"],"exclude":[],"sha256":"%s","max_files":10,"max_bytes":1024,"max_duration_ms":10000},
 		"policy":{"allowed_roots":["."],"allow_symlinks":false},
 		"source":{"kind":"user-file","locator_hash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","trust":"declared"}
-	}`
+	}`, entrypoint, entrypoint, digest)
 	if err := os.WriteFile(manifest, []byte(document), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return root, helper, manifest
+}
+
+func executableFixtureName() string {
+	if runtime.GOOS == "windows" {
+		return "helper.exe"
+	}
+	return "helper"
+}
+
+func nativeFixtureDigest() string {
+	contents := []byte("helper bytes")
+	fileDigest := sha256.Sum256(contents)
+	canonical := fmt.Sprintf(`[{"path":"bin/%s","sha256":"%x","size":%d}]`, executableFixtureName(), fileDigest, len(contents))
+	treeDigest := sha256.Sum256([]byte(canonical))
+	return fmt.Sprintf("%x", treeDigest)
 }
 
 type fakeObserver struct {
