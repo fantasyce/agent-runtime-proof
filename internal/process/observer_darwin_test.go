@@ -36,6 +36,10 @@ func TestDarwinObserverClassifiesPermissionDenial(t *testing.T) {
 	if !errors.As(classifyDarwinError("probe", int(syscall.EPERM)), &processError) || processError.Kind != ErrorInaccessible {
 		t.Fatalf("permission error = %#v", processError)
 	}
+	processError = nil
+	if !errors.As(classifyDarwinError("probe", int(syscall.EINVAL)), &processError) || processError.Kind != ErrorInaccessible {
+		t.Fatalf("transient region error = %#v", processError)
+	}
 }
 
 func TestDarwinObserverRevalidatesControlledHelper(t *testing.T) {

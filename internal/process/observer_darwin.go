@@ -30,7 +30,7 @@ static int arp_pid_executable_identity(int pid, uint64_t *device, uint64_t *inod
 		memset(&info, 0, sizeof(info));
 		int result = proc_pidinfo(pid, PROC_PIDREGIONPATHINFO, address, &info, sizeof(info));
 		if (result != sizeof(info)) {
-			if (result <= 0) *error_number = errno;
+			*error_number = (result <= 0 && errno != 0) ? errno : ENOTSUP;
 			return 0;
 		}
 		if ((info.prp_prinfo.pri_protection & VM_PROT_EXECUTE) != 0 &&
@@ -40,9 +40,13 @@ static int arp_pid_executable_identity(int pid, uint64_t *device, uint64_t *inod
 			return 1;
 		}
 		uint64_t next = info.prp_prinfo.pri_address + info.prp_prinfo.pri_size;
-		if (next <= address) return 0;
+		if (next <= address) {
+			*error_number = ENOTSUP;
+			return 0;
+		}
 		address = next;
 	}
+	*error_number = ENOTSUP;
 	return 0;
 }
 */
@@ -215,7 +219,8 @@ func classifyDarwinError(operation string, errorNumber int) error {
 	kind := ErrorInternal
 	if errorNumber == int(syscall.ESRCH) || errorNumber == int(syscall.ENOENT) {
 		kind = ErrorNotFound
-	} else if errorNumber == int(syscall.EPERM) || errorNumber == int(syscall.EACCES) {
+	} else if errorNumber == int(syscall.EPERM) || errorNumber == int(syscall.EACCES) ||
+		errorNumber == int(syscall.EINVAL) || errorNumber == int(syscall.ENOTSUP) {
 		kind = ErrorInaccessible
 	}
 	return &Error{Kind: kind, Operation: operation, Err: syscall.Errno(errorNumber)}
