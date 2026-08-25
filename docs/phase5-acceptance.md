@@ -130,6 +130,11 @@ rebuilds from the final merged tag commit, so the GitHub Release's own
   the owner registered its termination handler. Signal registration now occurs
   before the child can start. The race suite passed 20 repetitions and the
   native Linux Phase 3 lifecycle passed 10 consecutive repetitions.
+- A Windows run completed CLI, Proof, permission, and MCP gates but briefly
+  retained an executable file handle during final deletion. Cleanup now waits
+  for the exact helper identity, disposes its process handle, and retries only
+  the marked task root for a bounded five seconds; residue remains a hard
+  failure after that bound.
 
 The macOS observer and Linux launcher defects predated Phase 5 and were exposed
 by the expanded final regression. The release verifier, version-gate, and
