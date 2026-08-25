@@ -127,12 +127,12 @@
 **Interfaces:**
 - Produces repeatable, task-owned acceptance entrypoints and a dated evidence matrix that distinguishes source tests, cross-builds, installed binaries, live native processes, and deferred/completed Windows real-machine results.
 
-- [ ] **Step 1: Write the helper and acceptance assertions first** for random binary payload transparency, real MCP direct-vs-Witness output, stderr separation, normal/non-zero exit, EOF, cancellation, parent kill, escalation, receipt ID validation, secret non-disclosure, and zero processes/files after cleanup.
-- [ ] **Step 2: Run the macOS script** and verify it initially fails at the first unimplemented or incorrectly wired acceptance assertion; fix only through a regression test and minimal implementation.
-- [ ] **Step 3: Run `./scripts/check.sh`, the macOS installed-binary acceptance, Linux amd64 native/container acceptance, and all Windows cross-builds.** Record exact commit, toolchain, platform, time, and uncovered evidence.
-- [ ] **Step 4: Keep Windows asleep until every non-Windows gate is green; then send one LAN wake packet and poll only the pinned SSH endpoint.** If wake-on-LAN is unavailable, request one manual wake without changing Windows power settings.
-- [ ] **Step 5: On Windows, use the existing pinned key/known-hosts SSH path and a task-owned directory; run native build/tests plus installed Witness tests for Job tree cleanup, protocol transparency, receipts, and no residue.** Do not change firewall, SSH, accounts, services, registry, PATH, or target program state.
-- [ ] **Step 6: Run the complete local suite again after any Windows-derived fix, then rerun affected macOS/Linux/Windows gates.** Every fix starts with a failing regression test.
-- [ ] **Step 7: Update README and `docs/phase3-acceptance.md` with exact evidence and limitations; never mark Windows passed from cross-compilation.**
-- [ ] **Step 8: Run secret/path scans and `git diff --check`; verify clean task roots and no live helper processes.**
-- [ ] **Step 9: Commit `docs: accept Phase 3 witness gates`** only when every Phase 3 gate, including native Windows, passes.
+- [x] **Step 1: Write the helper and acceptance assertions first** for random binary payload transparency, real MCP direct-vs-Witness output, stderr separation, normal/non-zero exit, EOF, cancellation, parent kill, escalation, receipt ID validation, secret non-disclosure, and zero processes/files after cleanup.
+- [x] **Step 2: Run the macOS script** and verify it initially fails at the first unimplemented or incorrectly wired acceptance assertion; fix only through a regression test and minimal implementation.
+- [x] **Step 3: Run `./scripts/check.sh`, the macOS installed-binary acceptance, Linux amd64 native/container acceptance, and all Windows cross-builds.** Record exact commit, toolchain, platform, time, and uncovered evidence.
+- [x] **Step 4: Keep Windows asleep until every non-Windows gate is green; then send one LAN wake packet and poll only the pinned SSH endpoint.** Windows was already reachable at this gate, so no wake packet or power-setting change was needed.
+- [x] **Step 5: On Windows, use the existing pinned key/known-hosts SSH path and a task-owned directory; run native build/tests plus installed Witness tests for Job tree cleanup, protocol transparency, receipts, and no residue.** Do not change firewall, SSH, accounts, services, registry, PATH, or target program state.
+- [x] **Step 6: Run the complete local suite again after any Windows-derived fix, then rerun affected macOS/Linux/Windows gates.** Every fix starts with a failing regression test.
+- [x] **Step 7: Update README and `docs/phase3-acceptance.md` with exact evidence and limitations; never mark Windows passed from cross-compilation.**
+- [x] **Step 8: Run secret/path scans and `git diff --check`; verify clean task roots and no live helper processes.**
+- [x] **Step 9: Commit `docs: accept Phase 3 witness gates`** only when every Phase 3 gate, including native Windows, passes.
