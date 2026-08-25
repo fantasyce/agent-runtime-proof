@@ -1,0 +1,12 @@
+{
+  // OpenCode v2 keeps servers below mcp.servers.
+  "mcp": {
+    "servers": {
+      "agent-runtime-proof": {
+        "type": "local",
+        "command": ["/opt/arp/agent-runtime-proof", "mcp",],
+        "environment": {"FAKE_TOKEN": "test-secret-must-not-leak"},
+      },
+    },
+  },
+}

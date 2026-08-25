@@ -78,12 +78,12 @@
 - `RawBinding` retains `ServerName`, `Command`, `Args`, and source metadata only in memory; environment values are discarded before the value leaves the parser.
 - Parser limits are 1 MiB input, 128 levels, 4,096 object members, 4,096 array values, 128 servers, 128 args per server, and 8 KiB per scalar.
 
-- [ ] **Step 1: Add failing table tests for every dialect and format.** Fixtures must extract one direct `agent-runtime-proof mcp` entry while ignoring unrelated servers. Include JSONC comments/trailing commas, Codex TOML tables, OpenCode v2 nesting, VS Code `servers`, Claude/Cursor `mcpServers`, and DSH Cordis insert rows.
-- [ ] **Step 2: Add failing hostile-input tests.** Reject duplicate keys after JSONC normalization, YAML aliases/cycles, non-scalar keys, `!!js`, anchors, merge keys, TOML dotted-key collisions, shell/interpolation commands, NULs, excessive depth/size/counts, non-string env values, and command arrays that do not map to a direct executable plus argv.
-- [ ] **Step 3: Run `go test ./internal/hostprofile -run 'TestParse'` and confirm the expected missing-parser failures.**
-- [ ] **Step 4: Add the three locked parser dependencies and implement strict data projection.** JSONC is standardized to JSON before duplicate-key validation; YAML is walked as a node tree and accepts only standard scalar/sequence/mapping tags; no parser exposes environment values.
-- [ ] **Step 5: Run focused tests with `-race -count=3`, then `go mod verify`; confirm pass.**
-- [ ] **Step 6: Commit `feat: parse host configuration as bounded data`.**
+- [x] **Step 1: Add failing table tests for every dialect and format.** Fixtures must extract one direct `agent-runtime-proof mcp` entry while ignoring unrelated servers. Include JSONC comments/trailing commas, Codex TOML tables, OpenCode v2 nesting, VS Code `servers`, Claude/Cursor `mcpServers`, and DSH Cordis insert rows.
+- [x] **Step 2: Add failing hostile-input tests.** Reject duplicate keys after JSONC normalization, YAML aliases/cycles, non-scalar keys, `!!js`, anchors, merge keys, TOML dotted-key collisions, shell/interpolation commands, NULs, excessive depth/size/counts, non-string env values, and command arrays that do not map to a direct executable plus argv.
+- [x] **Step 3: Run `go test ./internal/hostprofile -run 'TestParse'` and confirm the expected missing-parser failures.**
+- [x] **Step 4: Add the three locked parser dependencies and implement strict data projection.** JSONC is standardized to JSON before duplicate-key validation; YAML is walked as a node tree and accepts only standard scalar/sequence/mapping tags; no parser exposes environment values.
+- [x] **Step 5: Run focused tests with `-race -count=3`, then `go mod verify`; confirm pass.**
+- [x] **Step 6: Commit `feat: parse host configuration as bounded data`.**
 
 ### Task 3: Discover immutable bindings and match live processes
 

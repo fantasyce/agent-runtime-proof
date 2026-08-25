@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "agent-runtime-proof": {
+      "type": "stdio",
+      "command": "/opt/arp/agent-runtime-proof",
+      "args": ["mcp"],
+      "env": {"FAKE_TOKEN": "test-secret-must-not-leak"}
+    }
+  },
+  "inputs": []
+}

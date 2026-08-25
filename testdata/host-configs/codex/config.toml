@@ -1,0 +1,7 @@
+[mcp_servers.unrelated]
+url = "https://example.invalid/mcp"
+
+[mcp_servers.agent-runtime-proof]
+command = "/opt/arp/agent-runtime-proof"
+args = ["mcp"]
+env = { FAKE_TOKEN = "test-secret-must-not-leak" }
