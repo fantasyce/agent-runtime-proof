@@ -1,0 +1,15 @@
+{
+  "schema_version": "agent-runtime-host-profile/1.0",
+  "host_id": "claude-code",
+  "display_name": "Claude Code",
+  "fixture_version": "1",
+  "platforms": ["darwin", "windows", "linux"],
+  "process_matchers": [{"basenames": ["claude", "claude.exe"]}],
+  "config_sources": [{
+    "source_id": "claude-project-mcp",
+    "platforms": ["darwin", "windows", "linux"],
+    "candidate_paths": ["${WORKSPACE}/.mcp.json"],
+    "format": "json", "dialect": "mcp-servers", "maximum_bytes": 1048576,
+    "secret_fields": ["env", "headers"]
+  }]
+}

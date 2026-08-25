@@ -49,11 +49,11 @@
 - Profile fields are `schema_version`, `host_id`, `display_name`, `fixture_version`, `platforms`, `process_matchers`, and `config_sources`.
 - A config source declares `source_id`, `platforms`, `candidate_paths`, `format`, `dialect`, `maximum_bytes`, and safe/secret field classes. Candidate paths may use only `${HOME}`, `${WORKSPACE}`, and `${PROFILE}` placeholders.
 
-- [ ] **Step 1: Add failing schema and catalog tests.** Cover all seven IDs, unique source IDs, supported platform enums, bounded path templates, allowed formats (`json`, `jsonc`, `toml`, `yaml`), allowed dialects (`mcp-servers`, `vscode-servers`, `opencode-v2`, `codex-toml`, `dsh-cordis`, `generic-only`), rejection of unknown fields, absolute literal user paths, `..`, secret-bearing defaults, duplicate profiles, and a catalog lookup that returns a defensive copy.
-- [ ] **Step 2: Run `go test ./internal/contract ./internal/hostprofile` and confirm failure because the Profile contract and package are absent.**
-- [ ] **Step 3: Implement the schema, embedded catalog, strict validation, and immutable lookup.** Embed only the seven reviewed JSON Profile documents; fail package initialization in tests if any embedded document is invalid.
-- [ ] **Step 4: Run focused tests and `GOOS=windows GOARCH=amd64 go test -c ./internal/hostprofile`; confirm all pass.**
-- [ ] **Step 5: Commit `feat: define versioned host profiles`.**
+- [x] **Step 1: Add failing schema and catalog tests.** Cover all seven IDs, unique source IDs, supported platform enums, bounded path templates, allowed formats (`json`, `jsonc`, `toml`, `yaml`), allowed dialects (`mcp-servers`, `vscode-servers`, `opencode-v2`, `codex-toml`, `dsh-cordis`, `generic-only`), rejection of unknown fields, absolute literal user paths, `..`, secret-bearing defaults, duplicate profiles, and a catalog lookup that returns a defensive copy.
+- [x] **Step 2: Run `go test ./internal/contract ./internal/hostprofile` and confirm failure because the Profile contract and package are absent.**
+- [x] **Step 3: Implement the schema, embedded catalog, strict validation, and immutable lookup.** Embed only the seven reviewed JSON Profile documents; fail package initialization in tests if any embedded document is invalid.
+- [x] **Step 4: Run focused tests and `GOOS=windows GOARCH=amd64 go test -c ./internal/hostprofile`; confirm all pass.**
+- [x] **Step 5: Commit `feat: define versioned host profiles`.**
 
 ### Task 2: Implement bounded data-only config parsing
 

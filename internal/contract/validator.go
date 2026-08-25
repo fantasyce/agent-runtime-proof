@@ -40,6 +40,10 @@ func ValidateExpectation(document []byte) error {
 	return validate("agent-runtime-expectation-1.0.schema.json", document)
 }
 
+func ValidateHostProfile(document []byte) error {
+	return validate("agent-runtime-host-profile-1.0.schema.json", document)
+}
+
 func ValidateLaunchReceipt(document []byte) error {
 	value, err := validateValue("agent-runtime-launch-receipt-1.0.schema.json", document)
 	if err != nil {
@@ -86,6 +90,7 @@ func compileSchemas() {
 	compiler := jsonschema.NewCompiler()
 	names := []string{
 		"agent-runtime-expectation-1.0.schema.json",
+		"agent-runtime-host-profile-1.0.schema.json",
 		"agent-runtime-launch-receipt-1.0.schema.json",
 		"agent-runtime-proof-1.0.schema.json",
 		"agent-runtime-fixture-1.0.schema.json",

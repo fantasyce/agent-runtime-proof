@@ -45,6 +45,22 @@ func TestValidateExpectationRejectsDuplicateObjectKey(t *testing.T) {
 	}
 }
 
+func TestValidateHostProfileRejectsUnknownField(t *testing.T) {
+	document := []byte(`{
+		"schema_version":"agent-runtime-host-profile/1.0",
+		"host_id":"example",
+		"display_name":"Example",
+		"fixture_version":"1",
+		"platforms":["darwin"],
+		"process_matchers":[],
+		"config_sources":[],
+		"command":"do-not-execute"
+	}`)
+	if err := ValidateHostProfile(document); err == nil {
+		t.Fatal("host profile accepted unknown executable field")
+	}
+}
+
 func TestValidateLaunchReceiptContract(t *testing.T) {
 	valid := []byte(`{
 		"schema_version":"agent-runtime-launch-receipt/1.0",

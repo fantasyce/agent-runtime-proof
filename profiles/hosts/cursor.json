@@ -1,0 +1,15 @@
+{
+  "schema_version": "agent-runtime-host-profile/1.0",
+  "host_id": "cursor",
+  "display_name": "Cursor",
+  "fixture_version": "1",
+  "platforms": ["darwin", "windows", "linux"],
+  "process_matchers": [{"basenames": ["cursor", "cursor-agent", "cursor.exe", "cursor-agent.exe"]}],
+  "config_sources": [{
+    "source_id": "cursor-mcp",
+    "platforms": ["darwin", "windows", "linux"],
+    "candidate_paths": ["${WORKSPACE}/.cursor/mcp.json", "${HOME}/.cursor/mcp.json"],
+    "format": "json", "dialect": "mcp-servers", "maximum_bytes": 1048576,
+    "secret_fields": ["env", "headers"]
+  }]
+}
