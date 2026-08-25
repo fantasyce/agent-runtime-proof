@@ -6,14 +6,13 @@ and v1 release remain incomplete until every blocking row is closed.
 
 | ID | Boundary | Classification | Evidence | Required closure |
 | --- | --- | --- | --- | --- |
-| `P4-HOST-AAA-TOOL-BRIDGE` | AAA 0.14.3 on macOS | Existing host integration defect; not introduced by ARP | AAA's generic MCP manager connected ARP and displayed exactly three tools. The task agent then reported that no MCP tools were present in its callable inventory, so neither the required `MATCHED` nor negative call ran. The same UI also classified all three read-only ARP tools as high risk because `runtime` matched a broad write-operation substring. | Fix AAA's generic MCP-to-task tool bridge and read-only annotation/risk handling, rebuild the formal app, then rerun both visible verdicts using the unchanged generic ARP server. |
-| `P4-EXT-CURSOR-AUTH` | Cursor on macOS | External authentication gate | A task-owned Cursor CLI install was available, but the host reported no authenticated session and no task-scoped API credential was provided. | Authenticate Cursor through the normal user-controlled flow, then rerun the task-owned MCP call. |
-| `P4-EXT-VSCODE-HOST` | VS Code/GitHub Copilot on macOS or Windows | External host/account gate | No supported VS Code/Copilot Agent Host with an authenticated session was available in either acceptance environment. | Install and authenticate a supported host without copying credentials into the harness, then run tool discovery and verify. |
-| `P4-EXT-WINDOWS-CODEX` | Codex on Windows 11 amd64 | External provider/session gate | The verified native Codex executable listed the task-scoped MCP server and spawned the ARP MCP child, but emitted no host JSON events before the bounded timeout. Network inspection showed only the host's existing local proxy path; ARP itself did not hang. | Restore a working native Codex model session and rerun the bounded host script to a schema-valid Proof. |
-| `P4-EXT-WINDOWS-WSL` | Cursor on Windows | External platform gate | The installed Windows host has no WSL environment; the supported Cursor CLI path requires WSL rather than native Windows. | Enable a supported WSL environment through an owner-approved system change, or provide another supported Windows Cursor environment. |
-| `P4-EXT-OPENCODE-HOST` | OpenCode on Windows or Linux | External host/account gate | No authenticated, officially usable OpenCode host was available on the native Windows machine or an amd64 Linux runner. | Provide a supported authenticated host and complete a real stdio MCP call. |
-| `P4-EXT-DSH-HOST` | DeepSeek Harness on Windows or Linux | External host/runtime/account gate | The Windows machine has no usable Node/DSH host state, and no task-scoped provider credential was available. macOS DSH state was not reused because the frozen matrix requires Windows or Linux and credentials must not be copied. | Provide a supported Windows/Linux DSH environment with user-controlled authentication and run the official MCP client path. |
-| `P4-EXT-LINUX-AMD64` | Linux amd64 | External runner gate | The local Docker engine is Linux arm64. Emulation on Apple Silicon was deliberately rejected as native amd64 evidence, and the Windows host has no WSL Linux runner. | Provide a real Linux amd64 runner or amd64 CI evidence and rerun generic/Profile, CLI, MCP, Witness, lifecycle, and residue gates. |
+| `P4-EXT-WINDOWS-CODEX` | Codex on Windows 11 amd64 | Unresolved host/provider/network boundary | The verified native Codex executable listed the task-scoped MCP server and spawned the ARP MCP child, but emitted no host JSON events before the bounded timeout. The next MCP-free direct-call diagnostic began, then the whole Windows machine stopped responding to ping and SSH before its task-owned artifacts could be retrieved. The copied Codex database ends before this attempt; it contains historical connection and model-metadata timeout classes but cannot establish the current root cause. | When the Windows host is reachable, first retrieve or terminate only the marked diagnostic process tree, then run one low-load MCP-free Codex call and one read-only proxy reachability probe. Only if the direct call passes, rerun the ARP host script to a schema-valid Proof. |
+
+## Closed blockers
+
+| ID | Closed by | Closure evidence |
+| --- | --- | --- |
+| `P4-HOST-AAA-TOOL-BRIDGE` | AAA commits `a7a95a8`, `c65bcd1`, `081d290` | Formal AAA 0.14.3 exposed exactly three ARP tools as low-risk/read-only/approval-free. Installed Codex called through AAA and returned `MATCHED` (`sha256:756b0e993b551d2b0dfc4d1cafb67077274c32e0e220be582d52481d39ef3b44`) and negative `UNKNOWN` (`sha256:4a91f259aa5e7d030ef1ae488953864ef7a4f131a2cbbd7aad32ae00bb3511a6`). Context 0.11.1, Orchestrator 0.10.10, and Autopilot 0.5.3 all remained installed, available, probed, and integrity-valid. |
 
 ## Passed evidence retained
 
@@ -23,8 +22,17 @@ and v1 release remain incomplete until every blocking row is closed.
 - macOS arm64, Linux arm64 container, and native Windows amd64 generic/Profile
   harnesses passed. Native Windows also passed the complete vendored package
   suite under the verified Go 1.27.0 toolchain.
+- DeepSeek Harness 0.1.1-rc.2 made a real macOS MCP call and returned a
+  schema-valid `MATCHED` Proof without changing its user settings or
+  credentials.
+- The native Linux amd64 generic/Profile row passed on the Ubuntu 24.04
+  Fantasyce VPS with service/listener baselines unchanged and task residue
+  removed.
 - The failed host attempts did not require changes to firewall, proxy, DNS,
   route, registry, service, power, or Agent credential configuration.
 
-The successful rows do not compensate for a missing mandatory named host or
-platform row.
+Cursor, VS Code/Copilot, and OpenCode are owner-deferred because they are not
+installed in the available environments. They are not active Phase 4 blockers
+and were not installed as part of acceptance. A Windows DeepSeek Harness
+installation is unnecessary while the real macOS DeepSeek Harness row covers
+that host family.

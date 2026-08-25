@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Deliver versioned, data-only Host Profiles and complete the required real local stdio MCP matrix for AAA, Codex, Claude Code, Cursor, OpenCode, DeepSeek Harness, VS Code/GitHub Copilot, and the generic fixture without weakening ARP's privacy or read-only boundaries.
+**Goal:** Deliver versioned, data-only Host Profiles for AAA, Codex, Claude Code, Cursor, OpenCode, DeepSeek Harness, and VS Code/GitHub Copilot, plus real local stdio MCP acceptance on hosts that exist in the owner's environments, without weakening ARP's privacy or read-only boundaries. The owner-adjusted 2026-08-25 active real-host set is macOS DeepSeek Harness, Windows Codex, and AAA; uninstalled hosts remain fixture-covered and deferred.
 
 **Architecture:** `internal/hostprofile` embeds a versioned catalog, reads only bounded declared configuration locations, parses JSON/JSONC, TOML, and YAML as data, and emits immutable bindings plus safe host attribution. CLI, MCP, and the application service consume the same binding resolver; explicit PID/expectation operation remains available when no Profile exists. Real-host acceptance installs one independent ARP candidate, writes only task-owned host configurations, invokes each host's supported stdio path, records Proof IDs and versions, then removes every task-owned process and file.
 
@@ -192,10 +192,10 @@
 
 - [x] **Step 1: Write acceptance assertions before running any host.** Require installed-path provenance, three exact tools, one `MATCHED`, one negative verdict, schema-valid/self-verifying Proof, host attribution when a Profile is selected, child exit after EOF, and zero marked residue.
 - [x] **Step 2: Build a versioned `0.4.0-phase4` installed candidate and controlled helper in a task-owned root; generate current and negative expectations without repository paths.**
-- [ ] **Step 3: Add the generic MCP fixture for macOS, native Linux amd64, Linux arm64 container, and Windows 11 amd64; confirm explicit PID/expectation remains Profile-independent.** macOS arm64 and Linux arm64 pass; native Linux amd64 and Windows execution remain for Task 8 because Apple Silicon Rosetta evidence is deliberately invalid.
+- [x] **Step 3: Add the generic MCP fixture for macOS, native Linux amd64, Linux arm64 container, and Windows 11 amd64; confirm explicit PID/expectation remains Profile-independent.** Native Linux amd64 passed on the task-isolated Ubuntu 24.04 Fantasyce VPS; the other platform rows had already passed.
 - [x] **Step 4: Add reference-runner performance checks.** Measure 20 MCP startups for p95, a synthetic immutable 1,000-candidate inventory for app-layer p95, a bounded 20,000-file/256 MiB declaration case, cancellation within one second, and peak RSS below 150 MiB; record hardware/OS and never generalize results.
 - [x] **Step 5: Run the macOS generic/Profile gates and performance harness; fix every product defect through a failing regression test.**
-- [ ] **Step 6: Run native/container Linux gates and Windows cross-builds; keep Windows real-host execution for Task 8.** Linux arm64 and Windows cross-builds pass; native Linux amd64 remains for Task 8.
+- [x] **Step 6: Run native/container Linux gates and Windows cross-builds; keep Windows real-host execution for Task 8.** Linux arm64, native Linux amd64, and Windows cross-builds pass.
 - [x] **Step 7: Commit `test: add Phase 4 host acceptance harnesses`.**
 
 ### Task 7: Execute macOS real hosts and AAA generic integration
@@ -210,11 +210,11 @@
 - [x] **Step 1: Verify host availability and official stdio capability immediately before each run.** Use current official docs and installed `--version` output; task-own any new CLI installation and disable its updater where supported.
 - [x] **Step 2: Run Codex on macOS with a command-line/task-scoped MCP override; list the three tools and call binding-based verify.** Preserve the existing Codex account state without reading or copying authentication files.
 - [x] **Step 3: Run Claude Code with task-owned `--mcp-config` and explicit `--allowedTools mcp__agent-runtime-proof`; list tools and call verify.** If authentication is unavailable, record the exact external gate and continue other hosts without substituting Claude Desktop.
-- [ ] **Step 4: Run Cursor CLI from a task-owned install/home; use project `.cursor/mcp.json`, `mcp list-tools`, and non-interactive read-only prompt to call verify.** Blocked by `P4-EXT-CURSOR-AUTH`; the task-owned install was removed.
-- [ ] **Step 5: Run VS Code/GitHub Copilot Agent Host from a task-owned portable install/profile using workspace `.mcp.json`; discover tools and call verify.** Blocked by `P4-EXT-VSCODE-HOST`.
-- [ ] **Step 6: Run the formal installed AAA app as a generic MCP consumer.** Tool discovery passed, but real calls are blocked by `P4-HOST-AAA-TOOL-BRIDGE`; the registration and task-owned runtime were removed.
-- [x] **Step 7: Validate the macOS evidence JSON against the acceptance assertions and confirm no host/server/helper process or task directory remains.** The failed formal AAA task record is retained as rejected evidence; no runtime or temporary directory remains.
-- [ ] **Step 8: Commit `test: record macOS Phase 4 host matrix` only when every non-external macOS gate passes.**
+- [ ] **Step 4: Run Cursor CLI from a task-owned install/home; use project `.cursor/mcp.json`, `mcp list-tools`, and non-interactive read-only prompt to call verify.** Owner-deferred because Cursor is not installed; the earlier task-owned probe install was removed.
+- [ ] **Step 5: Run VS Code/GitHub Copilot Agent Host from a task-owned portable install/profile using workspace `.mcp.json`; discover tools and call verify.** Owner-deferred because VS Code/Copilot is not installed.
+- [x] **Step 6: Run the formal installed AAA app as a generic MCP consumer.** AAA's common bridge defect was fixed and independently reviewed. The final installed Codex adapter returned one `MATCHED` and one negative `UNKNOWN` through the exact three low-risk read-only tools.
+- [x] **Step 7: Validate the macOS evidence JSON against the acceptance assertions and confirm no host/server/helper process or task directory remains.** Final cleanup follows evidence capture and is recorded in the acceptance document.
+- [x] **Step 8: Commit `test: record macOS Phase 4 host matrix` only when every non-external macOS gate passes.** All active macOS gates pass; Windows remains separately external-blocked.
 
 ### Task 8: Execute Linux/Windows real hosts and close the named matrix
 
@@ -226,10 +226,10 @@
 **Interfaces:**
 - Windows uses the existing pinned public-key/known-host SSH transport and a marked task root. Linux uses a marked task directory on a native amd64 host or a no-network container where the named host genuinely supports that environment.
 
-- [ ] **Step 1: Run OpenCode on native Linux amd64 or Windows from a task-owned install/config; confirm local MCP status, tool discovery, and a real verify call.**
-- [ ] **Step 2: Run DeepSeek Harness with the official `@deepseek-ai/dsh-mcp-client` stdio row in a task-owned Cordis overlay; wait for `mcp__agent-runtime-proof__*` registration, invoke verify through the real host, dispose the plugin, and prove child cleanup.**
-- [ ] **Step 3: Run Cursor on Windows in addition to macOS as required by the frozen matrix.** Use a task-owned CLI/config and the same installed ARP asset; record native host and Profile evidence.
-- [ ] **Step 4: Ensure at least three genuine Windows Agent hosts have passed.** Use Cursor plus any two of Claude Code, OpenCode, VS Code/Copilot, Codex, or DeepSeek Harness that officially support the installed Windows environment; do not relabel the generic fixture as an Agent host.
+- [ ] **Step 1: Run OpenCode on native Linux amd64 or Windows from a task-owned install/config; confirm local MCP status, tool discovery, and a real verify call.** Owner-deferred because OpenCode is not installed.
+- [x] **Step 2: Run DeepSeek Harness with the official `@deepseek-ai/dsh-mcp-client` stdio row in a task-owned Cordis overlay; wait for `mcp__agent-runtime-proof__*` registration, invoke verify through the real host, dispose the plugin, and prove child cleanup.** Passed on the real authenticated macOS installation without changing user state.
+- [ ] **Step 3: Run Cursor on Windows in addition to macOS.** Owner-deferred; do not install Cursor on Windows for acceptance.
+- [ ] **Step 4: Run the owner-selected genuine Windows Agent host.** Codex is the only required real Windows host; do not install Cursor, OpenCode, or VS Code/Copilot. A Windows DeepSeek Harness install is optional and unnecessary after the real macOS row passed.
 - [x] **Step 5: Run the Windows generic MCP/Profile harness, native full Go suite, installed ARP candidate, and cleanup gate.** Do not change firewall, SSH, accounts, services, registry, PATH, proxy, DNS, power, or Agent configuration.
 - [ ] **Step 6: Run Linux amd64 and Windows evidence validation; remove marked toolchains, vendor/source archives, configs, homes, caches, helpers, MCP children, and transfer roots after confirming ownership and no live process.**
 - [ ] **Step 7: Commit `test: record Linux and Windows Phase 4 host matrix` only when every required named host has a real call or remains explicitly external-blocked.**

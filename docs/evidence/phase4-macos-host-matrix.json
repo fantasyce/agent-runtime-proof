@@ -1,9 +1,9 @@
 {
   "schema_version": "agent-runtime-proof-host-matrix-evidence/1.0",
-  "recorded_at": "2026-08-25T13:30:00+08:00",
+  "recorded_at": "2026-08-25T16:43:35+08:00",
   "platform": "darwin-arm64",
   "candidate_commit": "75a121a41d07",
-  "matrix_status": "blocked",
+  "matrix_status": "passed",
   "generic_fixture": {
     "status": "passed",
     "tool_count": 3,
@@ -29,22 +29,36 @@
       "cleanup": "passed"
     },
     {
+      "host_id": "deepseek-harness",
+      "host_version": "0.1.1-rc.2",
+      "status": "passed",
+      "proof_id": "sha256:e8f88a126eac60f3dd97a88701c8160d51091371ce0413d3bb3e403bcf669dac",
+      "binding_id": "deepseek-harness.agent-runtime-proof",
+      "credential_handling": "existing_user_state_referenced_read_only",
+      "cleanup": "passed"
+    },
+    {
       "host_id": "cursor",
-      "host_version": "2026.08.11-e8db854",
-      "status": "blocked",
-      "blocker": "P4-EXT-CURSOR-AUTH"
+      "status": "deferred_by_owner",
+      "reason": "not_installed_on_acceptance_host"
     },
     {
       "host_id": "vscode-copilot",
-      "status": "blocked",
-      "blocker": "P4-EXT-VSCODE-HOST"
+      "status": "deferred_by_owner",
+      "reason": "not_installed_on_acceptance_host"
     },
     {
       "host_id": "aaa",
       "host_version": "0.14.3",
-      "status": "blocked",
+      "status": "passed",
       "discovered_tool_count": 3,
-      "blocker": "P4-HOST-AAA-TOOL-BRIDGE"
+      "tool_policy": "low-risk_read-only_approval-free",
+      "matched_verdict": "MATCHED",
+      "matched_proof_id": "sha256:756b0e993b551d2b0dfc4d1cafb67077274c32e0e220be582d52481d39ef3b44",
+      "negative_verdict": "UNKNOWN",
+      "negative_proof_id": "sha256:4a91f259aa5e7d030ef1ae488953864ef7a4f131a2cbbd7aad32ae00bb3511a6",
+      "aaa_fix_commit": "081d29099cabe22720b1e9909b7527ea3f9394a6",
+      "cleanup": "passed"
     }
   ],
   "reference_limits": {

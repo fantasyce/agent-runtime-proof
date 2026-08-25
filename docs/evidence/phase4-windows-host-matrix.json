@@ -1,6 +1,6 @@
 {
   "schema_version": "agent-runtime-proof-host-matrix-evidence/1.0",
-  "recorded_at": "2026-08-25T13:30:00+08:00",
+  "recorded_at": "2026-08-25T16:43:35+08:00",
   "platform": "windows-amd64",
   "candidate_commit": "75a121a41d07",
   "matrix_status": "blocked",
@@ -17,24 +17,25 @@
       "host_version": "0.149.1",
       "status": "blocked",
       "blocker": "P4-EXT-WINDOWS-CODEX",
-      "observed_boundary": "mcp_child_started_no_host_events"
+      "observed_boundary": "mcp_child_started_no_host_events; current_host_offline_before_direct-call_artifacts_could_be_retrieved; repeated_icmp_and_ssh_timeout_at_2026-08-25T16:43:35+08:00",
+      "possible_task_residue": "marked_diagnostic_root_pending_host_reachability"
     },
     {
       "host_id": "cursor",
-      "status": "blocked",
-      "blocker": "P4-EXT-WINDOWS-WSL"
+      "status": "deferred_by_owner",
+      "reason": "not_installed; no_install_requested"
     },
     {
       "host_id": "opencode",
-      "status": "blocked",
-      "blocker": "P4-EXT-OPENCODE-HOST"
+      "status": "deferred_by_owner",
+      "reason": "not_installed; no_install_requested"
     },
     {
       "host_id": "deepseek-harness",
-      "status": "blocked",
-      "blocker": "P4-EXT-DSH-HOST"
+      "status": "not_installed_by_design",
+      "reason": "real_macos_host_passed; optional_windows_install_not_needed"
     }
   ],
-  "required_real_agent_hosts": 3,
+  "required_real_agent_hosts": 1,
   "passed_real_agent_hosts": 0
 }

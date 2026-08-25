@@ -8,8 +8,8 @@ Current development includes the Phase 1 read-only CLI core, the Phase 2 local
 `stdio` MCP surface, the Phase 3 launch Witness, and the Phase 4 data-only Host
 Profiles. The same contracts and application layer drive every interface; MCP
 and Witness do not open a network listener or maintain a second verdict model.
-Phase 4 is not accepted yet because mandatory named-host and Linux amd64 rows
-remain blocked; see the [current Phase 4 decision](docs/phase4-acceptance.md).
+Phase 4 is not accepted yet because the Windows Codex row remains externally
+blocked; see the [current Phase 4 decision](docs/phase4-acceptance.md).
 
 The v1 boundary is intentionally narrow:
 
