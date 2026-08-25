@@ -50,6 +50,12 @@ function Start-TaskProcess([string]$File, [string[]]$Arguments, [string]$Stdout,
     [void]$tracked.Add($process)
     return $process
 }
+function Invoke-NativeCapture([string]$File, [string[]]$Arguments, [string]$Output) {
+    $captured = & $File @Arguments | Out-String
+    $exitCode = $LASTEXITCODE
+    [System.IO.File]::WriteAllText($Output, $captured, $utf8NoBom)
+    return $exitCode
+}
 function Wait-Ready([string]$Path) {
     for ($attempt = 0; $attempt -lt 200; $attempt++) { if ((Test-Path -LiteralPath $Path) -and (Get-Item -LiteralPath $Path).Length -gt 0) { return }; Start-Sleep -Milliseconds 25 }
     throw 'task process did not become ready'
@@ -60,6 +66,17 @@ function Assert-Proof([string]$Path, [string]$Verdict) {
     Assert-Condition ($proof.proof_id -match '^sha256:[0-9a-f]{64}$') 'invalid Proof ID'
     $encoded = Get-Content -Raw -LiteralPath $Path
     Assert-Condition (-not ($encoded -match '(?i)\\Users\\|token-super-secret|password-super-secret')) 'Proof leaked a sensitive path or value'
+}
+function Remove-TaskRoot([string]$Path) {
+    for ($attempt = 0; $attempt -lt 20; $attempt++) {
+        try {
+            Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop
+            return
+        } catch {
+            if ($attempt -eq 19) { throw }
+            Start-Sleep -Milliseconds 250
+        }
+    }
 }
 
 try {
@@ -84,18 +101,18 @@ try {
     $helperReady = Join-Path $RunRoot 'helper.ready'
     $helperProcess = Start-TaskProcess $helper @('serve') $helperReady (Join-Path $RunRoot 'helper.stderr')
     Wait-Ready $helperReady
-    & $binary verify --pid $helperProcess.Id --expectation $helperExpectation --format json | Set-Content -Encoding utf8 (Join-Path $RunRoot 'generic-matched.json')
-    Assert-Condition ($LASTEXITCODE -eq 0) 'generic MATCHED verification failed'
-    & $binary verify --pid $helperProcess.Id --expectation $negativeExpectation --format json | Set-Content -Encoding utf8 (Join-Path $RunRoot 'generic-negative.json')
-    Assert-Condition ($LASTEXITCODE -eq 3) 'generic negative verification returned wrong exit code'
+    $genericMatchedExit = Invoke-NativeCapture $binary @('verify', '--pid', $helperProcess.Id, '--expectation', $helperExpectation, '--format', 'json') (Join-Path $RunRoot 'generic-matched.json')
+    Assert-Condition ($genericMatchedExit -eq 0) 'generic MATCHED verification failed'
+    $genericNegativeExit = Invoke-NativeCapture $binary @('verify', '--pid', $helperProcess.Id, '--expectation', $negativeExpectation, '--format', 'json') (Join-Path $RunRoot 'generic-negative.json')
+    Assert-Condition ($genericNegativeExit -eq 3) 'generic negative verification returned wrong exit code'
     Assert-Proof (Join-Path $RunRoot 'generic-matched.json') 'MATCHED'
     Assert-Proof (Join-Path $RunRoot 'generic-negative.json') 'UNKNOWN'
 	& $helper verify-proof-file (Join-Path $RunRoot 'generic-matched.json') | Out-Null
 	Assert-Condition ($LASTEXITCODE -eq 0) 'generic MATCHED Proof did not self-verify'
 	& $helper verify-proof-file (Join-Path $RunRoot 'generic-negative.json') | Out-Null
 	Assert-Condition ($LASTEXITCODE -eq 0) 'generic negative Proof did not self-verify'
-    & $helper verify-mcp $binary $helperExpectation $helperProcess.Id MATCHED | Set-Content -Encoding utf8 (Join-Path $RunRoot 'generic-mcp.txt')
-    Assert-Condition ($LASTEXITCODE -eq 0) 'generic MCP verification failed'
+    $genericMCPExit = Invoke-NativeCapture $helper @('verify-mcp', $binary, $helperExpectation, $helperProcess.Id, 'MATCHED') (Join-Path $RunRoot 'generic-mcp.txt')
+    Assert-Condition ($genericMCPExit -eq 0) 'generic MCP verification failed'
 
     $config = [ordered]@{ mcpServers = [ordered]@{ 'agent-runtime-proof' = [ordered]@{ command = $binary; args = @('mcp') } } }
     [System.IO.File]::WriteAllText((Join-Path $workspace '.cursor/mcp.json'), ($config | ConvertTo-Json -Compress -Depth 6), $utf8NoBom)
@@ -106,12 +123,16 @@ try {
     $env:USERPROFILE = $hostHome
     Push-Location $workspace
     try {
-        & $binary doctor --host cursor --format json | Set-Content -Encoding utf8 (Join-Path $RunRoot 'profile-doctor.json')
-        Assert-Condition ($LASTEXITCODE -eq 0) 'host doctor failed'
-        & $binary inspect --binding cursor.agent-runtime-proof --format json | Set-Content -Encoding utf8 (Join-Path $RunRoot 'profile-inspect.json')
-        Assert-Condition ($LASTEXITCODE -eq 0) 'binding inspect failed'
-        & $binary verify --binding cursor.agent-runtime-proof --expectation $candidateExpectation --format json | Set-Content -Encoding utf8 (Join-Path $RunRoot 'profile-matched.json')
-        Assert-Condition ($LASTEXITCODE -eq 0) 'binding verify failed'
+        $doctorExit = Invoke-NativeCapture $binary @('doctor', '--host', 'cursor', '--format', 'json') (Join-Path $RunRoot 'profile-doctor.json')
+        Assert-Condition ($doctorExit -eq 0) 'host doctor failed'
+        $inspectExit = Invoke-NativeCapture $binary @('inspect', '--binding', 'cursor.agent-runtime-proof', '--format', 'json') (Join-Path $RunRoot 'profile-inspect.json')
+        Assert-Condition ($inspectExit -eq 0) 'binding inspect failed'
+        $profileExit = Invoke-NativeCapture $binary @('verify', '--binding', 'cursor.agent-runtime-proof', '--expectation', $candidateExpectation, '--format', 'json') (Join-Path $RunRoot 'profile-matched.json')
+        if ($profileExit -ne 0) {
+            $failureProof = Get-Content -Raw -LiteralPath (Join-Path $RunRoot 'profile-matched.json') | ConvertFrom-Json
+            Write-Error ("binding verdict={0} reason_codes={1}" -f $failureProof.verdict, (($failureProof.reason_codes | ForEach-Object { [string]$_ }) -join ','))
+        }
+        Assert-Condition ($profileExit -eq 0) 'binding verify failed'
     } finally { Pop-Location }
     Assert-Proof (Join-Path $RunRoot 'profile-matched.json') 'MATCHED'
 	& $helper verify-proof-file (Join-Path $RunRoot 'profile-matched.json') | Out-Null
@@ -121,13 +142,13 @@ try {
     [System.IO.File]::WriteAllText($profileStop, 'stop', $utf8NoBom)
     Assert-Condition ($profileProcess.WaitForExit(5000)) 'profile MCP did not exit after stop marker'
 
-    & $helper measure-mcp $binary 20 | Set-Content -Encoding utf8 (Join-Path $RunRoot 'performance.txt')
-    Assert-Condition ($LASTEXITCODE -eq 0) 'MCP performance gate failed'
+    $performanceExit = Invoke-NativeCapture $helper @('measure-mcp', $binary, '20') (Join-Path $RunRoot 'performance.txt')
+    Assert-Condition ($performanceExit -eq 0) 'MCP performance gate failed'
     Stop-Process -Id $helperProcess.Id
     $helperProcess.WaitForExit(5000) | Out-Null
     Write-Output 'Phase 4 generic/Profile acceptance PASS (Windows/amd64)'
 } finally {
     $env:USERPROFILE = $priorUserProfile
     foreach ($process in $tracked) { if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue } }
-    if ((Test-Path -LiteralPath $RunRoot) -and (Test-Path -LiteralPath (Join-Path $RunRoot '.arp-task-owned'))) { Remove-Item -LiteralPath $RunRoot -Recurse -Force }
+    if ((Test-Path -LiteralPath $RunRoot) -and (Test-Path -LiteralPath (Join-Path $RunRoot '.arp-task-owned'))) { Remove-TaskRoot $RunRoot }
 }

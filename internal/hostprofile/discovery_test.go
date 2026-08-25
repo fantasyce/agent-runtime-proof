@@ -21,7 +21,16 @@ func TestDiscoverExpandsBoundedPathsAndBuildsSafeBinding(t *testing.T) {
 	if err := os.MkdirAll(home, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	config := []byte(`{"mcpServers":{"arp":{"command":"/opt/arp/agent-runtime-proof","args":["mcp"]}}}`)
+	rawCommand := "/opt/arp/agent-runtime-proof"
+	wantBasename := "agent-runtime-proof"
+	if runtime.GOOS == "windows" {
+		rawCommand = `C:\ARP\agent-runtime-proof.exe`
+		wantBasename = "agent-runtime-proof.exe"
+	}
+	config, err := json.Marshal(map[string]any{"mcpServers": map[string]any{"arp": map[string]any{"command": rawCommand, "args": []string{"mcp"}}}})
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(filepath.Join(workspace, ".cursor", "mcp.json"), config, 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -37,11 +46,11 @@ func TestDiscoverExpandsBoundedPathsAndBuildsSafeBinding(t *testing.T) {
 	if binding.ID != "cursor.arp" || binding.HostID != "cursor" || binding.ServerName != "arp" {
 		t.Fatalf("unexpected binding: %#v", binding)
 	}
-	if binding.CommandBasename != "agent-runtime-proof" || !strings.HasPrefix(binding.CommandPathHash, "sha256:") || !strings.HasPrefix(binding.ConfigSourceHash, "sha256:") {
+	if binding.CommandBasename != wantBasename || !strings.HasPrefix(binding.CommandPathHash, "sha256:") || !strings.HasPrefix(binding.ConfigSourceHash, "sha256:") {
 		t.Fatalf("unsafe or incomplete binding: %#v", binding)
 	}
 	encoded := mustJSON(t, binding)
-	if strings.Contains(encoded, "/opt/arp") || strings.Contains(encoded, `"mcp"`) {
+	if strings.Contains(encoded, rawCommand) || strings.Contains(encoded, `"mcp"`) {
 		t.Fatalf("raw command data escaped: %s", encoded)
 	}
 	repeated, err := Discover(context.Background(), Request{HostID: "cursor", Platform: runtime.GOOS, Home: home, Workspace: workspace})

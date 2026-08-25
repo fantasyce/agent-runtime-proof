@@ -4,6 +4,7 @@ package hostprofile
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -27,6 +28,14 @@ func TestDiscoverWindowsWorkspacePath(t *testing.T) {
 	}
 	if result.Bindings[0].Confidence != "bound" || result.Bindings[0].CommandBasename != "agent-runtime-proof.exe" {
 		t.Fatalf("binding = %#v", result.Bindings[0])
+	}
+}
+
+func TestReadPinnedWindowsMissingComponentReturnsNotExist(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "missing", "mcp.json")
+	_, err := readPinnedConfig(context.Background(), missing, 1<<20)
+	if !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("missing config error = %v, want os.ErrNotExist", err)
 	}
 }
 

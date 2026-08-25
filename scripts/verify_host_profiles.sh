@@ -37,5 +37,9 @@ if rg -n '/Users/fanhcy|[A-Za-z]:\\Users\\fanhcy|AKIA[0-9A-Z]{16}|sk-[A-Za-z0-9]
   echo "developer path or credential-shaped text found" >&2
   exit 1
 fi
+if rg -q 'Set-Content[[:space:]]+-Encoding[[:space:]]+utf8' scripts/run_windows_phase4_acceptance.ps1; then
+  echo "Windows acceptance must preserve native JSON bytes without a UTF-8 BOM" >&2
+  exit 1
+fi
 
 echo "host profiles, fixtures, guides, and plugin metadata verified"

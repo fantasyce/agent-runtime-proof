@@ -102,6 +102,9 @@ func openConfigChild(parent *os.File, name string) (*os.File, error) {
 	var handle windows.Handle
 	err = windows.NtCreateFile(&handle, configReadAccess, attributes, &status, nil, 0, windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE|windows.FILE_SHARE_DELETE, windows.FILE_OPEN, windows.FILE_OPEN_REPARSE_POINT|windows.FILE_SYNCHRONOUS_IO_NONALERT, 0, 0)
 	if err != nil {
+		if errors.Is(err, windows.STATUS_NO_SUCH_FILE) || errors.Is(err, windows.STATUS_OBJECT_NAME_NOT_FOUND) || errors.Is(err, windows.STATUS_OBJECT_PATH_NOT_FOUND) {
+			return nil, os.ErrNotExist
+		}
 		return nil, err
 	}
 	if err := rejectConfigReparse(handle); err != nil {
