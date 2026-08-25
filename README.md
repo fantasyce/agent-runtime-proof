@@ -56,6 +56,13 @@ follow the clean install, upgrade, downgrade, and uninstall instructions in
 [docs/install.md](docs/install.md). Release assets include CycloneDX SBOMs and
 GitHub artifact attestations.
 
+Maintainers can exercise the isolated install, same-version repair, upgrade,
+downgrade, MCP smoke, uninstall, and residue contract with:
+
+```bash
+bash scripts/test_install_lifecycle.sh
+```
+
 ## CLI
 
 Build an installed-style binary without source paths:

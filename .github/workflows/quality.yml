@@ -81,6 +81,7 @@ jobs:
           bash scripts/verify_release_metadata.sh
           bash scripts/verify_release_workflow.sh
           bash scripts/test_release_assets.sh
+          bash scripts/test_install_lifecycle.sh
 
       - name: Run Linux container CLI and MCP acceptance
         run: bash scripts/run_linux_acceptance.sh
