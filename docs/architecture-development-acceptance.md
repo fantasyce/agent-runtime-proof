@@ -316,6 +316,42 @@ PID 会复用，因此任何进程证据必须绑定：
 
 `proof_id` 由去掉 `proof_id` 字段后的 canonical JSON 计算 SHA-256。它提供篡改可见性，不等同于签名、设备身份或远程证明。
 
+### 8.5 LaunchReceipt
+
+权威 schema：`agent-runtime-launch-receipt/1.0`。回执是 Witness 在创建本地进程时产生的内容寻址证据，不是签名或远程证明：
+
+```json
+{
+  "schema_version": "agent-runtime-launch-receipt/1.0",
+  "receipt_id": "sha256:<canonical-receipt-digest>",
+  "created_at": "2026-08-25T12:34:56.789Z",
+  "tool": {},
+  "platform": {"os": "darwin|windows|linux", "arch": "amd64|arm64"},
+  "subject": null,
+  "process": {
+    "pid": 4127,
+    "created_at_unix_nano": "1787536210123456789",
+    "boot_id_hash": "sha256:..."
+  },
+  "command": {
+    "executable_basename": "example-server",
+    "executable_path_hash": "sha256:...",
+    "argument_fingerprints": [{"position": 1, "sha256": "sha256:..."}]
+  },
+  "expectation": null,
+  "artifact": null,
+  "observation_only": true,
+  "reason_codes": ["WITNESS_EXPECTATION_MISSING"],
+  "privacy": {
+    "redaction_mode": "safe-default",
+    "home_redacted": true,
+    "omitted_fields": ["command.argv", "process.environment", "process.command_line", "filesystem.paths"]
+  }
+}
+```
+
+`receipt_id` 由清空 `receipt_id` 后的 canonical JSON 计算 SHA-256。带 expectation 的回执必须同时包含 subject、expectation 投影和启动前的 artifact 观测，并设置 `observation_only=false`、`reason_codes=[]`；没有 expectation 时这三个字段必须为 `null`，并明确记录 `WITNESS_EXPECTATION_MISSING`。原始 argv 只在启动调用的内存生命周期内存在，持久化结构只保留按位置的摘要。
+
 ## 9. Verdict 与证明等级
 
 结论和证明等级是两个维度，禁止把“结论为 MATCHED”直接翻译成“已证明内存中的全部代码”。
@@ -597,6 +633,7 @@ agent-runtime-proof/
 │   └── witness/
 ├── schemas/
 │   ├── agent-runtime-expectation-1.0.schema.json
+│   ├── agent-runtime-launch-receipt-1.0.schema.json
 │   └── agent-runtime-proof-1.0.schema.json
 ├── plugin/agent-runtime-proof/
 │   ├── .codex-plugin/plugin.json

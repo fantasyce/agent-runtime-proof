@@ -41,15 +41,15 @@
 - Produces: `sdk/model.LaunchReceipt`, `receipt.Build(receipt.Input) (sdkmodel.LaunchReceipt, error)`, `receipt.Validate([]byte) (sdkmodel.LaunchReceipt, error)`, and `store.WriteReceipt(root string, value sdkmodel.LaunchReceipt) (string, error)`.
 - Receipt fields are version, content ID, UTC timestamp, safe tool/platform/process projections, command basename/path hash/positional argument hashes, optional expectation/artifact projections, observation-only marker, reason codes, and privacy projection.
 
-- [ ] **Step 1: Write failing schema and semantic tests** using literal valid/invalid JSON: ID recomputation succeeds, a protected-field mutation fails, unknown fields fail, raw argv/environment/path fields fail, and an observation-only receipt requires `WITNESS_EXPECTATION_MISSING`.
-- [ ] **Step 2: Run `go test ./internal/contract ./internal/receipt`** and verify failure because the schema and receipt API do not exist.
-- [ ] **Step 3: Add the embedded schema, model, canonical ID builder, and validator**; calculate `receipt_id` from canonical JSON with an empty ID, just as Proof IDs are calculated.
-- [ ] **Step 4: Run the focused tests** and verify they pass.
-- [ ] **Step 5: Write failing store tests** proving a filename of `<receipt_id-without-prefix>.json`, same-content idempotence, existing conflicting bytes rejection, no caller-controlled filename, and no temporary-file residue after success or failure.
-- [ ] **Step 6: Run `go test ./internal/store`** and verify failure because `WriteReceipt` does not exist.
-- [ ] **Step 7: Implement bounded mkdir, same-directory temporary write, file sync, close, atomic no-replace publication, and directory sync where supported.** Never overwrite an existing different receipt.
-- [ ] **Step 8: Run `go test ./internal/contract ./internal/receipt ./internal/store`** and verify all pass.
-- [ ] **Step 9: Update the authoritative design** with the exact receipt schema and observation-only semantics, then commit `feat: define witness launch receipts`.
+- [x] **Step 1: Write failing schema and semantic tests** using literal valid/invalid JSON: ID recomputation succeeds, a protected-field mutation fails, unknown fields fail, raw argv/environment/path fields fail, and an observation-only receipt requires `WITNESS_EXPECTATION_MISSING`.
+- [x] **Step 2: Run `go test ./internal/contract ./internal/receipt`** and verify failure because the schema and receipt API do not exist.
+- [x] **Step 3: Add the embedded schema, model, canonical ID builder, and validator**; calculate `receipt_id` from canonical JSON with an empty ID, just as Proof IDs are calculated.
+- [x] **Step 4: Run the focused tests** and verify they pass.
+- [x] **Step 5: Write failing store tests** proving a filename of `<receipt_id-without-prefix>.json`, same-content idempotence, existing conflicting bytes rejection, no caller-controlled filename, and no temporary-file residue after success or failure.
+- [x] **Step 6: Run `go test ./internal/store`** and verify failure because `WriteReceipt` does not exist.
+- [x] **Step 7: Implement bounded mkdir, same-directory temporary write, file sync, close, atomic no-replace publication, and directory sync where supported.** Never overwrite an existing different receipt.
+- [x] **Step 8: Run `go test ./internal/contract ./internal/receipt ./internal/store`** and verify all pass.
+- [x] **Step 9: Update the authoritative design** with the exact receipt schema and observation-only semantics, then commit `feat: define witness launch receipts`.
 
 ### Task 2: Implement preparation and the public embedding interface
 

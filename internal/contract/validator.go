@@ -40,6 +40,17 @@ func ValidateExpectation(document []byte) error {
 	return validate("agent-runtime-expectation-1.0.schema.json", document)
 }
 
+func ValidateLaunchReceipt(document []byte) error {
+	value, err := validateValue("agent-runtime-launch-receipt-1.0.schema.json", document)
+	if err != nil {
+		return err
+	}
+	if err := validateLaunchReceiptSemantics(value.(map[string]any)); err != nil {
+		return fmt.Errorf("validate launch receipt semantics: %w", err)
+	}
+	return nil
+}
+
 func ValidateProof(document []byte) error {
 	value, err := validateValue("agent-runtime-proof-1.0.schema.json", document)
 	if err != nil {
@@ -75,6 +86,7 @@ func compileSchemas() {
 	compiler := jsonschema.NewCompiler()
 	names := []string{
 		"agent-runtime-expectation-1.0.schema.json",
+		"agent-runtime-launch-receipt-1.0.schema.json",
 		"agent-runtime-proof-1.0.schema.json",
 		"agent-runtime-fixture-1.0.schema.json",
 	}
@@ -111,6 +123,21 @@ func compileSchemas() {
 	if err := json.Unmarshal(registryJSON, &decisions); err != nil {
 		compileErr = fmt.Errorf("decode embedded decision registry: %w", err)
 	}
+}
+
+func validateLaunchReceiptSemantics(value map[string]any) error {
+	observationOnly := value["observation_only"].(bool)
+	reasons := stringArray(value["reason_codes"])
+	if observationOnly {
+		if value["subject"] != nil || value["expectation"] != nil || value["artifact"] != nil || !contains(reasons, "WITNESS_EXPECTATION_MISSING") {
+			return errors.New("observation-only receipt requires no expectation evidence and WITNESS_EXPECTATION_MISSING")
+		}
+		return nil
+	}
+	if value["subject"] == nil || value["expectation"] == nil || value["artifact"] == nil || len(reasons) != 0 {
+		return errors.New("expectation-bound receipt requires subject, expectation, artifact, and no reason codes")
+	}
+	return nil
 }
 
 func decodeOne(document []byte) (any, error) {
