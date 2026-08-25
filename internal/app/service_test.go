@@ -187,7 +187,11 @@ func (fake fakeHostProfiles) Bindings(context.Context, string) ([]hostprofile.Bi
 func testBinding(t *testing.T) hostprofile.Binding {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "mcp.json")
-	if err := os.WriteFile(path, []byte(`{"mcpServers":{"arp":{"command":"/fixture/runtime","args":["mcp"]}}}`), 0o600); err != nil {
+	config, err := json.Marshal(map[string]any{"mcpServers": map[string]any{"arp": map[string]any{"command": testRuntimePath(), "args": []string{"mcp"}}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, config, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	result, err := hostprofile.Discover(context.Background(), hostprofile.Request{HostID: "cursor", Platform: runtime.GOOS, ExplicitConfigPath: path})
@@ -248,9 +252,9 @@ func testService(observer processobserver.Observer) *Service {
 }
 
 func candidate(pid int) model.Candidate {
-	root := "/fixture/runtime"
+	root := testRuntimePath()
 	return model.Candidate{
-		Platform:               model.Platform{OS: "darwin", Arch: "arm64"},
+		Platform:               model.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH},
 		Process:                model.ProcessIdentity{PID: pid, CreatedAtUnixNano: "100", BootIDHash: "sha256:" + strings.Repeat("c", 64)},
 		Executable:             model.ExecutableObservation{Basename: "runtime", PathHash: "sha256:" + strings.Repeat("d", 64)},
 		DeclaredExecutablePath: root,
@@ -259,14 +263,21 @@ func candidate(pid int) model.Candidate {
 	}
 }
 
+func testRuntimePath() string {
+	if runtime.GOOS == "windows" {
+		return `C:\fixture\runtime.exe`
+	}
+	return "/fixture/runtime"
+}
+
 func testArgumentHash(value string) string {
 	digest := sha256.Sum256([]byte("arp:host-argument:v1\x00" + value))
 	return "sha256:" + hex.EncodeToString(digest[:])
 }
 
 func resolvedExpectation() expectation.Resolved {
-	root := "/fixture"
-	resolved := expectation.Resolved{ArtifactRoot: "/fixture/runtime", AllowedRoots: []string{root}}
+	runtimePath := testRuntimePath()
+	resolved := expectation.Resolved{ArtifactRoot: runtimePath, AllowedRoots: []string{filepath.Dir(runtimePath)}}
 	resolved.Value.Subject = model.Subject{ID: "example", DisplayName: "Example", Version: "1.0.0"}
 	resolved.Value.Source = model.ExpectationSource{Kind: "user-file", LocatorHash: strings.Repeat("a", 64), Trust: "declared"}
 	resolved.Value.Artifact.SHA256 = strings.Repeat("b", 64)
