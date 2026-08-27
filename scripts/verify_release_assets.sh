@@ -22,6 +22,8 @@ expected=(
   "agent-runtime-proof_${version}_linux_amd64.cdx.json"
   "agent-runtime-proof_${version}_windows_amd64.zip"
   "agent-runtime-proof_${version}_windows_amd64.cdx.json"
+  "agent-runtime-proof_${version}.mcpb"
+  server.json
 )
 actual="$(find "$dist" -maxdepth 1 -type f -exec basename {} \; | LC_ALL=C sort)"
 wanted="$(printf '%s\n' "${expected[@]}" | LC_ALL=C sort)"
@@ -44,7 +46,17 @@ task_base="${TMPDIR:-/tmp}"
 task_base="${task_base%/}"
 [[ -d "$task_base" ]] || { echo 'temporary directory is unavailable' >&2; exit 69; }
 scan_root="$(mktemp -d "$task_base/agent-runtime-proof-release-scan.XXXXXX")"
-cleanup() { rm -rf "$scan_root"; }
+mcp_pid=""
+cleanup() {
+  if [[ -n "$mcp_pid" ]]; then
+    kill "$mcp_pid" 2>/dev/null || true
+    wait "$mcp_pid" 2>/dev/null || true
+  fi
+  case "$scan_root" in
+    "$task_base"/agent-runtime-proof-release-scan.*) find "$scan_root" -depth -delete 2>/dev/null || true ;;
+    *) echo 'refusing unexpected release scan cleanup path' >&2; return 1 ;;
+  esac
+}
 trap cleanup EXIT
 
 for target in darwin_arm64 linux_amd64; do
@@ -72,6 +84,29 @@ mkdir -p "$scan_root/windows_amd64"
 unzip -q "$windows_archive" -d "$scan_root/windows_amd64"
 if grep -ERa '/Users/[^/]+/|[A-Za-z]:\\Users\\|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY' "$scan_root/windows_amd64"; then exit 1; fi
 
+mcpb="$dist/agent-runtime-proof_${version}.mcpb"
+mcpb_listing="$(unzip -Z1 "$mcpb")"
+expected_mcpb_listing=$'LICENSE\nassets/icon.svg\nmanifest.json\nserver/agent-runtime-proof-darwin-arm64\nserver/agent-runtime-proof-linux-amd64\nserver/agent-runtime-proof-windows-amd64.exe'
+[[ "$mcpb_listing" == "$expected_mcpb_listing" ]] || { echo 'MCPB file set mismatch' >&2; exit 1; }
+mkdir -p "$scan_root/mcpb"
+unzip -q "$mcpb" -d "$scan_root/mcpb"
+if grep -ERa '/Users/[^/]+/|[A-Za-z]:\\Users\\|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY|__pycache__|node_modules|\.git/' "$scan_root/mcpb"; then exit 1; fi
+python3 "$script_dir/verify_registry_metadata.py" --server "$dist/server.json" --mcpb "$mcpb" --version "$version"
+python3 - "$scan_root/mcpb/manifest.json" "$version" "$commit" <<'PY'
+import json
+import pathlib
+import sys
+manifest = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+assert manifest["manifest_version"] == "0.3"
+assert manifest["version"] == sys.argv[2]
+assert manifest["_meta"]["io.agent-runtime-proof/build"]["commit"] == sys.argv[3]
+assert manifest["server"]["type"] == "binary"
+assert manifest["server"]["mcp_config"]["args"] == ["mcp"]
+assert [tool["name"] for tool in manifest["tools"]] == [
+    "list_local_runtime_candidates", "inspect_local_runtimes", "verify_local_runtime"
+]
+PY
+
 source_archive="$dist/agent-runtime-proof_${version}_source.tar.gz"
 prefix="agent-runtime-proof-${version}/"
 source_listing="$(tar -tzf "$source_archive")"
@@ -89,6 +124,32 @@ mkdir -p "$native_root"
 tar -xzf "$native_archive" -C "$native_root"
 native_binary="$native_root/agent-runtime-proof_${version}_${native_target}/agent-runtime-proof"
 [[ "$("$native_binary" --version)" == "agent-runtime-proof $version ($commit)" ]]
+
+if [[ "$native_target" == darwin_arm64 ]]; then
+  mcpb_native="$scan_root/mcpb/server/agent-runtime-proof-darwin-arm64"
+else
+  mcpb_native="$scan_root/mcpb/server/agent-runtime-proof-linux-amd64"
+fi
+chmod 0755 "$mcpb_native"
+[[ "$("$mcpb_native" --version)" == "agent-runtime-proof $version ($commit)" ]]
+"$mcpb_native" doctor --format json | jq -e '.status == "ok"' >/dev/null
+mkfifo "$scan_root/mcpb.stdin" "$scan_root/mcpb.stdout"
+"$mcpb_native" mcp < "$scan_root/mcpb.stdin" > "$scan_root/mcpb.stdout" 2> "$scan_root/mcpb-stderr.txt" &
+mcp_pid=$!
+exec 8>"$scan_root/mcpb.stdin"
+exec 9<"$scan_root/mcpb.stdout"
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"mcpb-release-smoke","version":"1"}}}' >&8
+IFS= read -r initialize_response <&9
+jq -e '.id == 1 and .result.protocolVersion == "2025-06-18"' <<<"$initialize_response" >/dev/null
+printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}' >&8
+printf '%s\n' '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' >&8
+IFS= read -r tools_response <&9
+jq -e '.id == 2 and (.result.tools | map(.name) | sort == ["inspect_local_runtimes","list_local_runtime_candidates","verify_local_runtime"])' <<<"$tools_response" >/dev/null
+exec 8>&-
+exec 9<&-
+wait "$mcp_pid"
+mcp_pid=""
+[[ ! -s "$scan_root/mcpb-stderr.txt" ]]
 
 if [[ "$native_target" == darwin_arm64 ]]; then
   prebuilt_root="$scan_root/darwin-native-acceptance"

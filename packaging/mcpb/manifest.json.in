@@ -1,0 +1,57 @@
+{
+  "manifest_version": "0.3",
+  "name": "agent-runtime-proof",
+  "display_name": "Agent Runtime Proof",
+  "version": "@VERSION@",
+  "description": "Prove whether a local Agent or MCP runtime matches an approved artifact.",
+  "long_description": "Local, read-only runtime identity verification for AI agents and MCP servers. ARP reports stale, replaced, mismatched, or unverifiable runtimes without uploading code, secrets, command lines, or process data.",
+  "author": {
+    "name": "Agent Runtime Proof contributors",
+    "url": "https://github.com/fantasyce/agent-runtime-proof"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fantasyce/agent-runtime-proof.git"
+  },
+  "homepage": "https://fantasyce.github.io/agent-runtime-proof/",
+  "documentation": "https://github.com/fantasyce/agent-runtime-proof/blob/main/docs/quickstart.md",
+  "support": "https://github.com/fantasyce/agent-runtime-proof/issues",
+  "icons": [
+    {"src": "assets/icon.svg", "size": "any"}
+  ],
+  "server": {
+    "type": "binary",
+    "entry_point": "server/agent-runtime-proof-linux-amd64",
+    "mcp_config": {
+      "command": "server/agent-runtime-proof-linux-amd64",
+      "args": ["mcp"],
+      "env": {},
+      "platform_overrides": {
+        "darwin": {"command": "server/agent-runtime-proof-darwin-arm64", "args": ["mcp"]},
+        "win32": {"command": "server/agent-runtime-proof-windows-amd64.exe", "args": ["mcp"]}
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "list_local_runtime_candidates",
+      "description": "Find bounded, safe local runtime candidates when the PID or host binding is unknown."
+    },
+    {
+      "name": "inspect_local_runtimes",
+      "description": "Inspect an explicit local PID, binding, or bounded current-user inventory and return observation Proofs."
+    },
+    {
+      "name": "verify_local_runtime",
+      "description": "Verify an explicit local PID or binding against one declared local artifact expectation."
+    }
+  ],
+  "keywords": ["agent", "mcp", "runtime identity", "provenance", "supply chain", "security"],
+  "license": "Apache-2.0",
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"]
+  },
+  "_meta": {
+    "io.agent-runtime-proof/build": {"commit": "@COMMIT@"}
+  }
+}

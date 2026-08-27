@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.fantasyce/agent-runtime-proof",
+  "title": "Agent Runtime Proof",
+  "description": "Verify whether a local Agent or MCP runtime matches an approved artifact.",
+  "version": "@VERSION@",
+  "websiteUrl": "https://fantasyce.github.io/agent-runtime-proof/",
+  "repository": {
+    "url": "https://github.com/fantasyce/agent-runtime-proof",
+    "source": "github",
+    "id": "1345289397"
+  },
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/fantasyce/agent-runtime-proof/releases/download/v@VERSION@/agent-runtime-proof_@VERSION@.mcpb",
+      "version": "@VERSION@",
+      "fileSha256": "@MCPB_SHA256@",
+      "transport": {"type": "stdio"}
+    }
+  ]
+}

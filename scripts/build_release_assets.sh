@@ -31,7 +31,12 @@ task_base="${TMPDIR:-/tmp}"
 task_base="${task_base%/}"
 [[ -d "$task_base" ]] || { echo 'temporary directory is unavailable' >&2; exit 69; }
 build_root="$(mktemp -d "$task_base/agent-runtime-proof-release-build.XXXXXX")"
-cleanup() { rm -rf "$build_root"; }
+cleanup() {
+  case "$build_root" in
+    "$task_base"/agent-runtime-proof-release-build.*) find "$build_root" -depth -delete 2>/dev/null || true ;;
+    *) echo 'refusing unexpected release build cleanup path' >&2; return 1 ;;
+  esac
+}
 trap cleanup EXIT
 
 source_name="agent-runtime-proof_${version}_source.tar.gz"
@@ -73,6 +78,8 @@ for target in "${targets[@]}"; do
     --format "$archive_format" --source "$stage" --root-name "$base" \
     --output "$output_dir/$archive_name"
 done
+
+python3 "$script_dir/build_mcpb.py" --dist "$output_dir" --version "$version" --commit "$commit"
 
 checksum_tool=(shasum -a 256)
 if ! command -v shasum >/dev/null; then checksum_tool=(sha256sum); fi
