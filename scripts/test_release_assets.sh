@@ -16,7 +16,7 @@ cleanup() {
 trap cleanup EXIT
 
 git clone --quiet --no-hardlinks "$repo_dir" "$test_root/repo"
-for relative in VERSION CHANGELOG.md README.md docs/install.md plugin/agent-runtime-proof/.codex-plugin/plugin.json packaging scripts/build_release_assets.sh scripts/build_mcpb.py scripts/package_release_asset.py scripts/render_registry_metadata.py scripts/verify_registry_metadata.py scripts/verify_release_assets.sh scripts/run_phase4_acceptance.sh scripts/host-matrix/common.sh cmd/agent-runtime-proof/main.go internal/versioninfo; do
+for relative in VERSION CHANGELOG.md README.md docs/install.md plugin/agent-runtime-proof/.codex-plugin/plugin.json packaging scripts/build_release_assets.sh scripts/build_mcpb.py scripts/package_release_asset.py scripts/render_registry_metadata.py scripts/smoke_mcpb.py scripts/verify_registry_metadata.py scripts/verify_release_assets.sh scripts/run_phase4_acceptance.sh scripts/host-matrix/common.sh cmd/agent-runtime-proof/main.go internal/versioninfo; do
   if [[ -e "$repo_dir/$relative" ]]; then
     mkdir -p "$test_root/repo/$(dirname "$relative")"
     if [[ -d "$repo_dir/$relative" ]]; then

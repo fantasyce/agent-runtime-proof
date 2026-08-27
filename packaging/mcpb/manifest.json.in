@@ -17,7 +17,7 @@
   "documentation": "https://github.com/fantasyce/agent-runtime-proof/blob/main/docs/quickstart.md",
   "support": "https://github.com/fantasyce/agent-runtime-proof/issues",
   "icons": [
-    {"src": "assets/icon.svg", "size": "any"}
+    {"src": "assets/icon.svg", "size": "128x128"}
   ],
   "server": {
     "type": "binary",
@@ -52,6 +52,6 @@
     "platforms": ["darwin", "linux", "win32"]
   },
   "_meta": {
-    "io.agent-runtime-proof/build": {"commit": "@COMMIT@"}
+    "io.github.fantasyce.agent-runtime-proof": {"build": {"commit": "@COMMIT@"}}
   }
 }

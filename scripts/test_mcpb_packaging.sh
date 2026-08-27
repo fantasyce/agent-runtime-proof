@@ -52,6 +52,7 @@ import json
 import pathlib
 import stat
 import sys
+import tarfile
 import zipfile
 
 dist = pathlib.Path(sys.argv[1])
@@ -71,6 +72,8 @@ with zipfile.ZipFile(bundle) as archive:
     assert manifest["version"] == version
     assert manifest["license"] == "Apache-2.0"
     assert manifest["compatibility"]["platforms"] == ["darwin", "linux", "win32"]
+    assert manifest["icons"] == [{"size": "128x128", "src": "assets/icon.svg"}]
+    assert manifest["_meta"] == {"io.github.fantasyce.agent-runtime-proof": {"build": {"commit": "a" * 40}}}
     assert [tool["name"] for tool in manifest["tools"]] == [
         "list_local_runtime_candidates",
         "inspect_local_runtimes",
@@ -81,6 +84,16 @@ with zipfile.ZipFile(bundle) as archive:
         assert mode & stat.S_IXUSR, (name, oct(mode))
     for info in archive.infolist():
         assert info.date_time == (1980, 1, 1, 0, 0, 0)
+
+    with tarfile.open(dist / f"agent-runtime-proof_{version}_darwin_arm64.tar.gz", "r:gz") as native:
+        expected = native.extractfile(f"agent-runtime-proof_{version}_darwin_arm64/agent-runtime-proof").read()
+    assert archive.read("server/agent-runtime-proof-darwin-arm64") == expected
+    with tarfile.open(dist / f"agent-runtime-proof_{version}_linux_amd64.tar.gz", "r:gz") as native:
+        expected = native.extractfile(f"agent-runtime-proof_{version}_linux_amd64/agent-runtime-proof").read()
+    assert archive.read("server/agent-runtime-proof-linux-amd64") == expected
+    with zipfile.ZipFile(dist / f"agent-runtime-proof_{version}_windows_amd64.zip") as native:
+        expected = native.read(f"agent-runtime-proof_{version}_windows_amd64/agent-runtime-proof.exe")
+    assert archive.read("server/agent-runtime-proof-windows-amd64.exe") == expected
 
 server = json.loads((dist / "server.json").read_text(encoding="utf-8"))
 package = server["packages"][0]
