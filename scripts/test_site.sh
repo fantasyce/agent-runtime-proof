@@ -16,6 +16,9 @@ grep -Fq 'SECURITY.md' "$index"
 grep -Fq 'github.com/fantasyce/agent-runtime-proof' "$index"
 grep -Fq '<title' "$repo_dir/site/arp-runtime-proof.svg"
 grep -Fq '<desc' "$repo_dir/site/arp-runtime-proof.svg"
+grep -Fq 'actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b' "$repo_dir/.github/workflows/pages.yml"
+grep -Fq 'actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b' "$repo_dir/.github/workflows/pages.yml"
+grep -Fq 'actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e' "$repo_dir/.github/workflows/pages.yml"
 
 if rg -n 'https?://[^" ]+\.(js|css|woff2?|ttf)|<script|googletag|segment\.com|plausible|analytics|href="#"|TODO|PLACEHOLDER' "$repo_dir/site"; then
   echo 'site contains an external dependency, tracker, script, or placeholder' >&2
