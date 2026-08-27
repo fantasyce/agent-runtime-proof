@@ -38,6 +38,12 @@ python3 "$repo_dir/scripts/build_mcpb.py" --dist "$test_root/dist-one" --version
 python3 "$repo_dir/scripts/build_mcpb.py" --dist "$test_root/dist-two" --version "$version" --commit "$commit"
 cmp "$test_root/dist-one/agent-runtime-proof_${version}.mcpb" "$test_root/dist-two/agent-runtime-proof_${version}.mcpb"
 cmp "$test_root/dist-one/server.json" "$test_root/dist-two/server.json"
+python3 "$repo_dir/scripts/render_registry_metadata.py" \
+  --template "$repo_dir/packaging/mcp-registry/server.json.in" \
+  --mcpb "$test_root/dist-one/agent-runtime-proof_${version}.mcpb" \
+  --version "$version" \
+  --output "$test_root/rendered-server.json"
+cmp "$test_root/dist-one/server.json" "$test_root/rendered-server.json"
 python3 "$repo_dir/scripts/verify_registry_metadata.py" --server "$test_root/dist-one/server.json" --mcpb "$test_root/dist-one/agent-runtime-proof_${version}.mcpb" --version "$version"
 
 python3 - "$test_root/dist-one" "$version" <<'PY'

@@ -19,7 +19,7 @@ the [five-minute quickstart](docs/quickstart.md).
 ## Quickstart
 
 The current release is
-[v1.0.1](https://github.com/fantasyce/agent-runtime-proof/releases/tag/v1.0.1)
+[v1.1.0](https://github.com/fantasyce/agent-runtime-proof/releases/tag/v1.1.0)
 for macOS arm64, Linux amd64, and Windows amd64. Download the archive and
 `SHA256SUMS` from that release, verify the bytes, then install the single binary
 in a user-owned directory. Full commands for each platform are in
@@ -72,6 +72,11 @@ Host profiles are available for Codex, Claude Code, Cursor, OpenCode, DeepSeek
 Harness, VS Code/GitHub Copilot, and generic hosts. See
 [the host configuration guide](docs/host-configuration.md). ARP does not edit
 the host's configuration.
+
+The v1.1.0 Release also includes
+`agent-runtime-proof_1.1.0.mcpb` for compatible MCP clients. Its Registry
+metadata binds the bundle URL to its SHA-256 digest; the same three native
+binaries remain available as ordinary platform archives.
 
 ## What ARP proves
 

@@ -10,7 +10,7 @@ body:
     id: version
     attributes:
       label: ARP version
-      placeholder: agent-runtime-proof 1.0.1 (commit)
+      placeholder: agent-runtime-proof 1.1.0 (commit)
     validations:
       required: true
   - type: dropdown

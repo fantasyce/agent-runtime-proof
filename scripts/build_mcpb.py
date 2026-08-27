@@ -14,7 +14,6 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
-
 VERSION = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 COMMIT = re.compile(r"^[a-f0-9]{40}$")
 EPOCH = (1980, 1, 1, 0, 0, 0)

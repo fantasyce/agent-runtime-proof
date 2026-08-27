@@ -1,0 +1,95 @@
+name: Publish MCP Registry
+
+on:
+  workflow_run:
+    workflows:
+      - Release
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Select the v1.1.0 release
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    outputs:
+      publish: ${{ steps.identity.outputs.publish }}
+    steps:
+      - name: Checkout v1.1.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: v1.1.0
+          fetch-depth: 0
+      - name: Match the completed Release commit
+        id: identity
+        env:
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          if test "$(git rev-list -n 1 v1.1.0)" = "$RELEASE_SHA"; then
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    name: Publish and verify v1.1.0
+    needs: gate
+    if: needs.gate.outputs.publish == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout exact release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: v1.1.0
+          fetch-depth: 0
+      - name: Download the published MCPB
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download v1.1.0 --pattern 'agent-runtime-proof_1.1.0.mcpb' --dir "$RUNNER_TEMP/release"
+      - name: Regenerate and validate Registry metadata
+        run: |
+          set -euo pipefail
+          python3 scripts/render_registry_metadata.py \
+            --template packaging/mcp-registry/server.json.in \
+            --mcpb "$RUNNER_TEMP/release/agent-runtime-proof_1.1.0.mcpb" \
+            --version 1.1.0 \
+            --output "$RUNNER_TEMP/server.json"
+          python3 scripts/verify_registry_metadata.py \
+            --server "$RUNNER_TEMP/server.json" \
+            --mcpb "$RUNNER_TEMP/release/agent-runtime-proof_1.1.0.mcpb" \
+            --version 1.1.0
+      - name: Install verified mcp-publisher v1.8.1
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/mcp-publisher_linux_amd64.tar.gz"
+          curl --fail --location --proto '=https' --tlsv1.2 \
+            'https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz' \
+            --output "$archive"
+          echo 'a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  '"$archive" | sha256sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP" mcp-publisher
+          "$RUNNER_TEMP/mcp-publisher" validate "$RUNNER_TEMP/server.json"
+      - name: Authenticate with GitHub OIDC
+        run: "$RUNNER_TEMP/mcp-publisher" login github-oidc --registry=https://registry.modelcontextprotocol.io
+      - name: Publish server.json
+        run: "$RUNNER_TEMP/mcp-publisher" publish "$RUNNER_TEMP/server.json" --registry=https://registry.modelcontextprotocol.io
+      - name: Verify the public Registry record
+        run: |
+          set -euo pipefail
+          url='https://registry.modelcontextprotocol.io/v0.1/servers/io.github.fantasyce%2Fagent-runtime-proof/versions/1.1.0'
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            if curl --fail --silent --show-error "$url" > "$RUNNER_TEMP/registry-record.json" && \
+              jq -e '.server.name == "io.github.fantasyce/agent-runtime-proof" and .server.version == "1.1.0"' "$RUNNER_TEMP/registry-record.json" >/dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'published Registry record did not become visible' >&2
+          exit 1
