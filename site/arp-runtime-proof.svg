@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 520" role="img" aria-labelledby="title desc">
+  <title id="title">Approved artifact compared with a live process</title>
+  <desc id="desc">An evidence diagram showing an approved digest, an earlier live process, and an unknown verdict after executable replacement.</desc>
+  <style>
+    .label{font:700 13px ui-monospace,monospace;letter-spacing:1.5px}.title{font:600 25px system-ui,sans-serif}.data{font:15px ui-monospace,monospace}.muted{fill:#506a73}.line{stroke:#91a7ae;stroke-width:2}.box{fill:#f9fbfc;stroke:#91a7ae;stroke-width:2}.signal{fill:#0b6b70}.caution{fill:#a64322}.white{fill:#fff}.dark{fill:#102a35}
+    @media(prefers-color-scheme:dark){.box{fill:#17242a;stroke:#6f8990}.muted{fill:#a7bcc2}.dark{fill:#e5f1f3}.line{stroke:#6f8990}}
+  </style>
+  <rect class="box" x="20" y="20" width="580" height="480" rx="4"/>
+  <text class="label signal" x="55" y="67">EXPECTED ARTIFACT</text>
+  <text class="title dark" x="55" y="104">Approved release</text>
+  <text class="data muted" x="55" y="135">sha256 7e31…a08c</text>
+  <path class="line" d="M55 168h510"/>
+  <text class="label signal" x="55" y="213">LIVE OBSERVATION</text>
+  <circle class="signal" cx="74" cy="260" r="19"/>
+  <text class="data white" x="62" y="266">PID</text>
+  <text class="title dark" x="112" y="256">4812 is still running</text>
+  <text class="data muted" x="112" y="285">started before executable replacement</text>
+  <path class="line" d="M55 320h510"/>
+  <text class="label caution" x="55" y="365">VERDICT</text>
+  <text class="title caution" x="55" y="407">UNKNOWN</text>
+  <text class="data muted" x="55" y="442">POSSIBLE_STALE_AFTER_REPLACEMENT</text>
+  <path d="M535 380v50m-25-25h50" stroke="#a64322" stroke-width="6" stroke-linecap="round"/>
+</svg>
