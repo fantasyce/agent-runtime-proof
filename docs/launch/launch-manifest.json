@@ -2,19 +2,20 @@
   "schema_version": 1,
   "release": "v1.1.0",
   "prepared_at": "2026-08-27T00:00:00+08:00",
+  "finalized_at": "2026-08-27T05:04:56Z",
   "channels": [
-    {"id":"github-release","target":"https://github.com/fantasyce/agent-runtime-proof/releases/tag/v1.1.0","copy":"release workflow","status":"prepared","public_url":null,"reason":null},
-    {"id":"mcp-registry","target":"https://registry.modelcontextprotocol.io/","copy":"packaging/mcp-registry/server.json.in","status":"prepared","public_url":null,"reason":null},
-    {"id":"github-pages","target":"https://fantasyce.github.io/agent-runtime-proof/","copy":"site/","status":"prepared","public_url":null,"reason":null},
-    {"id":"github-discussion","target":"https://github.com/fantasyce/agent-runtime-proof/discussions","copy":"docs/launch/launch-article.md","status":"prepared","public_url":null,"reason":null},
-    {"id":"show-hn","target":"https://news.ycombinator.com/submit","copy":"docs/launch/community-posts.md#show-hn","status":"prepared","public_url":null,"reason":null},
-    {"id":"openai-developer-forum","target":"https://community.openai.com/","copy":"docs/launch/community-posts.md#openai-developer-forum","status":"prepared","public_url":null,"reason":null},
-    {"id":"mcp-community","target":"public MCP community channel","copy":"docs/launch/community-posts.md#mcp-community","status":"prepared","public_url":null,"reason":null},
-    {"id":"reddit","target":"relevant subreddit after rules review","copy":"docs/launch/community-posts.md#reddit","status":"prepared","public_url":null,"reason":null},
-    {"id":"x","target":"authenticated project or maintainer account","copy":"docs/launch/community-posts.md#x","status":"prepared","public_url":null,"reason":null},
-    {"id":"linkedin","target":"authenticated maintainer account","copy":"docs/launch/community-posts.md#linkedin","status":"prepared","public_url":null,"reason":null},
-    {"id":"chinese-community","target":"appropriate authenticated Chinese developer community","copy":"docs/launch/community-posts.md#中文","status":"prepared","public_url":null,"reason":null},
-    {"id":"showcase","target":"applicable public developer showcase","copy":"docs/launch/showcase-submission.md","status":"prepared","public_url":null,"reason":"final submission may require owner identity or terms confirmation"},
-    {"id":"design-partners","target":"public maintainer channels that welcome integration requests","copy":"docs/launch/maintainer-outreach.md","status":"prepared","public_url":null,"reason":null}
+    {"id":"github-release","target":"https://github.com/fantasyce/agent-runtime-proof/releases/tag/v1.1.0","copy":"release workflow","status":"published","checked_at":"2026-08-27T05:04:56Z","public_url":"https://github.com/fantasyce/agent-runtime-proof/releases/tag/v1.1.0","reason":null},
+    {"id":"mcp-registry","target":"https://registry.modelcontextprotocol.io/","copy":"packaging/mcp-registry/server.json.in","status":"published","checked_at":"2026-08-27T05:04:56Z","public_url":"https://registry.modelcontextprotocol.io/v0.1/servers/io.github.fantasyce%2Fagent-runtime-proof/versions/1.1.0","reason":null},
+    {"id":"github-pages","target":"https://fantasyce.github.io/agent-runtime-proof/","copy":"site/","status":"published","checked_at":"2026-08-27T05:04:56Z","public_url":"https://fantasyce.github.io/agent-runtime-proof/","reason":null},
+    {"id":"github-discussion","target":"https://github.com/fantasyce/agent-runtime-proof/discussions","copy":"docs/launch/launch-article.md","status":"published","checked_at":"2026-08-27T05:04:56Z","public_url":"https://github.com/fantasyce/agent-runtime-proof/discussions/5","reason":null},
+    {"id":"show-hn","target":"https://news.ycombinator.com/submit","copy":"docs/launch/community-posts.md#show-hn","status":"blocked","checked_at":"2026-08-27T05:04:56Z","public_url":null,"reason":"No existing authenticated browser session was available; account creation or identity action was not attempted."},
+    {"id":"openai-developer-forum","target":"https://community.openai.com/","copy":"docs/launch/community-posts.md#openai-developer-forum","status":"blocked","checked_at":"2026-08-27T05:04:56Z","public_url":null,"reason":"No existing authenticated browser session was available; account creation or identity action was not attempted."},
+    {"id":"mcp-community","target":"public MCP community channel","copy":"docs/launch/community-posts.md#mcp-community","status":"blocked","checked_at":"2026-08-27T05:04:56Z","public_url":null,"reason":"No concrete authenticated public channel was available beyond the completed official MCP Registry publication."},
+    {"id":"reddit","target":"relevant subreddit after rules review","copy":"docs/launch/community-posts.md#reddit","status":"blocked","checked_at":"2026-08-27T05:04:56Z","public_url":null,"reason":"No existing authenticated browser session was available, so subreddit rules and posting identity could not be verified safely."},
+    {"id":"x","target":"authenticated project or maintainer account","copy":"docs/launch/community-posts.md#x","status":"blocked","checked_at":"2026-08-27T05:04:56Z","public_url":null,"reason":"No existing authenticated project or maintainer browser session was available."},
+    {"id":"linkedin","target":"authenticated maintainer account","copy":"docs/launch/community-posts.md#linkedin","status":"blocked","checked_at":"2026-08-27T05:04:56Z","public_url":null,"reason":"No existing authenticated maintainer browser session was available."},
+    {"id":"chinese-community","target":"appropriate authenticated Chinese developer community","copy":"docs/launch/community-posts.md#中文","status":"blocked","checked_at":"2026-08-27T05:04:56Z","public_url":null,"reason":"No existing authenticated community browser session was available."},
+    {"id":"showcase","target":"applicable public developer showcase","copy":"docs/launch/showcase-submission.md","status":"blocked","checked_at":"2026-08-27T05:04:56Z","public_url":null,"reason":"No unambiguous submission target was available without owner identity or terms confirmation."},
+    {"id":"design-partners","target":"public maintainer channels that welcome integration requests","copy":"docs/launch/maintainer-outreach.md","status":"published","checked_at":"2026-08-27T05:04:56Z","public_url":"https://github.com/fantasyce/agent-runtime-proof/issues/8","reason":"A public in-repository integration invitation was used to avoid unsolicited cross-project outreach."}
   ]
 }
