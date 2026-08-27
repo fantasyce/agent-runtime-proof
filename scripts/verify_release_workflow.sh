@@ -60,6 +60,10 @@ registry_require 'a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2
 registry_require 'login github-oidc' 'Registry publication must use GitHub OIDC'
 registry_require 'publish .*server\.json' 'Registry publication command is missing'
 registry_require 'registry\.modelcontextprotocol\.io/v0\.1/servers/' 'Registry publication must verify the public API'
+if grep -Eq '^ *run: "\$RUNNER_TEMP/' "$registry_workflow"; then
+  echo 'Registry workflow must use a block scalar for quoted shell commands' >&2
+  exit 1
+fi
 if grep -Eq 'secrets\.(MCP|REGISTRY|GITHUB).*TOKEN|MCP_GITHUB_TOKEN' "$registry_workflow"; then
   echo 'Registry workflow must not use a repository token secret' >&2
   exit 1
