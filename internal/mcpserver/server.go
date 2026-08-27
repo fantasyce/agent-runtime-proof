@@ -72,7 +72,7 @@ func New(runtime Runtime, version string) *mcp.Server {
 	)
 	annotations := safeAnnotations()
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "list_local_runtime_candidates", Description: "List safe local runtime candidate summaries without expensive artifact hashing.", Annotations: annotations,
+		Name: "list_local_runtime_candidates", Description: "Use this when the local PID or host binding is unknown and you need bounded, safe candidate summaries without artifact hashing. Do not use it to claim that a runtime matches an approved artifact or to request an exhaustive system inventory.", Annotations: annotations,
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, input ListCandidatesInput) (*mcp.CallToolResult, ListCandidatesOutput, error) {
 		if (input.HostID != "" && input.BindingID != "") || input.Limit < 0 || input.Limit > maximumInventoryLimit || (input.BindingID != "" && input.Limit != 0) {
 			return nil, ListCandidatesOutput{}, errInvalidInput
@@ -100,7 +100,7 @@ func New(runtime Runtime, version string) *mcp.Server {
 		return nil, output, nil
 	})
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "inspect_local_runtimes", Description: "Inspect an explicit local PID or a bounded current-user inventory and return observation Proofs.", Annotations: safeAnnotations(),
+		Name: "inspect_local_runtimes", Description: "Use this when you have an explicit local PID, host binding, or bounded current-user inventory and need observation Proofs. Do not use it to claim an approved artifact match; use verify_local_runtime with an expectation for that decision.", Annotations: safeAnnotations(),
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, input InspectRuntimesInput) (*mcp.CallToolResult, InspectRuntimesOutput, error) {
 		if boolInt(input.PID > 0)+boolInt(input.BindingID != "")+boolInt(input.All) != 1 || input.PID < 0 || input.Limit < 0 || input.Limit > maximumInventoryLimit || (!input.All && input.Limit != 0) {
 			return nil, InspectRuntimesOutput{}, errInvalidInput
@@ -112,7 +112,7 @@ func New(runtime Runtime, version string) *mcp.Server {
 		return nil, InspectRuntimesOutput{Proofs: result.Proofs}, nil
 	})
 	mcp.AddTool(server, &mcp.Tool{
-		Name: "verify_local_runtime", Description: "Verify an explicit local PID against a trusted local expectation file and return a complete Proof.", Annotations: safeAnnotations(),
+		Name: "verify_local_runtime", Description: "Use this when you need to verify an explicit local PID or host binding against one declared local artifact expectation. Do not use it without an expectation, for remote processes, or to modify, stop, repair, or upgrade a runtime.", Annotations: safeAnnotations(),
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, input VerifyRuntimeInput) (*mcp.CallToolResult, VerifyRuntimeOutput, error) {
 		if boolInt(input.PID > 0)+boolInt(input.BindingID != "") != 1 || input.PID < 0 || (input.ExpectationPath == "") == (input.Expectation == nil) || !validDigests(input.KnownPriorDigests) {
 			return nil, VerifyRuntimeOutput{}, errInvalidInput
