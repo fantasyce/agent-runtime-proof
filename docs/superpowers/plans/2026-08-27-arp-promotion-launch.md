@@ -80,18 +80,17 @@ git commit -m "docs: make ARP ready for public adoption"
 **Files:**
 - Create: `scripts/test_stale_runtime_demo.sh`
 - Create: `scripts/demo_stale_runtime.sh`
-- Create: `testdata/demo-helper/main.go`
 - Create: `docs/demo.md`
 - Modify: `README.md`
 - Modify: `scripts/check.sh`
 
 **Interfaces:**
 - Consumes: `agent-runtime-proof verify`, native expectations, `--known-prior-digest`, and task-owned helper processes.
-- Produces: `scripts/demo_stale_runtime.sh [--json]`, whose default output is a human-readable before/replace/verdict transcript and whose JSON mode emits the final Proof.
+- Produces: `scripts/demo_stale_runtime.sh [--json]`, whose default output is a human-readable before/replace/verdict transcript and whose JSON mode emits the final Proof. The replacement-only case must remain `UNKNOWN/POSSIBLE_STALE_AFTER_REPLACEMENT`; it must not manufacture a direct loaded-byte observation or claim `STALE`.
 
 - [ ] **Step 1: Write the failing demo test**
 
-Create `scripts/test_stale_runtime_demo.sh`. It creates a temporary directory with a cleanup trap, runs `scripts/demo_stale_runtime.sh --json`, parses the returned Proof with Python, and asserts that the verdict is a determinate non-match demonstrating runtime/file drift, that reason codes include the existing stale/replacement reason emitted by the evaluator, and that no absolute temporary path, argv, or environment value appears in the JSON.
+Create `scripts/test_stale_runtime_demo.sh`. It creates a temporary directory with a cleanup trap, runs `scripts/demo_stale_runtime.sh --json`, parses the returned Proof with Python, and asserts that the verdict is `UNKNOWN`, that reason codes include `POSSIBLE_STALE_AFTER_REPLACEMENT`, and that no absolute temporary path, argv, or environment value appears in the JSON. This proves ARP detects the replacement evidence while refusing to overstate the loaded runtime identity.
 
 - [ ] **Step 2: Run the test and verify RED**
 
@@ -101,7 +100,7 @@ Expected: non-zero because `scripts/demo_stale_runtime.sh` does not exist.
 
 - [ ] **Step 3: Implement the minimal deterministic demo**
 
-Implement a small Go helper that blocks until terminated and embeds a build marker. The demo builds two distinct helper binaries, starts the first, atomically replaces its on-disk path with the second, constructs a bounded expectation for the replacement, and invokes ARP with the prior loaded digest. It must never use a source checkout binary as the inspected subject, elevate privileges, or leave the helper running.
+Reuse the existing acceptance helper that blocks until terminated and embeds a build marker. The demo builds two distinct helper binaries, starts the first, atomically replaces its on-disk path with the second, constructs a bounded expectation for the replacement, and invokes ARP without pretending that the old loaded bytes were directly observed. It must never use a source checkout binary as the inspected subject, elevate privileges, or leave the helper running.
 
 - [ ] **Step 4: Document the exact expected story**
 
@@ -111,7 +110,7 @@ Add `docs/demo.md` with copy-paste commands, expected verdict/reason meanings, l
 
 Run: `bash scripts/test_stale_runtime_demo.sh && bash scripts/demo_stale_runtime.sh >/tmp/arp-demo-output && test -s /tmp/arp-demo-output && rm /tmp/arp-demo-output`
 
-Expected: exit 0, a determinate stale/replacement verdict, and no residual helper process or task directory.
+Expected: exit 0, `UNKNOWN/POSSIBLE_STALE_AFTER_REPLACEMENT`, and no residual helper process or task directory.
 
 - [ ] **Step 6: Add to source gates and commit**
 
