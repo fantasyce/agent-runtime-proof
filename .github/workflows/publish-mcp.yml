@@ -77,9 +77,11 @@ jobs:
           tar -xzf "$archive" -C "$RUNNER_TEMP" mcp-publisher
           "$RUNNER_TEMP/mcp-publisher" validate "$RUNNER_TEMP/server.json"
       - name: Authenticate with GitHub OIDC
-        run: "$RUNNER_TEMP/mcp-publisher" login github-oidc --registry=https://registry.modelcontextprotocol.io
+        run: |
+          "$RUNNER_TEMP/mcp-publisher" login github-oidc --registry=https://registry.modelcontextprotocol.io
       - name: Publish server.json
-        run: "$RUNNER_TEMP/mcp-publisher" publish "$RUNNER_TEMP/server.json" --registry=https://registry.modelcontextprotocol.io
+        run: |
+          "$RUNNER_TEMP/mcp-publisher" publish "$RUNNER_TEMP/server.json" --registry=https://registry.modelcontextprotocol.io
       - name: Verify the public Registry record
         run: |
           set -euo pipefail
