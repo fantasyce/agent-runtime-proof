@@ -16,3 +16,8 @@ go mod verify
 go build -trimpath ./...
 go test -count=1 -race ./...
 git diff --check
+bash scripts/test_public_surface.sh
+bash scripts/test_stale_runtime_demo.sh
+bash scripts/verify_mcp_metadata.sh
+bash scripts/test_mcpb_packaging.sh
+bash scripts/test_site.sh

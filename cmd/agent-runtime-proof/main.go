@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	version = "1.0.1-dev"
+	version = "1.1.0-dev"
 	commit  = "0000000"
 )
 

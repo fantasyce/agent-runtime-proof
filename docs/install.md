@@ -11,18 +11,18 @@ Download `SHA256SUMS`, the archive for the target platform, and its matching
 CycloneDX `*.cdx.json` SBOM from the same GitHub Release. On macOS:
 
 ```bash
-asset=agent-runtime-proof_1.0.1_darwin_arm64.tar.gz
+asset=agent-runtime-proof_1.1.0_darwin_arm64.tar.gz
 grep "  $asset\$" SHA256SUMS | shasum -a 256 -c -
 gh attestation verify "$asset" --repo fantasyce/agent-runtime-proof
 jq -e '.bomFormat == "CycloneDX" and .specVersion == "1.6"' \
-  agent-runtime-proof_1.0.1_darwin_arm64.cdx.json
+  agent-runtime-proof_1.1.0_darwin_arm64.cdx.json
 ```
 
 On Linux, use the same commands with the `linux_amd64` files and `sha256sum
 -c -`. On Windows PowerShell:
 
 ```powershell
-$Asset = 'agent-runtime-proof_1.0.1_windows_amd64.zip'
+$Asset = 'agent-runtime-proof_1.1.0_windows_amd64.zip'
 $Expected = ((Select-String -Path SHA256SUMS -Pattern "  $Asset$").Line -split ' ')[0]
 $Actual = (Get-FileHash -Algorithm SHA256 $Asset).Hash.ToLowerInvariant()
 if ($Actual -ne $Expected) { throw 'checksum mismatch' }
@@ -40,8 +40,8 @@ instead of treating any one as a substitute for the others.
 
 ```bash
 mkdir -p "$HOME/.local/bin"
-tar -xzf agent-runtime-proof_1.0.1_darwin_arm64.tar.gz
-install -m 0755 agent-runtime-proof_1.0.1_darwin_arm64/agent-runtime-proof \
+tar -xzf agent-runtime-proof_1.1.0_darwin_arm64.tar.gz
+install -m 0755 agent-runtime-proof_1.1.0_darwin_arm64/agent-runtime-proof \
   "$HOME/.local/bin/agent-runtime-proof"
 "$HOME/.local/bin/agent-runtime-proof" --version
 "$HOME/.local/bin/agent-runtime-proof" doctor --format json
@@ -50,7 +50,7 @@ install -m 0755 agent-runtime-proof_1.0.1_darwin_arm64/agent-runtime-proof \
 ### Linux amd64
 
 Use the same procedure with
-`agent-runtime-proof_1.0.1_linux_amd64.tar.gz`. Install to
+`agent-runtime-proof_1.1.0_linux_amd64.tar.gz`. Install to
 `$HOME/.local/bin/agent-runtime-proof`; no root-owned path is required.
 
 ### Windows 11 amd64
@@ -58,8 +58,8 @@ Use the same procedure with
 ```powershell
 $Root = Join-Path $env:LOCALAPPDATA 'Programs\AgentRuntimeProof'
 New-Item -ItemType Directory -Force $Root | Out-Null
-Expand-Archive agent-runtime-proof_1.0.1_windows_amd64.zip -DestinationPath . -Force
-Copy-Item .\agent-runtime-proof_1.0.1_windows_amd64\agent-runtime-proof.exe \
+Expand-Archive agent-runtime-proof_1.1.0_windows_amd64.zip -DestinationPath . -Force
+Copy-Item .\agent-runtime-proof_1.1.0_windows_amd64\agent-runtime-proof.exe \
   (Join-Path $Root 'agent-runtime-proof.exe') -Force
 & (Join-Path $Root 'agent-runtime-proof.exe') --version
 & (Join-Path $Root 'agent-runtime-proof.exe') doctor --format json
@@ -70,6 +70,12 @@ Use the absolute installed binary path in the host's MCP configuration with
 configuration example, not a fourth AAA managed plugin. Host-specific examples
 are in [the generic configuration guide](host-configuration.md) and
 [`docs/hosts/`](hosts/).
+
+Compatible MCP clients can instead install
+`agent-runtime-proof_1.1.0.mcpb` from the same Release. Verify its entry in
+`SHA256SUMS` and its GitHub attestation before installation. The bundle contains
+the same macOS arm64, Linux amd64, and Windows amd64 binaries and selects the
+native command through MCPB platform overrides.
 
 ## Upgrade and same-version repair
 
@@ -117,7 +123,7 @@ recursive cleanup target such as a home directory.
 
 ## Source and clean-environment verification
 
-The Release also contains `agent-runtime-proof_1.0.1_source.tar.gz`. Extract it
+The Release also contains `agent-runtime-proof_1.1.0_source.tar.gz`. Extract it
 outside any development checkout, run `bash scripts/check.sh`, and compare a
 locally built binary only as reproducibility evidence. Normal users should run
 the verified platform archive. Tests and evaluations must use task-owned

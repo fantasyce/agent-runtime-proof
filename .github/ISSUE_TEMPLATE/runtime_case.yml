@@ -1,0 +1,47 @@
+name: Runtime verification case
+description: Share a sanitized real-world ARP result or host integration case.
+title: "runtime case: "
+labels: [runtime-case]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include secrets, credentials, raw argv, environment values, private configuration, proprietary paths, or file contents."
+  - type: input
+    id: version
+    attributes:
+      label: ARP version
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and architecture
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Host and host version
+    validations:
+      required: true
+  - type: dropdown
+    id: verdict
+    attributes:
+      label: Observed verdict
+      options: [MATCHED, STALE, LEAKED, CONFLICT, NOT_RUNNING, UNKNOWN]
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence and reason codes
+      description: Explain what ARP established and what remained limited.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed secrets and sensitive process or host data.
+          required: true

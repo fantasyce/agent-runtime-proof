@@ -22,6 +22,8 @@ expected=(
   "agent-runtime-proof_${version}_linux_amd64.cdx.json"
   "agent-runtime-proof_${version}_windows_amd64.zip"
   "agent-runtime-proof_${version}_windows_amd64.cdx.json"
+  "agent-runtime-proof_${version}.mcpb"
+  server.json
 )
 actual="$(find "$dist" -maxdepth 1 -type f -exec basename {} \; | LC_ALL=C sort)"
 wanted="$(printf '%s\n' "${expected[@]}" | LC_ALL=C sort)"
@@ -44,7 +46,17 @@ task_base="${TMPDIR:-/tmp}"
 task_base="${task_base%/}"
 [[ -d "$task_base" ]] || { echo 'temporary directory is unavailable' >&2; exit 69; }
 scan_root="$(mktemp -d "$task_base/agent-runtime-proof-release-scan.XXXXXX")"
-cleanup() { rm -rf "$scan_root"; }
+mcp_pid=""
+cleanup() {
+  if [[ -n "$mcp_pid" ]]; then
+    kill "$mcp_pid" 2>/dev/null || true
+    wait "$mcp_pid" 2>/dev/null || true
+  fi
+  case "$scan_root" in
+    "$task_base"/agent-runtime-proof-release-scan.*) find "$scan_root" -depth -delete 2>/dev/null || true ;;
+    *) echo 'refusing unexpected release scan cleanup path' >&2; return 1 ;;
+  esac
+}
 trap cleanup EXIT
 
 for target in darwin_arm64 linux_amd64; do
@@ -72,6 +84,50 @@ mkdir -p "$scan_root/windows_amd64"
 unzip -q "$windows_archive" -d "$scan_root/windows_amd64"
 if grep -ERa '/Users/[^/]+/|[A-Za-z]:\\Users\\|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY' "$scan_root/windows_amd64"; then exit 1; fi
 
+mcpb="$dist/agent-runtime-proof_${version}.mcpb"
+mcpb_listing="$(unzip -Z1 "$mcpb")"
+expected_mcpb_listing=$'LICENSE\nassets/icon.svg\nmanifest.json\nserver/agent-runtime-proof-darwin-arm64\nserver/agent-runtime-proof-linux-amd64\nserver/agent-runtime-proof-windows-amd64.exe'
+[[ "$mcpb_listing" == "$expected_mcpb_listing" ]] || { echo 'MCPB file set mismatch' >&2; exit 1; }
+mkdir -p "$scan_root/mcpb"
+unzip -q "$mcpb" -d "$scan_root/mcpb"
+if grep -ERa '/Users/[^/]+/|[A-Za-z]:\\Users\\|BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY|__pycache__|node_modules|\.git/' "$scan_root/mcpb"; then exit 1; fi
+python3 "$script_dir/verify_registry_metadata.py" --server "$dist/server.json" --mcpb "$mcpb" --version "$version"
+python3 - "$scan_root/mcpb" "$dist" "$version" "$commit" <<'PY'
+import json
+import pathlib
+import sys
+import tarfile
+import zipfile
+
+mcpb_root = pathlib.Path(sys.argv[1])
+dist = pathlib.Path(sys.argv[2])
+version = sys.argv[3]
+commit = sys.argv[4]
+manifest = json.loads((mcpb_root / "manifest.json").read_text(encoding="utf-8"))
+assert manifest["manifest_version"] == "0.3"
+assert manifest["version"] == version
+assert manifest["icons"] == [{"size": "128x128", "src": "assets/icon.svg"}]
+assert manifest["_meta"] == {"io.github.fantasyce.agent-runtime-proof": {"build": {"commit": commit}}}
+assert manifest["server"]["type"] == "binary"
+assert manifest["server"]["mcp_config"]["args"] == ["mcp"]
+assert [tool["name"] for tool in manifest["tools"]] == [
+    "list_local_runtime_candidates", "inspect_local_runtimes", "verify_local_runtime"
+]
+
+for target in ("darwin_arm64", "linux_amd64"):
+    archive_path = dist / f"agent-runtime-proof_{version}_{target}.tar.gz"
+    member = f"agent-runtime-proof_{version}_{target}/agent-runtime-proof"
+    with tarfile.open(archive_path, "r:gz") as archive:
+        handle = archive.extractfile(member)
+        assert handle is not None
+        expected = handle.read()
+    packaged = mcpb_root / "server" / f"agent-runtime-proof-{target.replace('_', '-')}"
+    assert packaged.read_bytes() == expected
+with zipfile.ZipFile(dist / f"agent-runtime-proof_{version}_windows_amd64.zip") as archive:
+    expected = archive.read(f"agent-runtime-proof_{version}_windows_amd64/agent-runtime-proof.exe")
+assert (mcpb_root / "server/agent-runtime-proof-windows-amd64.exe").read_bytes() == expected
+PY
+
 source_archive="$dist/agent-runtime-proof_${version}_source.tar.gz"
 prefix="agent-runtime-proof-${version}/"
 source_listing="$(tar -tzf "$source_archive")"
@@ -89,6 +145,8 @@ mkdir -p "$native_root"
 tar -xzf "$native_archive" -C "$native_root"
 native_binary="$native_root/agent-runtime-proof_${version}_${native_target}/agent-runtime-proof"
 [[ "$("$native_binary" --version)" == "agent-runtime-proof $version ($commit)" ]]
+
+python3 "$script_dir/smoke_mcpb.py" --mcpb "$mcpb" --version "$version" --commit "$commit"
 
 if [[ "$native_target" == darwin_arm64 ]]; then
   prebuilt_root="$scan_root/darwin-native-acceptance"

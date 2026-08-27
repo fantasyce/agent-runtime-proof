@@ -7,6 +7,10 @@ description: Use when a local Agent runtime process must be inspected or verifie
 
 Use the `agent-runtime-proof` MCP tools for read-only local process evidence.
 
+Do not use Agent Runtime Proof for remote processes, source-code security scans,
+artifact attestation without a live process, configuration edits, process
+control, installation, repair, or upgrades.
+
 - Start with `list_local_runtime_candidates` only when the PID or binding is unknown. An explicit `host_id` or `binding_id` selects a versioned Host Profile; never infer either value from MCP client metadata.
 - Use `inspect_local_runtimes` for observation by explicit PID, explicit binding, or bounded inventory.
 - Use `verify_local_runtime` with exactly one explicit PID or binding and either a trusted local expectation path or an inline expectation whose roots are absolute or home-relative.

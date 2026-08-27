@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: https://github.com/fantasyce/agent-runtime-proof/security/advisories/new
+    about: Report a vulnerability or sensitive disclosure privately.
+  - name: Support and questions
+    url: https://github.com/fantasyce/agent-runtime-proof/discussions
+    about: Ask sanitized usage and integration questions.

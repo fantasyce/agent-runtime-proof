@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Local, read-only proof that a live Agent or MCP runtime matches an approved artifact.">
+  <title>Agent Runtime Proof</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="masthead">
+    <a class="wordmark" href="./" aria-label="Agent Runtime Proof home"><span>ARP</span> Agent Runtime Proof</a>
+    <nav aria-label="Primary navigation">
+      <a href="https://github.com/fantasyce/agent-runtime-proof/blob/main/docs/quickstart.md">Quickstart</a>
+      <a href="https://github.com/fantasyce/agent-runtime-proof/releases/latest">Download</a>
+      <a href="https://github.com/fantasyce/agent-runtime-proof">Source</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Local runtime identity verification</p>
+        <h1 id="hero-title">Prove the agent runtime you launched is the artifact you approved.</h1>
+        <p class="lede">A replaced executable does not replace yesterday's process. ARP inspects the live local runtime, binds it to an explicit artifact expectation, and preserves uncertainty when the evidence is incomplete.</p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/fantasyce/agent-runtime-proof/releases/latest">Download the latest release</a>
+          <a class="button" href="https://github.com/fantasyce/agent-runtime-proof/blob/main/docs/demo.md">Run the reproducible demo</a>
+        </div>
+      </div>
+      <figure class="proof-card">
+        <img src="arp-runtime-proof.svg" alt="An approved artifact compared with a still-running process, resulting in an explicit unknown verdict.">
+        <figcaption>ARP compares process evidence with the artifact you named. It never treats new bytes on disk as proof of loaded code.</figcaption>
+      </figure>
+    </section>
+
+    <section class="evidence" aria-labelledby="evidence-title">
+      <div>
+        <p class="eyebrow">The gap ARP closes</p>
+        <h2 id="evidence-title">The file is current. Is the process?</h2>
+      </div>
+      <ol class="evidence-chain">
+        <li><span class="step">Approved</span><strong>Artifact expectation</strong><code>sha256: 7e31…a08c</code></li>
+        <li><span class="step">Observed</span><strong>Live process identity</strong><code>pid 4812 · started earlier</code></li>
+        <li class="verdict"><span class="step">Reported</span><strong>UNKNOWN</strong><code>POSSIBLE_STALE_AFTER_REPLACEMENT</code></li>
+      </ol>
+    </section>
+
+    <section class="capabilities" aria-labelledby="capabilities-title">
+      <div class="section-heading">
+        <p class="eyebrow">Narrow by design</p>
+        <h2 id="capabilities-title">Evidence without intervention</h2>
+        <p>ARP observes. Your host remains in control.</p>
+      </div>
+      <div class="capability-grid">
+        <article><h3>Local only</h3><p>No network listener, telemetry, or upload path. Raw arguments, environments, code, secrets, and transcripts stay out of MCP responses.</p></article>
+        <article><h3>Read only</h3><p>ARP does not stop processes, repair installations, rewrite Agent configuration, or promote an uncertain result to a match.</p></article>
+        <article><h3>Host ready</h3><p>Use the CLI, local stdio MCP server, launch Witness, or embedded Go SDK on macOS arm64, Linux amd64, and Windows amd64.</p></article>
+      </div>
+    </section>
+
+    <section class="quickstart" aria-labelledby="quickstart-title">
+      <div>
+        <p class="eyebrow">Five-minute check</p>
+        <h2 id="quickstart-title">Inspect before you trust</h2>
+        <p>Download a signed release asset, verify its checksum, then inspect one explicit process or a bounded current-user inventory.</p>
+      </div>
+      <pre aria-label="Agent Runtime Proof quickstart commands"><code>agent-runtime-proof doctor --format json
+agent-runtime-proof inspect --all --limit 20
+agent-runtime-proof verify \
+  --expectation /absolute/path/expectation.json \
+  --pid 1234 --format json</code></pre>
+      <a class="text-link" href="https://github.com/fantasyce/agent-runtime-proof/blob/main/docs/quickstart.md">Open the complete quickstart →</a>
+    </section>
+
+    <section class="boundary" aria-labelledby="boundary-title">
+      <div><p class="eyebrow">Trust boundary</p><h2 id="boundary-title">One proof, not a certification</h2></div>
+      <p>ARP complements checksums, signatures, build attestations, SBOMs, sandboxing, and host policy. It answers one narrower question: does the live local process match the artifact expectation you approved?</p>
+      <div class="boundary-links">
+        <a href="https://github.com/fantasyce/agent-runtime-proof/blob/main/docs/data-handling.md">Data handling</a>
+        <a href="https://github.com/fantasyce/agent-runtime-proof/blob/main/docs/threat-model.md">Threat model</a>
+        <a href="https://github.com/fantasyce/agent-runtime-proof/blob/main/SECURITY.md">Security policy</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Apache-2.0 · No tracking · No external page dependencies</p>
+    <nav aria-label="Footer navigation"><a href="https://github.com/fantasyce/agent-runtime-proof">GitHub source</a><a href="https://github.com/fantasyce/agent-runtime-proof/issues">Issues</a></nav>
+  </footer>
+</body>
+</html>

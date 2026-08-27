@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Runtime Proof</title>
+  <desc id="desc">A linked process node and verified artifact inside a protective frame.</desc>
+  <rect width="128" height="128" rx="24" fill="#101828"/>
+  <path d="M35 32h58a11 11 0 0 1 11 11v42a11 11 0 0 1-11 11H35a11 11 0 0 1-11-11V43a11 11 0 0 1 11-11Z" fill="none" stroke="#d0d5dd" stroke-width="7"/>
+  <circle cx="47" cy="64" r="10" fill="#84adff"/>
+  <path d="M57 64h18" stroke="#84adff" stroke-width="7" stroke-linecap="round"/>
+  <path d="m75 66 8 8 16-20" fill="none" stroke="#75e0a7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

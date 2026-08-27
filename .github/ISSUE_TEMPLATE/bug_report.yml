@@ -1,0 +1,48 @@
+name: Bug report
+description: Report a reproducible ARP defect without sensitive host data.
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include secrets, credentials, raw argv, environment values, private configuration, or proprietary file contents. Use SECURITY.md for vulnerabilities."
+  - type: input
+    id: version
+    attributes:
+      label: ARP version
+      placeholder: agent-runtime-proof 1.1.0 (commit)
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [macOS arm64, Linux amd64, Windows amd64, Other or unsupported]
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Agent or MCP host
+      placeholder: Codex, Claude Code, Cursor, OpenCode, VS Code, generic CLI
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal sanitized reproduction
+      description: Include commands only after removing private paths and values.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual result
+      description: Include verdict and reason codes, not surrounding raw logs.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed secrets and sensitive process or host data.
+          required: true

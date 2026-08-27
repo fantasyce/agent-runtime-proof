@@ -39,6 +39,22 @@ func TestServerPublishesExactlyThreeClosedWorldReadOnlyTools(t *testing.T) {
 	}
 }
 
+func TestToolDescriptionsDefineUseAndNonUseBoundaries(t *testing.T) {
+	session := connect(t, New(&fakeRuntime{}, "test"))
+	result, err := session.ListTools(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tool := range result.Tools {
+		if !strings.HasPrefix(tool.Description, "Use this when ") {
+			t.Errorf("%s description does not start with a use boundary: %q", tool.Name, tool.Description)
+		}
+		if !strings.Contains(tool.Description, "Do not use") {
+			t.Errorf("%s description has no non-use boundary: %q", tool.Name, tool.Description)
+		}
+	}
+}
+
 func TestToolsDelegateValidatedRequestsAndKeepDomainVerdictsSuccessful(t *testing.T) {
 	digest := strings.Repeat("a", 64)
 	runtime := &fakeRuntime{

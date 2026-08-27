@@ -1,0 +1,101 @@
+{
+  "schema_version": "arp-mcp-golden-prompts/1.0",
+  "cases": [
+    {
+      "id": "direct-list-candidates",
+      "group": "positive",
+      "prompt": "Use Agent Runtime Proof to list a few local runtime candidates; I do not know the PID yet.",
+      "expected_action": "call",
+      "expected_tool": "list_local_runtime_candidates",
+      "rationale": "The user needs bounded discovery before selecting a process."
+    },
+    {
+      "id": "indirect-find-mcp-process",
+      "group": "positive",
+      "prompt": "Which of my current local processes could be the MCP server I just started?",
+      "expected_action": "call",
+      "expected_tool": "list_local_runtime_candidates",
+      "rationale": "The requested outcome is safe candidate discovery without artifact hashing."
+    },
+    {
+      "id": "direct-inspect-pid",
+      "group": "positive",
+      "prompt": "Inspect local PID 4242 with ARP and return its observation Proof.",
+      "expected_action": "call",
+      "expected_tool": "inspect_local_runtimes",
+      "rationale": "An explicit local PID and observation-only request are present."
+    },
+    {
+      "id": "indirect-observe-binding",
+      "group": "positive",
+      "prompt": "Show me what is observable about the local runtime bound as codex.agent-runtime-proof, without claiming it matches a release.",
+      "expected_action": "call",
+      "expected_tool": "inspect_local_runtimes",
+      "rationale": "The user asks for observation of an explicit binding and rejects a match claim."
+    },
+    {
+      "id": "direct-verify-expectation",
+      "group": "positive",
+      "prompt": "Verify PID 4242 against /tmp/reviewed-expectation.json and return the complete ARP Proof.",
+      "expected_action": "call",
+      "expected_tool": "verify_local_runtime",
+      "rationale": "The user supplies both a local selector and an expectation."
+    },
+    {
+      "id": "indirect-stale-runtime",
+      "group": "positive",
+      "prompt": "I upgraded this local Agent but think yesterday's process is still running. Check PID 4242 against my reviewed expectation file.",
+      "expected_action": "call",
+      "expected_tool": "verify_local_runtime",
+      "rationale": "Runtime drift against an explicit expectation is ARP's primary verification workflow."
+    },
+    {
+      "id": "missing-expectation",
+      "group": "negative",
+      "prompt": "Prove that PID 4242 is the approved release, but I do not have an expectation or installed record.",
+      "expected_action": "clarify",
+      "expected_tool": null,
+      "rationale": "ARP must not claim an approved match without an explicit expectation."
+    },
+    {
+      "id": "remote-process",
+      "group": "negative",
+      "prompt": "Verify the Agent process running on a remote production server that this host cannot access locally.",
+      "expected_action": "do_not_call",
+      "expected_tool": null,
+      "rationale": "ARP v1 verifies only local processes and local files."
+    },
+    {
+      "id": "restart-runtime",
+      "group": "negative",
+      "prompt": "Stop the stale MCP server and restart the new binary for me.",
+      "expected_action": "do_not_call",
+      "expected_tool": null,
+      "rationale": "ARP is read-only and does not stop, start, or repair processes."
+    },
+    {
+      "id": "edit-host-config",
+      "group": "negative",
+      "prompt": "Rewrite my global Codex MCP configuration to install this server.",
+      "expected_action": "do_not_call",
+      "expected_tool": null,
+      "rationale": "ARP reads supported configuration as inert data and never edits host configuration."
+    },
+    {
+      "id": "code-security-scan",
+      "group": "negative",
+      "prompt": "Scan this repository for SQL injection vulnerabilities.",
+      "expected_action": "do_not_call",
+      "expected_tool": null,
+      "rationale": "Source-code vulnerability scanning is outside runtime identity verification."
+    },
+    {
+      "id": "download-attestation-only",
+      "group": "negative",
+      "prompt": "Verify only the GitHub artifact attestation for this downloaded archive.",
+      "expected_action": "do_not_call",
+      "expected_tool": null,
+      "rationale": "Artifact attestation verification does not require observing a live local runtime."
+    }
+  ]
+}

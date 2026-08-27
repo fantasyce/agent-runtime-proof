@@ -6,19 +6,21 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
-  id-token: write
-  attestations: write
+  contents: read
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  publish:
-    name: Build, attest, and publish
+  build:
+    name: Build, verify, and attest
     runs-on: macos-14
-    timeout-minutes: 20
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
 
     steps:
       - name: Checkout tagged source
@@ -56,6 +58,8 @@ jobs:
           bash scripts/verify_release_metadata.sh
           bash scripts/verify_host_profiles.sh
           bash scripts/verify_release_workflow.sh
+          bash scripts/test_install_lifecycle.sh
+          bash scripts/test_release_assets.sh
 
       - name: Build and verify release assets
         shell: bash
@@ -77,6 +81,54 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  smoke:
+    name: MCPB native smoke (${{ matrix.os }})
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            python: python3
+          - os: windows-2025
+            python: python
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Download exact release assets
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: agent-runtime-proof-${{ github.ref_name }}
+          path: release-dist
+      - name: Run the packaged native binary and MCP lifecycle
+        shell: bash
+        run: |
+          "${{ matrix.python }}" scripts/smoke_mcpb.py \
+            --mcpb "release-dist/agent-runtime-proof_$(cat VERSION).mcpb" \
+            --version "$(cat VERSION)" \
+            --commit "$(git rev-parse HEAD)"
+
+  publish:
+    name: Publish verified release
+    needs: [build, smoke]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Download verified release assets
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: agent-runtime-proof-${{ github.ref_name }}
+          path: dist
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}

@@ -1,6 +1,6 @@
 {
   "name": "agent-runtime-proof",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Read-only local runtime identity proof through stdio MCP",
   "author": {
     "name": "Agent Runtime Proof contributors"
@@ -8,12 +8,12 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Agent Runtime Proof",
-    "shortDescription": "Verify which local Agent runtime is actually running.",
-    "longDescription": "Inspect and verify local Agent runtime processes against explicit expectations without changing host configuration or process state.",
+    "shortDescription": "Prove whether a local Agent runtime matches an approved artifact.",
+    "longDescription": "Inspect and verify local Agent or MCP runtime processes against explicit artifact expectations without uploading data or changing host configuration and process state.",
     "developerName": "Agent Runtime Proof contributors",
     "category": "Developer Tools",
     "capabilities": [],
-    "defaultPrompt": "Inspect or verify a local Agent runtime with Agent Runtime Proof."
+    "defaultPrompt": "Verify a local Agent runtime against an explicit artifact expectation and report the Proof, reason codes, and limitations."
   },
   "mcpServers": "./.mcp.json"
 }
