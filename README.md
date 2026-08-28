@@ -78,6 +78,10 @@ The v1.1.0 Release also includes
 metadata binds the bundle URL to its SHA-256 digest; the same three native
 binaries remain available as ordinary platform archives.
 
+The same release is published in the
+[official MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers/io.github.fantasyce%2Fagent-runtime-proof/versions/1.1.0)
+as `io.github.fantasyce/agent-runtime-proof`.
+
 ## What ARP proves
 
 These controls answer different questions and work best together:
@@ -169,6 +173,16 @@ bash scripts/check.sh
 Release assets include CycloneDX SBOMs, SHA-256 checksums, and GitHub artifact
 attestations. Publication state is determined by the public GitHub Release, not
 by a local acceptance record.
+
+## Agent Reliability Toolkit
+
+ARP is one independent part of a small, local-first reliability toolkit:
+
+- [Agent Runtime Proof](https://github.com/fantasyce/agent-runtime-proof) verifies that a live Agent or MCP runtime matches the artifact you approved.
+- [Agent Residue Evidence](https://github.com/fantasyce/agent-residue-evidence) records task-scoped files, processes, and listening ports left by tests and builds.
+- [DSH TypeLens](https://github.com/fantasyce/dsh-typelens) adds bounded type context and edit diagnostics to DeepSeek Harness.
+
+Each project remains separately installable and keeps its own trust boundary.
 
 ## Community
 
