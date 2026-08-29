@@ -186,7 +186,7 @@ func TestDigestRejectsEarlierFileMutatedBeforeFinalBarrier(t *testing.T) {
 	first := filepath.Join(root, "a")
 	writeFile(t, first, "old")
 	writeFile(t, filepath.Join(root, "b"), "stable")
-	clock := &callbackClock{at: 6, callback: func() { _ = os.WriteFile(first, []byte("new"), 0o600) }}
+	clock := &callbackClock{at: 6, callback: func() { _ = os.WriteFile(first, []byte("new-content"), 0o600) }}
 	_, err := Digest(context.Background(), resolvedFor(root, []string{"**"}, nil, 10, 1024, 1000), clock)
 	assertReason(t, err, "ARTIFACT_CHANGED_DURING_READ")
 }

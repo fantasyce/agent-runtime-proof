@@ -1,0 +1,21 @@
+{
+  "schema_version": "agent-runtime-fixture/1.0",
+  "fixture_id": "linux.interpreter-runtime",
+  "platform": {"os": "linux", "arch": "amd64"},
+  "snapshot": {
+    "process": {"pid": 1842, "created_at_unix_nano": "1787536400000000000", "boot_id_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "parent_pid": 1800, "state": "running"},
+    "executable": {"basename": "python", "path_projection": "/fixture/interpreters/python", "path_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222", "file_id_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333", "image_access": "observed"},
+    "artifact": {"status": "observed", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "file_count": 3, "byte_count": 1536},
+    "denied_fields": [],
+    "host_binding": {"host_id": "generic-mcp", "config_source_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444", "confidence": "bound"}
+  },
+  "expectation": {
+    "schema_version": "agent-runtime-expectation/1.0",
+    "subject": {"id": "com.example.interpreter-runtime", "display_name": "Example Interpreter Runtime", "version": "1.0.0"},
+    "launch": {"kind": "interpreter-script", "entrypoint": "lib/agent.py", "argument_fingerprints": []},
+    "artifact": {"root": "/fixture/interpreter-runtime", "include": ["lib/**"], "exclude": [], "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "max_files": 20000, "max_bytes": 268435456, "max_duration_ms": 10000},
+    "policy": {"allowed_roots": ["/fixture/interpreter-runtime"], "allow_symlinks": false},
+    "source": {"kind": "release-manifest", "locator_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "trust": "verified"}
+  },
+  "expected": {"verdict": "UNKNOWN", "proof_level": "ARTIFACT_OBSERVED", "reason_codes": ["PLATFORM_EVIDENCE_UNAVAILABLE"]}
+}
