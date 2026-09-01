@@ -30,6 +30,14 @@ Permission denial and incomplete observation become evidence limitations. ARP
 does not request elevation or weaken host controls to turn an uncertain result
 into a match.
 
+## Interpreter launch boundaries
+
+For `interpreter-script` launch kinds, observing the declared artifact digest
+does not prove that the live interpreter loaded the expected entrypoint or every
+dynamic dependency. ARP reports that boundary as `UNKNOWN` with
+`ARTIFACT_OBSERVED` evidence and a `PLATFORM_EVIDENCE_UNAVAILABLE` reason
+instead of promoting incomplete evidence to `MATCHED` or `STALE`.
+
 ## User responsibility
 
 Do not publish raw terminal history, surrounding logs, expectation files, or
