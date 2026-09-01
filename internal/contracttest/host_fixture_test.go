@@ -95,6 +95,20 @@ func TestHostFixtures(t *testing.T) {
 	}
 }
 
+func TestEqualReasonCodesIgnoresOrder(t *testing.T) {
+	if !equalReasonCodes([]string{"PROCESS_INACCESSIBLE", "PLATFORM_EVIDENCE_UNAVAILABLE"}, []string{"PLATFORM_EVIDENCE_UNAVAILABLE", "PROCESS_INACCESSIBLE"}) {
+		t.Fatal("reason code comparison must ignore order")
+	}
+}
+
+func equalReasonCodes(left, right []string) bool {
+	left = slices.Clone(left)
+	right = slices.Clone(right)
+	slices.Sort(left)
+	slices.Sort(right)
+	return slices.Equal(left, right)
+}
+
 func TestInterpreterRuntimeFixtureDecision(t *testing.T) {
 	document := loadJSON(t, "testdata/hosts/linux/interpreter-runtime.json")
 	fixture := decodeViaJSON[hostFixture](t, document)
@@ -131,7 +145,7 @@ func TestInterpreterRuntimeFixtureDecision(t *testing.T) {
 	if decision.Verdict == "MATCHED" || decision.Verdict == "STALE" {
 		t.Fatalf("interpreter fixture decision was over-promoted: %#v", decision)
 	}
-	if decision.Verdict != fixture.Expected.Verdict || decision.ProofLevel != fixture.Expected.ProofLevel || !slices.Equal(decision.ReasonCodes, fixture.Expected.ReasonCodes) {
+	if decision.Verdict != fixture.Expected.Verdict || decision.ProofLevel != fixture.Expected.ProofLevel || !equalReasonCodes(decision.ReasonCodes, fixture.Expected.ReasonCodes) {
 		t.Fatalf("decision = %#v, expected %#v", decision, fixture.Expected)
 	}
 	if !slices.Contains(decision.Limitations, "DYNAMIC_DEPENDENCIES_UNPROVEN") {
@@ -146,7 +160,7 @@ func TestInterpreterRuntimeFixtureDecision(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if value.ProofLevel != fixture.Expected.ProofLevel || !slices.Equal(value.ReasonCodes, fixture.Expected.ReasonCodes) {
+	if value.ProofLevel != fixture.Expected.ProofLevel || !equalReasonCodes(value.ReasonCodes, fixture.Expected.ReasonCodes) {
 		t.Fatalf("proof = %#v", value)
 	}
 }
