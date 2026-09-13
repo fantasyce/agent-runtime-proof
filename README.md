@@ -178,15 +178,20 @@ by a local acceptance record.
 
 ARP is one independent part of a small, local-first reliability toolkit:
 
+- [Agent Recall Trail](https://github.com/fantasyce/agent-recall-trail) keeps private Agent memory separate from reviewed shared knowledge.
 - [Agent Runtime Proof](https://github.com/fantasyce/agent-runtime-proof) verifies that a live Agent or MCP runtime matches the artifact you approved.
 - [Agent Residue Evidence](https://github.com/fantasyce/agent-residue-evidence) records task-scoped files, processes, and listening ports left by tests and builds.
-- [DSH TypeLens](https://github.com/fantasyce/dsh-typelens) adds bounded type context and edit diagnostics to DeepSeek Harness.
 
 Each project remains separately installable and keeps its own trust boundary.
 
 ## Community
 
-Contributions and independent host/runtime cases are welcome. Read
+Contributions and independent host/runtime cases are welcome. For a sanitized
+Codex or DSH integration, share the host, version, launch relationship, and
+observed proof boundary in the [design-partner issue](https://github.com/fantasyce/agent-runtime-proof/issues/8).
+DSH users can also join the
+[official community discussion](https://github.com/deepseek-ai/deepseek-harness/discussions/6479).
+Read
 [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md),
 and [SUPPORT.md](SUPPORT.md). Report vulnerabilities privately as described in
 [SECURITY.md](SECURITY.md); do not put secrets or sensitive process data in a
